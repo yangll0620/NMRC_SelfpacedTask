@@ -1,16 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Diagnostics;
 using System.IO.Ports;
@@ -28,9 +23,9 @@ namespace GonoGoTask_wpfVer
         double disThreshold_close = 100; // the threshold distance defining close
 
         // diameter for crossing, circle, square and white points
-        int objdiameter = 200;
+        int objdiameter = 300;
         int rightgap = 30;
-        int leftgap = 30;
+        int leftgap = 50;
         int topgap = 30;
         int wpoints_radius = 15;
 

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.IO.Ports;
+using System.Windows.Controls;
 
 
 namespace GonoGoTask_wpfVer
@@ -29,6 +30,7 @@ namespace GonoGoTask_wpfVer
                 cboPort.SelectedIndex = 0;
             }
         }
+
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
