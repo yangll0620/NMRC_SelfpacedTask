@@ -7,6 +7,7 @@
         mc:Ignorable="d"
         Title="GonoGoTask" Height="450" Width="800">
     <Grid>
+
         <!--Grid RowDefinitions: 0, 1, 2-->
         <Grid.RowDefinitions>
             <RowDefinition Height="2*"/>
@@ -21,21 +22,36 @@
                   FontFamily="Microsoft Sans Serif" FontWeight="Bold">
             <Grid HorizontalAlignment="Left" VerticalAlignment="Top" Height="50"  Width="600" Margin="0,10,0,0">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="2*" />
-                    <ColumnDefinition Width="2*" />
-                    <ColumnDefinition Width="2*" />
+                    <ColumnDefinition Width="1.8*" />
+                    <ColumnDefinition Width="2.5*" />
+                    <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <Label Content="NHP Name" Grid.Column="0" HorizontalAlignment="Right"  VerticalAlignment="top" 
                        HorizontalContentAlignment="Right"
                        Height="25" Margin="0,10,120,0" FontWeight="Normal" />
                 <TextBox x:Name="textBox_NHPName" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Top"
-                         Width="100" Height="25" Margin="0,10,10,0"
+                         Width="2cm" Height="25" Margin="0,10,10,0"
                        TextWrapping="Wrap" Text=""  FontWeight="Normal" />
 
-                <Label Content="Port" Grid.Column="1"  VerticalAlignment="top" HorizontalAlignment="Right"
-                       Height="25" Margin="0,10,120,0" FontWeight="Normal" HorizontalContentAlignment="Right"  />
+                <TextBlock  x:Name="textblock_comState"
+                    TextWrapping="WrapWithOverflow"  Grid.Column="1"   
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" 
+                                   Height="40" Margin="0,0,0,0"  FontSize="11" >
+                    <Run x:Name="run_comState">COM State</Run>
+                    <LineBreak/>
+                    <Run x:Name ="run_instruction">COM instruction</Run>
+                </TextBlock>
+
+                <!--<Label x:Name="label_cboport"
+                    Content="Port" Grid.Column="1"  VerticalAlignment="top" HorizontalAlignment="Right"
+                       Height="25" Margin="0,10,120,0" FontWeight="Normal" HorizontalContentAlignment="Right"  Visibility="Hidden"/>
                 <ComboBox x:Name="cboPort" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Top" 
-                          Width="100" Height="25" Margin="0,10,10,0"  FontWeight="Normal"/>
+                          Width="100" Height="25" Margin="0,10,10,0"  FontWeight="Normal" VerticalContentAlignment="Center" Visibility="Hidden" IsEnabled="False"/>-->
+
+                <Button x:Name="btn_comReconnect" 
+                    Content="reCheck" Grid.Column="2" HorizontalAlignment="Left" Margin="15,15,0,0" VerticalAlignment="Top" Width="75"  Click="Btn_comReconnect_Click"/>
+
+
             </Grid>
         </GroupBox>
 
@@ -43,12 +59,12 @@
         <!--Optional Parameters GroupBox-->
         <GroupBox Header="Optional Parameters" HorizontalAlignment= "Left" VerticalAlignment="Top" Grid.Row="1"
                   Margin ="15 15 0 0"
-                  FontFamily="Microsoft Sans Serif" FontWeight="Bold">
-            <Grid HorizontalAlignment="Left" VerticalAlignment="Top" Height="240"  Width="700" Margin="0,10,0,0">
+                  FontFamily="Microsoft Sans Serif" FontWeight="Bold" Grid.ColumnSpan="2">
+            <Grid HorizontalAlignment="Left" VerticalAlignment="Top" Height="240"  Width="600" Margin="0,10,0,0">
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1.2*"/>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="1.5*"/>
                 </Grid.ColumnDefinitions>
 
                 <Grid.RowDefinitions>
@@ -56,9 +72,10 @@
                     <RowDefinition Height="5*"/>
                 </Grid.RowDefinitions>
 
+
                 <!--# of Trials GroupBox-->
                 <GroupBox Header="# of Trials" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Bottom"
-                              Height="85"  Margin="10,0,15,0"  FontFamily="Microsoft Sans Serif" FontWeight="Bold">
+                              Height="85"  Margin="10,0,0,0"  FontFamily="Microsoft Sans Serif" FontWeight="Bold" Grid.ColumnSpan="2">
                     <Grid HorizontalAlignment="Left" VerticalAlignment="Top"  Width ="160" Height="65" Margin="0,0,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*"/>
@@ -72,7 +89,7 @@
                                  HorizontalAlignment="Right" VerticalAlignment="Top" 
                                  HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                  Height="25" Width ="50" Margin="0,5,10,0" 
-                                 TextWrapping="Wrap" Text="10"  FontSize="11" FontWeight="Normal" />
+                                 TextWrapping="Wrap" Text="10"  FontSize="11" FontWeight="Normal" TextChanged="TextBox_goTrialNum_TextChanged" />
 
                         <Label Content="# of noGo Trials" HorizontalAlignment="Right" VerticalAlignment="Top" 
                                HorizontalContentAlignment="Right" VerticalContentAlignment="Center"
@@ -82,117 +99,92 @@
                                  HorizontalAlignment="Right" VerticalAlignment="Top" 
                                  HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                  Height="25" Width ="50" Margin="0,6,10,0" 
-                                 TextWrapping="Wrap" Text="5"  FontWeight="Normal" FontSize="11"  />
+                                 TextWrapping="Wrap" Text="5"  FontWeight="Normal" FontSize="11" TextChanged="TextBox_nogoTrialNum_TextChanged"  />
                     </Grid>
                 </GroupBox>
 
                 <!--Targets Setup GroupBox-->
-                <GroupBox Header="Targets Setup" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" 
+                <GroupBox Header="Targets Setup" Grid.Row="1" Grid.Column="0"  
                           HorizontalAlignment="Left" VerticalAlignment="Top"
-                              Height="135" Margin="10,10,0,0"  FontFamily="Microsoft Sans Serif" FontWeight="Bold">
-                    <Grid HorizontalAlignment="Left" VerticalAlignment="Top" Height="120"  Width="420" Margin="0,0,0,0">
+                              Height="140" Margin="10,10,0,0"  FontFamily="Microsoft Sans Serif" FontWeight="Bold" Grid.ColumnSpan="2">
+                    <Grid HorizontalAlignment="Left" VerticalAlignment="Top" Height="120"  Width="290" Margin="0,0,0,0">
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="2*"/>
-                            <RowDefinition Height="3*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
 
-                        <Grid Grid.Row="0" Width="410">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="1.2*"/>
-                                <ColumnDefinition Width="1.2*"/>
-                            </Grid.ColumnDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
 
-                            <Label Content="Diameter" Grid.Column="0" 
+                        <Label Content="Go Color" Grid.Row="0" Grid.Column="0" 
+                               HorizontalAlignment="Right" VerticalAlignment="top" 
+                               HorizontalContentAlignment="Right" VerticalContentAlignment="Center"
+                               Height="25" Margin="0,5,70,0"  FontWeight="Normal"/>
+                        <ComboBox x:Name="cbo_goColor" Grid.Row="0" Grid.Column="0" 
+                                    HorizontalAlignment="Right" VerticalAlignment="Top" 
+                                    Width="65" Height="25" Margin="0,5,5,0" 
+                                    VerticalContentAlignment="Center" FontWeight="Normal" >
+                            <ComboBoxItem IsSelected="True">Blue</ComboBoxItem>
+                            <ComboBoxItem>Green</ComboBoxItem>
+                            <ComboBoxItem>Red</ComboBoxItem>
+                            <ComboBoxItem>Yellow</ComboBoxItem>
+                        </ComboBox>
+
+                        <Label Content="noGo Color" Grid.Row="0" Grid.Column="1" 
                                    HorizontalAlignment="Right" VerticalAlignment="top" 
                                    HorizontalContentAlignment="Right" VerticalContentAlignment="Center"
-                                   Height="25" Margin="0,10,55,0"  FontWeight="Normal"/>
-                            <TextBox x:Name="textBox_objdiameter" Grid.Column="0" 
-                                     HorizontalAlignment="Right" VerticalAlignment="Top" 
-                                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                                     Height="25" Width ="50" Margin="0,10,5,0" 
-                                     TextWrapping="Wrap" Text="300"  FontWeight="Normal"  />
+                                   Height="25" Margin="0,5,70,0"  FontWeight="Normal"/>
 
-                            <Label Content="Go Color" Grid.Column="1" 
-                                   HorizontalAlignment="Right" VerticalAlignment="top" 
-                                   HorizontalContentAlignment="Right" VerticalContentAlignment="Center"
-                                   Height="25" Margin="0,10,70,0"  FontWeight="Normal"/>
-
-                            <ComboBox x:Name="cbo_goColor" Grid.Column="1" 
+                        <ComboBox x:Name="cbo_nogoColor" Grid.Row="0" Grid.Column="1" 
                                       HorizontalAlignment="Right" VerticalAlignment="Top" 
-                                      Width="65" Height="25" Margin="0,10,5,0" 
+                                      Width="65" Height="25" Margin="0,5,5,0" 
                                       VerticalContentAlignment="Center" FontWeight="Normal">
-                                <ComboBoxItem IsSelected="True">Blue</ComboBoxItem>
-                                <ComboBoxItem>Red</ComboBoxItem>
-                                <ComboBoxItem>Yellow</ComboBoxItem>
-                            </ComboBox>
+                            <ComboBoxItem>Blue</ComboBoxItem>
+                            <ComboBoxItem IsSelected="True">Red</ComboBoxItem>
+                            <ComboBoxItem>Green</ComboBoxItem>
+                            <ComboBoxItem>Yellow</ComboBoxItem>
+                        </ComboBox>
 
-                            <Label Content="noGo Color" Grid.Column="2" 
+
+
+                        <TextBlock  TextWrapping="WrapWithOverflow"  Grid.Row="1" Grid.Column="0"   
                                    HorizontalAlignment="Right" VerticalAlignment="top" 
-                                   HorizontalContentAlignment="Right" VerticalContentAlignment="Center"
-                                   Height="25" Margin="0,10,70,0"  FontWeight="Normal"/>
-
-                            <ComboBox x:Name="cbo_nogoColor" Grid.Column="2" 
-                                      HorizontalAlignment="Right" VerticalAlignment="Top" 
-                                      Width="65" Height="25" Margin="0,10,5,0" 
-                                      VerticalContentAlignment="Center" FontWeight="Normal">
-                                <ComboBoxItem>Blue</ComboBoxItem>
-                                <ComboBoxItem IsSelected="True">Red</ComboBoxItem>
-                                <ComboBoxItem>Yellow</ComboBoxItem>
-                            </ComboBox>
-                        </Grid>
-
-                        <GroupBox Header="Margins" Grid.Row="1" HorizontalAlignment="Left" VerticalAlignment="Top"
-                              Height="60" Margin="0,0,0,0"  FontFamily="Microsoft Sans Serif" FontWeight="Bold">
-                            <Grid Height="50" Width="400">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-
-
-                                <Label Content="Right Margin"  Grid.Column="0"  
-                                   HorizontalAlignment="Right" VerticalAlignment="top" 
-                                   HorizontalContentAlignment="Right" VerticalContentAlignment="Center"
-                                   Height="25" Margin="0,10,55,0"  FontWeight="Normal" FontSize="11"/>
-                                <TextBox x:Name="textBox_rightmargin"  Grid.Column="0" 
+                                   Height="25" Margin="0,10,70,0"  FontWeight="Normal" FontSize="11"
+                                    TextAlignment="Center" Padding="5,1,0,0">
+                            Diameter (inch)
+                        </TextBlock>
+                        <TextBox x:Name="textBox_objdiameter" Grid.Row="1" Grid.Column="0" 
                                      HorizontalAlignment="Right" VerticalAlignment="Top" 
                                      HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                                     Height="25" Width ="50" Margin="0,10,5,0" 
-                                     TextWrapping="Wrap" Text="30"  FontWeight="Normal" FontSize="11" />
+                                     Height="25" Width ="60" Margin="0,10,5,0" 
+                                     TextWrapping="Wrap" Text="3"  FontWeight="Normal"/>
 
-                                <Label Content="Left Margin"  Grid.Column="1"  
+                        <TextBlock  TextWrapping="WrapWithOverflow"  Grid.Row="2" Grid.Column="0"   
                                    HorizontalAlignment="Right" VerticalAlignment="top" 
-                                   HorizontalContentAlignment="Right" VerticalContentAlignment="Center"
-                                   Height="25" Margin="0,10,55,0"  FontWeight="Normal" FontSize="11"/>
-                                <TextBox x:Name="textBox_leftmargin"  Grid.Column="1" 
+                                   Height="25" Margin="0,10,70,0"  FontWeight="Normal" FontSize="11">dis_X from Center (inch)</TextBlock>
+                        <TextBox x:Name="textBox_Xdisfromcenter"  Grid.Row="2" Grid.Column="0"   
                                      HorizontalAlignment="Right" VerticalAlignment="Top" 
                                      HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                                     Height="25" Width ="50" Margin="0,10,5,0" 
-                                     TextWrapping="Wrap" Text="30"  FontWeight="Normal" FontSize="11" />
+                                     Height="25" Width ="60" Margin="0,10,5,0" 
+                                     TextWrapping="Wrap" Text="10"  FontWeight="Normal" FontSize="11" />
 
-                                <Label Content="Top Margin"  Grid.Column="2"  
+                        <TextBlock  TextWrapping="WrapWithOverflow"  Grid.Row="2" Grid.Column="1"   
                                    HorizontalAlignment="Right" VerticalAlignment="top" 
-                                   HorizontalContentAlignment="Right" VerticalContentAlignment="Center"
-                                   Height="25" Margin="0,10,55,0"  FontWeight="Normal" FontSize="11"/>
-                                <TextBox x:Name="textBox_topmargin"  Grid.Column="2" 
+                                   Height="25" Margin="0,10,70,0"  FontWeight="Normal" FontSize="11">dis_Y from Center (inch)</TextBlock>
+                        <TextBox x:Name="textBox_Ydisfromcenter"  Grid.Row="2" Grid.Column="1"   
                                      HorizontalAlignment="Right" VerticalAlignment="Top" 
                                      HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                                     Height="25" Width ="50" Margin="0,10,5,0" 
-                                     TextWrapping="Wrap" Text="30"  FontWeight="Normal" FontSize="11" />
-
-
-                            </Grid>
-                        </GroupBox>
-
-
+                                     Height="25" Width ="60" Margin="0,10,5,0" 
+                                     TextWrapping="Wrap" Text="5"  FontWeight="Normal" FontSize="11" />
                     </Grid>
 
                 </GroupBox>
 
 
-                <GroupBox Header="Time Setup (s)" Grid.Row="0" Grid.RowSpan="2" Grid.Column="2" 
+                <GroupBox Header="Time Setup (s)" Grid.Row="0" Grid.RowSpan="2" Grid.Column="3" 
                           HorizontalAlignment="Left" VerticalAlignment="Top"
                           Margin="10,0,0,0"  FontFamily="Microsoft Sans Serif" FontWeight="Bold">
                     <Grid HorizontalAlignment="Left" VerticalAlignment="Top" Height="210"  Width="200" Margin="0,0,0,0">
@@ -202,19 +194,38 @@
                         </Grid.RowDefinitions>
 
                         <Grid Grid.Row="0">
-                            <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center" 
-                                       TextAlignment="Right" Padding="3"
-                                   Height="23" Margin="0,12,0,0"  FontWeight="Normal"  >
-                            t_maxTargetShow</TextBlock>
-                            <TextBox x:Name="textBox_tmaxTargetShow" HorizontalAlignment="Left" VerticalAlignment="Center" 
-                                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                                     Height="23" Width="50" Margin="105,10,5,0" 
-                                     TextWrapping="Wrap" Text="5"  FontWeight="Normal" />
-                        </Grid>
-
-                        <Grid Grid.Row="1">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0"
+                                HorizontalAlignment="Left" VerticalAlignment="Center" 
+                                       TextAlignment="Right" Padding="3"
+                                   Height="23" Margin="0,12,0,0"  FontWeight="Normal"  >
+                            t_maxGo/noGoShow</TextBlock>
+                            <TextBox x:Name="textBox_tmaxGoNogoShow" Grid.Row="0"
+                                     HorizontalAlignment="Left" VerticalAlignment="Center" 
+                                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                     Height="23" Width="50" Margin="120,10,5,0" 
+                                     TextWrapping="Wrap" Text="3"  FontWeight="Normal" />
+
+
+
+                            <TextBlock Grid.Row="1"
+                                HorizontalAlignment="Left" VerticalAlignment="Center" 
+                                       TextAlignment="Right" Padding="3"
+                                   Height="23" Margin="0,12,0,0"  FontWeight="Normal"  >
+                            t_RewardShow</TextBlock>
+                            <TextBox x:Name="textBox_tRewardShow" Grid.Row="1"
+                                     HorizontalAlignment="Left" VerticalAlignment="Center" 
+                                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                     Height="23" Width="50" Margin="120,10,5,0" 
+                                     TextWrapping="Wrap" Text="2"  FontWeight="Normal" />
+                        </Grid>
+
+                        <Grid Grid.Row="1" Margin="0,15,0,0">
+                            <Grid.RowDefinitions>
                                 <RowDefinition Height="*"/>
                                 <RowDefinition Height="*"/>
                                 <RowDefinition Height="*"/>
@@ -227,11 +238,11 @@
                             </Grid.ColumnDefinitions>
 
                             <Label Content="t_min (s)" Grid.Row="0" Grid.Column="1"  
-                                   HorizontalAlignment="Center" VerticalAlignment="top" 
+                                   HorizontalAlignment="Center" VerticalAlignment="Bottom" 
                                    HorizontalContentAlignment="Right" VerticalContentAlignment="Center"
                                    Height="23" Margin="0,10,0,0"  FontWeight="Normal"/>
                             <Label Content="t_max (s)" Grid.Row="0" Grid.Column="2"  
-                                   HorizontalAlignment="Center" VerticalAlignment="top" 
+                                   HorizontalAlignment="Center" VerticalAlignment="Bottom" 
                                    HorizontalContentAlignment="Right" VerticalContentAlignment="Center"
                                    Height="23" Margin="0,10,0,0"  FontWeight="Normal"/>
 
@@ -267,13 +278,31 @@
                         </Grid>
                     </Grid>
                 </GroupBox>
+
+                <GroupBox Header="Error Margin Setup" Grid.Row="0" Grid.Column="1"
+                           HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                              Height="80"  Margin="20,0,0,0"  FontFamily="Microsoft Sans Serif" FontWeight="Bold">
+                    <Grid Width="135">
+                        <TextBlock  TextWrapping="WrapWithOverflow" HorizontalAlignment="Right" 
+                                   Margin="0,8,67,22"  FontWeight="Normal" TextAlignment="Right" VerticalAlignment="Center" Width="60">
+                            Error Margin (%)</TextBlock>
+                        <TextBox x:Name="textBox_errorMargin"   
+                                     HorizontalAlignment="Right" VerticalAlignment="Top" 
+                                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                     Height="23" Width ="50" Margin="0,10,5,0" 
+                                     TextWrapping="Wrap" Text="10"  FontWeight="Normal" />
+                    </Grid>
+
+
+                </GroupBox>
             </Grid>
         </GroupBox>
 
 
         <!--Row2: Click to Start Button-->
-        <Button Content="Click to Start" HorizontalAlignment="Right" VerticalAlignment="Top" Grid.Row="2"
+        <Button x:Name="btn_start"
+            Content="Click to Start" HorizontalAlignment="Right" VerticalAlignment="Top" Grid.Row="2"
                 Margin="0,5,20,0"  Width="100" Height="35" 
-                FontWeight="Bold" FontFamily="Microsoft Sans Serif" FontSize="14" Click="Button_Click" />
+                FontWeight="Bold" FontFamily="Microsoft Sans Serif" FontSize="14" Click="Button_Click" Grid.ColumnSpan="2" />
     </Grid>
 </Window>

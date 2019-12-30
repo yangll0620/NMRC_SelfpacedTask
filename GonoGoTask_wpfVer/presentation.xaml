@@ -23,7 +23,7 @@
         <Button x:Name="btnStop"
             Content="ClicktoStop" HorizontalAlignment="Left" Margin="128,268,0,0" VerticalAlignment="Top" Width="172" Click="BtnStop_Click" Height="77"/>
         <TextBox x:Name="textBox_State"
-            HorizontalAlignment="Left" Height="45" Margin="487,247,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120"/>
+            HorizontalAlignment="Left" Height="1in" Margin="487,247,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="1in"/>
 
     </Grid>
 </Window>

@@ -20,14 +20,8 @@ namespace GonoGoTask_wpfVer
     {
 
         /***** predefined parameters*******/
-        double disThreshold_close = 100; // the threshold distance defining close
-
-        // diameter for crossing, circle, square and white points
-        int objdiameter = 300;
-        int rightgap = 30;
-        int leftgap = 50;
-        int topgap = 30;
         int wpoints_radius = 15;
+
 
 
         /***********enumerate *****************/
@@ -86,19 +80,34 @@ namespace GonoGoTask_wpfVer
         /*****************parameters ************************/
         MainWindow parent;
 
+
+        // diameter for crossing, circle, square and white points
+        int objdiameter;
+        int disXFromCenter, disYFromCenter;
+        // the threshold distance defining close
+        int disThreshold_close; 
+
         TargetType targetType;
+        
         // randomized Go noGo tag list, tag_gonogo ==1: go, ==0: nogo
         List<TargetType> targetType_List = new List<TargetType>();
 
+
         // objects of Go cirle, nogo Rectangle, lines of the crossing, and two white points
         Ellipse circleGo;
+        SolidColorBrush brush_goCircle;
         Rectangle rectNogo;
+        SolidColorBrush brush_nogoRect;
         Line vertLine, horiLine;
         Ellipse point1, point2;
 
         Point circleGo_centerPoint; // the center of circleGo 
         double circleGo_radius; // the radius of circleGO
-        
+
+
+
+        // background of ready and trial
+        SolidColorBrush brush_bkready, brush_bktrial;
 
 
         InterfaceState interfaceState;
@@ -108,12 +117,15 @@ namespace GonoGoTask_wpfVer
         string name_rectNogo = "rectNogo";
         string name_vLine = "vLine", name_hLine = "hLine";
         string name_point1 = "wpoint1", name_point2 = "wpoint2";
+        // randomized positions of the Go/noGo target  and the two white points
+        List<int[]> goNogoPos_List = new List<int[]>();
+        List<int[]> wpoint1Pos_List = new List<int[]>();
+        List<int[]> wpoint2Pos_List = new List<int[]>();
 
         // wait range for each event
-        int[] wrange_ready = new int[] {1, 3};
-        int[] wrange_targetcue = new int[] { 1, 3 };
-        int[] wrange_gonogo = new int[] { 5};
-        int[] wrange_reward = new int[] {1};
+        float waitt_goNogo, waitt_reward;
+        float[] waittrange_ready, waittrange_cue;
+        
 
 
         // set storing the touch point id (no replicates)
@@ -134,6 +146,9 @@ namespace GonoGoTask_wpfVer
         bool interupt_InterfaceOthers = false;
 
 
+        CancellationTokenSource cancellationTokenSourece = new CancellationTokenSource();
+
+
         // serial port for DLP-IO8-G
         SerialPort serialPort_IO8;
         int baudRate = 115200;
@@ -141,7 +156,7 @@ namespace GonoGoTask_wpfVer
         /* startpad parameters */
         StartPad4TrialState startPad4TrialState;
         // tmin_touchpad: the minimal touch time on start pad
-        int tMin_Startpad = 3; 
+        //int tMin_Startpad = 3; 
         public delegate void UpdateTextCallback(string message);
 
 
@@ -159,30 +174,98 @@ namespace GonoGoTask_wpfVer
 
         }
 
+        public int cm2pixal(float cmlen)
+        {/* convert length with unit cm to unit pixal, 96 pixals = 1 inch = 2.54 cm
+
+            args:   
+                cmlen: to be converted length (unit: cm)
+
+            return:
+                pixalen: converted length with unit pixal
+         */
+
+            float ratio = (float)96/(float)2.54;
+
+            int pixalen = (int)(cmlen * ratio);
+
+            return pixalen;
+        }
+
+
+        public int in2pixal(float inlen)
+        {/* convert length with unit inch to unit pixal, 96 pixals = 1 inch = 2.54 cm
+
+            args:   
+                cmlen: to be converted length (unit: inch)
+
+            return:
+                pixalen: converted length with unit pixal
+         */
+
+            int ratio = 96;
+
+            int pixalen = (int) (inlen * ratio);
+
+            return pixalen;
+        }
+
+
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            /* get the setup from the parent interface */
+            // object size and distance parameters
+            objdiameter = in2pixal(float.Parse(parent.textBox_objdiameter.Text));
+            disXFromCenter = in2pixal(float.Parse(parent.textBox_Xdisfromcenter.Text));
+            disYFromCenter = in2pixal(float.Parse(parent.textBox_Ydisfromcenter.Text));
+            disThreshold_close = (int) (objdiameter * float.Parse(parent.textBox_errorMargin.Text) /100);
+
+
+            // interfaces time related parameters
+            waitt_goNogo = float.Parse(parent.textBox_tmaxGoNogoShow.Text);
+            waitt_reward = float.Parse(parent.textBox_tRewardShow.Text);
+            waittrange_ready = new float[] { float.Parse(parent.textBox_tReady_min.Text), float.Parse(parent.textBox_tReady_max.Text) };
+            waittrange_cue = new float[] { float.Parse(parent.textBox_tCue_min.Text), float.Parse(parent.textBox_tCue_max.Text) };
+
+
+            // Brush for background of ready and trial
+            brush_bkready = new SolidColorBrush();
+            brush_bkready.Color = Colors.Gray;
+            brush_bktrial = new SolidColorBrush();
+            brush_bktrial.Color = Colors.Black;
+
+
             //shuffle go and nogo trials
             Shuffle_GonogoTrials(parent.gotrialnum, parent.nogotrialnum);
 
-            // create goCircle, NogoRect, TwoWhitePoints and One Crossing
+            // Create necessary elements: go circle, nogo rect, two white points and one crossing
             Create_GoCircle();
             Create_NogoRect();
             Create_TwoWhitePoints();
             Create_OneCrossing();
 
 
-            /* serial Port IO8 */
-            serialPort_IO8 = new SerialPort();
-            //setup and open IO8 serial port 
-            serialPort_SetOpen(parent.serialPortIO8_name, baudRate);
 
-            // present task trial by trail
-            Present_Task();
+            // create a serial Port IO8 instance, and open it
+            serialPort_IO8 = new SerialPort();
+
+            try
+            {
+                serialPort_SetOpen(parent.serialPortIO8_name, baudRate);
+
+                // present task trial by trail
+                Present_Task();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error Message", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+
+            
 
 
         }
 
-        private void serialPort_SetOpen(string portName, int baudRate)
+        private void serialPort_SetOpen (string portName, int baudRate)
         {
             try
             {
@@ -192,13 +275,16 @@ namespace GonoGoTask_wpfVer
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "Error Message", MessageBoxButton.OK, MessageBoxImage.Error);
+                throw ex;
             }
         }
 
 
         private void Shuffle_GonogoTrials(int gotrialnum, int nogotrialnum)
-        {/* ---- shuffle go and nogo trials, present in member variable taglist_gonogo -----*/
+        {/* ---- 
+            shuffle go and nogo trials, present in member variable taglist_gonogo 
+         
+             */
 
             // create orderred gonogo list
             List<TargetType> tmporder_go = new List<TargetType>(Enumerable.Repeat(TargetType.Go, gotrialnum));
@@ -208,15 +294,41 @@ namespace GonoGoTask_wpfVer
 
             // shuffle 
             Random r = new Random();
-            int randomIndex;
+            int randomIndex, randomPosInd;
 
             while (tmporder_gonogo.Count > 0)
             {
                 // choose a random index in list tmporder_gonogo
                 randomIndex = r.Next(0, tmporder_gonogo.Count);
 
-                // add the selected value into tagarray_gonogo
+                // add the selected value (go/nogo type) into tagarray_gonogo
                 targetType_List.Add(tmporder_gonogo[randomIndex]);
+
+                // add the corresponding go/noGo object and the two white points position
+                randomPosInd = r.Next(1, 4);
+                if (randomPosInd == 1)
+                {// goNogo object on the left
+                    goNogoPos_List.Add(new int[] { -disXFromCenter, 0 });
+
+                    wpoint1Pos_List.Add(new int[] { 0, -disYFromCenter });
+                    wpoint2Pos_List.Add(new int[] { disXFromCenter, 0 });
+                }
+                else if (randomPosInd == 2)
+                {// goNogo object on the top
+                    goNogoPos_List.Add(new int[] { 0, -disYFromCenter });
+
+                    wpoint1Pos_List.Add(new int[] { -disXFromCenter, 0 });
+                    wpoint2Pos_List.Add(new int[] { disXFromCenter, 0 });
+                }
+
+                else if (randomPosInd == 3) 
+                {// goNogo object on the right
+                    goNogoPos_List.Add(new int[] { disXFromCenter, 0 });
+                    
+                    wpoint1Pos_List.Add(new int[] { -disYFromCenter, 0 });
+                    wpoint2Pos_List.Add(new int[] { 0, -disYFromCenter });
+                }
+                    
 
                 //remove this value
                 tmporder_gonogo.RemoveAt(randomIndex);
@@ -225,22 +337,38 @@ namespace GonoGoTask_wpfVer
 
 
         private void Create_GoCircle()
-        {/*Create the blue go circle: circleGo*/
+        {/*
+            Create the go circle: circleGo
+
+            Arg:
+                pos: the position ([left, top]) the go circle, vertical and horizontal aligned to center 
+
+
+            */
 
             // Create an Ellipse  
             circleGo = new Ellipse();
 
-            // Create a blue Brush    
-            SolidColorBrush blueBrush = new SolidColorBrush();
-            blueBrush.Color = Colors.Blue;
-            circleGo.Fill = blueBrush;
+            // Create a Brush    
+            brush_goCircle = new SolidColorBrush();
+
+            if(parent.cbo_goColor.Text == "Blue")
+                brush_goCircle.Color = Colors.Blue;
+            else if(parent.cbo_goColor.Text == "Red")
+                brush_goCircle.Color = Colors.Red;
+            else if (parent.cbo_goColor.Text == "Green")
+                brush_goCircle.Color = Colors.Green;
+            else if (parent.cbo_goColor.Text == "Yellow")
+                brush_goCircle.Color = Colors.Yellow;
+
+
+            circleGo.Fill = brush_goCircle;
 
             // set the size, position of circleGo
             circleGo.Height = objdiameter;
             circleGo.Width = objdiameter;
             circleGo.VerticalAlignment = VerticalAlignment.Center;
-            circleGo.HorizontalAlignment = HorizontalAlignment.Right;
-            circleGo.Margin = new Thickness(0, 0, rightgap, 0);
+            circleGo.HorizontalAlignment = HorizontalAlignment.Center;
 
             circleGo.Name = name_circleGo;
             circleGo.Visibility = Visibility.Hidden;
@@ -257,9 +385,11 @@ namespace GonoGoTask_wpfVer
             circleGo_radius = ((circleGo.Height + circleGo.Width) / 2) / 2;
         }
 
-        private void Add_GoCircle()
-        {
-            circleGo.Fill = Brushes.Blue;
+        private void Add_GoCircle(int[] pos)
+        {/*show the Go Circle at pos*/
+
+            circleGo.Margin = new Thickness(pos[0], pos[1], 0, 0);
+            circleGo.Fill = brush_goCircle;
             circleGo.Visibility = Visibility.Visible;
             circleGo.IsEnabled = true;
             myGrid.UpdateLayout();
@@ -278,10 +408,18 @@ namespace GonoGoTask_wpfVer
             // Create an Ellipse  
             rectNogo = new Rectangle();
 
-            // Create a red Brush    
-            SolidColorBrush redBrush = new SolidColorBrush();
-            redBrush.Color = Colors.Red;
-            rectNogo.Fill = redBrush;
+            // Create a Brush for nogo Rectangle    
+            brush_nogoRect = new SolidColorBrush();
+            if (parent.cbo_nogoColor.Text == "Blue")
+                brush_nogoRect.Color = Colors.Blue;
+            else if (parent.cbo_nogoColor.Text == "Red")
+                brush_nogoRect.Color = Colors.Red;
+            else if (parent.cbo_nogoColor.Text == "Green")
+                brush_nogoRect.Color = Colors.Green;
+            else if (parent.cbo_nogoColor.Text == "Yellow")
+                brush_nogoRect.Color = Colors.Yellow;
+
+            rectNogo.Fill = brush_nogoRect;
 
             // set the size, position of circleGo
             int square_width = objdiameter;
@@ -289,12 +427,12 @@ namespace GonoGoTask_wpfVer
             rectNogo.Height = square_height;
             rectNogo.Width = square_width;
             rectNogo.VerticalAlignment = VerticalAlignment.Center;
-            rectNogo.HorizontalAlignment = HorizontalAlignment.Right;
-            rectNogo.Margin = new Thickness(0, 0, rightgap, 0);
+            rectNogo.HorizontalAlignment = HorizontalAlignment.Center;
 
             // name
             rectNogo.Name = name_rectNogo;
 
+            // hidden and not enabled at first
             rectNogo.Visibility = Visibility.Hidden;
             rectNogo.IsEnabled = false;
 
@@ -304,9 +442,11 @@ namespace GonoGoTask_wpfVer
             myGrid.UpdateLayout();
         }
 
-        private void Add_NogoRect()
-        {
-            rectNogo.Fill = Brushes.Red;
+        private void Add_NogoRect(int[] pos)
+        {/*show the noGo Rect at pos*/
+
+            rectNogo.Margin = new Thickness(pos[0], pos[1], 0, 0);
+            rectNogo.Fill = brush_nogoRect;
             rectNogo.Visibility = Visibility.Visible;
             rectNogo.IsEnabled = true;
             myGrid.UpdateLayout();
@@ -332,9 +472,9 @@ namespace GonoGoTask_wpfVer
             point1.Fill = whiteBrush;
             point1.Height = wpoints_radius;
             point1.Width = wpoints_radius;
-            point1.HorizontalAlignment = HorizontalAlignment.Left;
+            point1.HorizontalAlignment = HorizontalAlignment.Center;
             point1.VerticalAlignment = VerticalAlignment.Center;
-            point1.Margin = new Thickness(leftgap, 0, 0, 0);
+            
 
             point1.Name = name_point1;
 
@@ -350,8 +490,8 @@ namespace GonoGoTask_wpfVer
             point2.Height = wpoints_radius;
             point2.Width = wpoints_radius;
             point2.HorizontalAlignment = HorizontalAlignment.Center;
-            point2.VerticalAlignment = VerticalAlignment.Top;
-            point2.Margin = new Thickness(0, topgap, 0, 0);
+            point2.VerticalAlignment = VerticalAlignment.Center;
+            
 
             point2.Name = name_point2;
             point2.Visibility = Visibility.Hidden;
@@ -364,8 +504,11 @@ namespace GonoGoTask_wpfVer
 
         }
 
-        private void Add_TwoWhitePoints()
-        {// add nogo rectangle to myGrid
+        private void Add_TwoWhitePoints(int[] pos1, int[] pos2)
+        {// show Two White Points at pos1 and pos2 separately rectangle to myGrid
+
+            point1.Margin = new Thickness(pos1[0], pos1[1], 0, 0);
+            point2.Margin = new Thickness(pos2[0], pos2[1], 0, 0);
 
             point1.Visibility = Visibility.Visible;
             point2.Visibility = Visibility.Visible;
@@ -399,10 +542,11 @@ namespace GonoGoTask_wpfVer
             horiLine.Y1 = 0;
             horiLine.X2 = len;
             horiLine.Y2 = horiLine.Y1;        
+            
             // horizontal line position
-            horiLine.HorizontalAlignment = HorizontalAlignment.Right;
+            horiLine.HorizontalAlignment = HorizontalAlignment.Center;
             horiLine.VerticalAlignment = VerticalAlignment.Center;
-            horiLine.Margin = new Thickness(0, 0, rightgap, 0);
+            
             // horizontal line color
             horiLine.Stroke = whiteBrush;
             // horizontal line stroke thickness
@@ -422,9 +566,9 @@ namespace GonoGoTask_wpfVer
             vertLine.X2 = vertLine.X1;
             vertLine.Y2 = len;
             // vertical line position
-            vertLine.HorizontalAlignment = HorizontalAlignment.Right;
+            vertLine.HorizontalAlignment = HorizontalAlignment.Center;
             vertLine.VerticalAlignment = VerticalAlignment.Center;
-            vertLine.Margin = new Thickness(0, 0, rightgap + len/2, 0);
+            
             // vertical line color
             vertLine.Stroke = whiteBrush;
             // vertical line stroke thickness
@@ -439,8 +583,12 @@ namespace GonoGoTask_wpfVer
             myGrid.UpdateLayout();
         }
 
-        private void Add_OneCrossing()
-        {
+        private void Add_OneCrossing(int[] pos)
+        {//show One Crossing at the same position of object go/nogo
+
+            horiLine.Margin = new Thickness(pos[0], pos[1], 0, 0);
+            vertLine.Margin = new Thickness(pos[0], pos[1], 0, 0);
+
             horiLine.Visibility = Visibility.Visible;
             vertLine.Visibility = Visibility.Visible;
             myGrid.UpdateLayout();
@@ -463,16 +611,33 @@ namespace GonoGoTask_wpfVer
         }
 
 
+        public float randomT(float lower, float upper)
+        {// randomly generate a time in interval [lower, upper]
+
+            Random rnd = new Random();
+            float rndTime;
+            rndTime = (float)rnd.NextDouble() * (upper - lower) + lower;
+
+            return rndTime;
+        }
 
         public async void Present_Task()
         {
             int triali = 0;
+            float waitt_ready, waitt_cue;
+            int[] wpoint1pos, wpoint2pos;
+            int[] goNogopos;
+
             while (triali < targetType_List.Count)
             {
-               // add a new interface. beforeTrial interface
-
-
+               
+                // parameters for this trial
                 targetType = targetType_List[triali];
+                wpoint1pos = wpoint1Pos_List[triali];
+                wpoint2pos = wpoint2Pos_List[triali];
+                goNogopos = goNogoPos_List[triali];
+
+
                 textbox_main.Text = "triali = " + (triali + 1).ToString();
 
                 // rest to ready interface
@@ -480,13 +645,12 @@ namespace GonoGoTask_wpfVer
 
                 // Ready interface: wait for touching the startpad to start a new trial
                 startPad4TrialState = StartPad4TrialState.noTouch;
-                await Wait_Startpad();
-                // start a new trial if touched too short
+                await Wait_Startpad(3);
+                
+                // restart a new trial if touched too short
                 textbox_thread.Text = startPad4TrialState.ToString();
                 if (startPad4TrialState == StartPad4TrialState.TouchedTooShort)
                     continue;
-
-
 
                 try
                 {
@@ -497,7 +661,8 @@ namespace GonoGoTask_wpfVer
                     textBox_State.Text = "";
 
                     // target cue interface
-                    await Interface_Targetcue(300);
+                    waitt_cue = randomT(waittrange_cue[0], waittrange_cue[1]);
+                    await Interface_Targetcue(waitt_cue, goNogopos, wpoint1pos, wpoint2pos);
 
                     triali++;
                 }
@@ -507,7 +672,7 @@ namespace GonoGoTask_wpfVer
                     textbox_main.Text = "main Targetcue cancelled";
                     continue;
                 }
-                await Interface_GoNogo(300);
+                await Interface_GoNogo(waitt_goNogo, goNogopos);
             }
 
             Remove_All();
@@ -541,13 +706,13 @@ namespace GonoGoTask_wpfVer
             });
         }
 
-        private static Task Wait_Interface(int loop, CancellationToken cancellationToken)
+      private static Task Wait_Interface(float t_wait, CancellationToken cancellationToken)
         {
             /* 
-             * wait for several seconds  for one kind of interface
+             * wait for several seconds for one kind of interface
              * 
              * Input: 
-             *      int loop: seconds = (loop * 10) / 1000;  
+             *    t_wait: the waited time (s)  
              */
 
             Task task = null;
@@ -555,21 +720,19 @@ namespace GonoGoTask_wpfVer
             // start a task and return it
             return Task.Run(() =>
             {
-
-                for (int i = 0; i < loop; i++)
+                Stopwatch waitWatch = new Stopwatch();
+                waitWatch.Restart();
+                while (waitWatch.ElapsedMilliseconds < t_wait * 1000)
                 {
                     // Check if a cancellation is required
                     if (cancellationToken.IsCancellationRequested)
                         throw new TaskCanceledException(task);
-
-                    //Do something
-                    Thread.Sleep(10);
                 }
             });
         }
 
 
-        private Task Wait_Startpad()
+        private Task Wait_Startpad(float tMin_Startpad)
         {
             /* 
                 task wait for touching startpad
@@ -581,7 +744,7 @@ namespace GonoGoTask_wpfVer
                 Stopwatch touchedWatch = new Stopwatch();
                 PressedStartpad pressedStartpad = PressedStartpad.No;
                 ReadStartpad readStartpad = ReadStartpad.Yes;
-                while (readStartpad == ReadStartpad.Yes)
+                while (serialPort_IO8.IsOpen && readStartpad == ReadStartpad.Yes)
                 {
                     serialPort_IO8.WriteLine("Z");
 
@@ -644,26 +807,35 @@ namespace GonoGoTask_wpfVer
 
         private void UpdateBackground(string message)
         {
-            myGrid.Background = Brushes.Black;
+            myGrid.Background = brush_bktrial;
         }
 
         private void Interface_Ready()
         {
             Remove_All();
-            myGrid.Background = Brushes.Gray;
-            myGridBorder.BorderBrush = Brushes.Gray;
+            myGrid.Background = brush_bkready;
+            myGridBorder.BorderBrush = brush_bktrial;
         }
 
 
 
-        public async Task Interface_Targetcue(int loop)
-        {
+        public async Task Interface_Targetcue(float waitt_cue, int[] onecrossingPos, int[] wpointpos1, int[] wpointpos2)
+        {/* async task for targetcue interface 
+
+            Args:
+                waitt_cue: wait time for cue interface (ms)
+                onecrossingPos: the center position of the one crossing
+                wpoint1pos, wpoint2pos: the positions of the two white points
+
+            */
+
+
             using (var cancellationTokenSourece = new CancellationTokenSource())
             {
                 var buttonTask = Task.Run(() =>
                 {
                     DateTime startTime = DateTime.Now;
-                    while (interupt_InterfaceOthers == false && (DateTime.Now - startTime).TotalSeconds < 5) ;
+                    while (interupt_InterfaceOthers == false) ;
 
                     //
                     if (interupt_InterfaceOthers == true)
@@ -680,14 +852,14 @@ namespace GonoGoTask_wpfVer
                     Remove_All();
 
                     // add one crossing on the right middle
-                    Add_OneCrossing();
+                    Add_OneCrossing(onecrossingPos);
                     // two white points on left middle and top middle
-                    Add_TwoWhitePoints();
+                    Add_TwoWhitePoints(wpointpos1, wpointpos2);
 
                     textbox_thread.Text = "Targetcue running......";
                     interfaceState = InterfaceState.TargetCue;
                     // wait target cue for several seconds
-                    await Wait_Interface(loop, cancellationTokenSourece.Token);
+                    await Wait_Interface(waitt_cue, cancellationTokenSourece.Token);
                     textbox_thread.Text = "Targetcue run completely";
                     
                 }
@@ -699,12 +871,12 @@ namespace GonoGoTask_wpfVer
                     throw new TaskCanceledException(task);
                 }
 
-                await buttonTask;
             }
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
+
             if (serialPort_IO8.IsOpen)
                 serialPort_IO8.Close();
         }
@@ -727,14 +899,20 @@ namespace GonoGoTask_wpfVer
         }
 
 
-        public async Task Interface_GoNogo(int loop)
-        {
+        public async Task Interface_GoNogo(float waitt_gonogo, int[] goNogPos)
+        {/* async task for go/nogo interface 
+
+            Args:
+                waitt_gonogo: wait time for go interface (ms)
+                objpos: the center position of the object (go cicle or nogo rect)
+
+            */
             using (var cancellationTokenSourece = new CancellationTokenSource())
             {
                 var buttonTask = Task.Run(() =>
                 {
                     DateTime startTime = DateTime.Now;
-                    while (touched_InterfaceGoNogo == false && (DateTime.Now - startTime).TotalSeconds < 5) ;
+                    while (touched_InterfaceGoNogo == false) ;
 
                     // touched detected
                     if (touched_InterfaceGoNogo == true)
@@ -754,12 +932,12 @@ namespace GonoGoTask_wpfVer
                     // add go circle button or nogo square button on the right middle visible
                     if (targetType == TargetType.Go)
                     {
-                        Add_GoCircle();
+                        Add_GoCircle(goNogPos);
                     }
 
                     else
                     {
-                        Add_NogoRect();
+                        Add_NogoRect(goNogPos);
                     }
           
                     interfaceState = InterfaceState.GoNogo;
@@ -767,7 +945,7 @@ namespace GonoGoTask_wpfVer
 
                     textbox_thread.Text = "Gonogo running.....";
                     // wait target cue for several seconds
-                    await Wait_Interface(loop, cancellationTokenSourece.Token);
+                    await Wait_Interface(waitt_gonogo, cancellationTokenSourece.Token);
 
                     if (targetType == TargetType.Go)
                     {
@@ -787,8 +965,6 @@ namespace GonoGoTask_wpfVer
                     await Task.Delay(1000);
 
                 }
-                
-                await buttonTask;
             }
         }
 
