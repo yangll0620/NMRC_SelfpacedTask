@@ -7,21 +7,26 @@
         mc:Ignorable="d"
         Title="GonoGotask-presentation" Height="450" Width="800"
         Loaded="Window_Loaded" Closing="Window_Closing">
-    <Grid >
+    <Grid x:Name="wholeGrid">
         <Grid x:Name="myGrid" Background="Gray">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="675*"/>
+                <ColumnDefinition Width="100*"/>
+                <ColumnDefinition Width="17*"/>
+            </Grid.ColumnDefinitions>
             <Border x:Name="myGridBorder"
-                BorderBrush="Gray" BorderThickness="6">
+                BorderBrush="Gray" BorderThickness="6" Grid.ColumnSpan="3">
                 <TextBox x:Name="textbox_thread2"
                     HorizontalAlignment="Left" Height="57" TextWrapping="Wrap" Text="Thread" VerticalAlignment="Top" Width="303" Margin="97,24,0,0"/>
             </Border>
         </Grid>
-        
+
         <TextBox x:Name="textbox_main"
             HorizontalAlignment="Left" Height="23" Margin="68,110,0,0" TextWrapping="Wrap" Text="Main" VerticalAlignment="Top" Width="120"/>
         <TextBox x:Name="textbox_thread"
-            HorizontalAlignment="Left" Height="57" Margin="416,110,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="303"/>
-        <Button x:Name="btnStop"
-            Content="ClicktoStop" HorizontalAlignment="Left" Margin="128,268,0,0" VerticalAlignment="Top" Width="172" Click="BtnStop_Click" Height="77"/>
+            HorizontalAlignment="Left" Height="57" Margin="416,110,0,0" TextWrapping="Wrap" Text="Touch Position:" VerticalAlignment="Top" Width="303"/>
+        <Button x:Name="btn"
+            Content="TestBtn" HorizontalAlignment="Left" Margin="128,268,0,0" VerticalAlignment="Top" Width="172" Click="Btn_Click" Height="77"/>
         <TextBox x:Name="textBox_State"
             HorizontalAlignment="Left" Height="1in" Margin="487,247,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="1in"/>
 

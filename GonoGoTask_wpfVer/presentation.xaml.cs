@@ -9,6 +9,8 @@ using System.Windows.Media;
 using System.Windows.Shapes;
 using System.Diagnostics;
 using System.IO.Ports;
+using System.IO;
+using System.Windows.Controls;
 
 namespace GonoGoTask_wpfVer
 {
@@ -40,19 +42,17 @@ namespace GonoGoTask_wpfVer
             Reward,
         }
 
-        public enum TouchState
+        public enum ScreenTouchState
         {
-            start,
+            Idle,
+            Touched
+        }
 
-            // Go Cue
+        private enum GoTargetTouchState
+        {
             goHit, // at least one finger inside the circleGo
             goClose, // the distance between the closest touch point and the center of the circleGo is less than a threshold
             goMissed, // touched with longer distance 
-            goNoaction, // no touch
-
-            //noGo Cue
-            nogoTouched,
-            nogoNoaction,
         }
         
         /*startpad related enumerate*/
@@ -68,11 +68,10 @@ namespace GonoGoTask_wpfVer
             Yes
         }
 
-        private enum StartPad4TrialState
+        private enum StartPadHoldState
         {
-            noTouch,
-            TouchedEnough,
-            TouchedTooShort
+            HoldEnough,
+            HoldTooShort
         }
 
 
@@ -81,9 +80,11 @@ namespace GonoGoTask_wpfVer
         MainWindow parent;
 
 
+        string file_saved;
+
         // diameter for crossing, circle, square and white points
         int objdiameter;
-        int disXFromCenter, disYFromCenter;
+        int disFromCenter, disXFromCenter, disYFromCenter;
         // the threshold distance defining close
         int disThreshold_close; 
 
@@ -91,6 +92,10 @@ namespace GonoGoTask_wpfVer
         
         // randomized Go noGo tag list, tag_gonogo ==1: go, ==0: nogo
         List<TargetType> targetType_List = new List<TargetType>();
+        // randomized t_Ready list
+        List<float> t_Ready_List = new List<float>();
+        // randomized t_Cue list
+        List<float> t_Cue_List = new List<float>();
 
 
         // objects of Go cirle, nogo Rectangle, lines of the crossing, and two white points
@@ -101,14 +106,15 @@ namespace GonoGoTask_wpfVer
         Line vertLine, horiLine;
         Ellipse point1, point2;
 
+        // Colors for Correct and Error
+        SolidColorBrush brush_ErrorInterface, brush_CorrectInterface, brush_NearInterface;
+
         Point circleGo_centerPoint; // the center of circleGo 
         double circleGo_radius; // the radius of circleGO
 
-
-
         // background of ready and trial
-        SolidColorBrush brush_bkready, brush_bktrial;
-
+        SolidColorBrush brush_bkwaitstart, brush_bdwaitstart, brush_bktrial;
+        
 
         InterfaceState interfaceState;
 
@@ -117,26 +123,39 @@ namespace GonoGoTask_wpfVer
         string name_rectNogo = "rectNogo";
         string name_vLine = "vLine", name_hLine = "hLine";
         string name_point1 = "wpoint1", name_point2 = "wpoint2";
-        // randomized positions of the Go/noGo target  and the two white points
-        List<int[]> goNogoPos_List = new List<int[]>();
-        List<int[]> wpoint1Pos_List = new List<int[]>();
-        List<int[]> wpoint2Pos_List = new List<int[]>();
+        
+        // all the optional positions, in which one is for target, the remaining for white points
+        List<int[]> optPostions_List = new List<int[]>();
+
+        // randomized target Position index list for each trial
+        List<int> targetPosInd_List = new List<int>();
+        // the remaining Position indices (for two while points) list for each trial
+        List<int[]> otherPosInds_List = new List<int[]>();
+
+
 
         // wait range for each event
         float waitt_goNogo, waitt_reward;
         float[] waittrange_ready, waittrange_cue;
-        
+        // Max Reaction and Reach Time
+        float tMax_ReactionTime, tMax_ReachTime;
+
+
+        bool PresentTask;
 
 
         // set storing the touch point id (no replicates)
         HashSet<int> touchPoints_Id = new HashSet<int>();
-        // list storing the position of the touch points when touched up
-        List<double[]> upPoints_pos = new List<double[]>();
+        // list storing the position of the touch points when touched down
+        List<double[]> downPoints_Pos = new List<double[]>();
+        // Stop Watch for recording the time interval between the first touchpoint and the last touchpoint
+        Stopwatch touchPointsWatch;
+        // the Max Duration for One Touch (ms)
+        long tMax_1Touch = 10;
+        GoTargetTouchState gotargetTouchstate;
+        // list storing the touch time of the touch points when touched down
+        List<long> downPoints_time = new List<long>(); 
 
-        // tag for finishing one set of touched down and up 
-        bool touched_Downup;
-
-        TouchState touchState;
 
         // tag of starting a trial
         bool startTrial = false;
@@ -144,6 +163,12 @@ namespace GonoGoTask_wpfVer
         bool touched_InterfaceGoNogo = false;
         //tag of interupting during interfaces except go interface
         bool interupt_InterfaceOthers = false;
+
+        ScreenTouchState screenTouchstate;
+        
+
+        // hold states for Ready, Cue Interfaces
+        StartPadHoldState startpadHoldstate;
 
 
         CancellationTokenSource cancellationTokenSourece = new CancellationTokenSource();
@@ -154,13 +179,19 @@ namespace GonoGoTask_wpfVer
         int baudRate = 115200;
 
         /* startpad parameters */
-        StartPad4TrialState startPad4TrialState;
-        // tmin_touchpad: the minimal touch time on start pad
-        //int tMin_Startpad = 3; 
+        PressedStartpad pressedStartpad;
         public delegate void UpdateTextCallback(string message);
 
 
-        
+        // Global stopwatch
+        Stopwatch globalWatch; 
+        // variables for recording the startpad touched on and off time point
+        long startpadOn_TimePoint, startpadOff_TimePoint;
+        long startpadOn_StartTrial_TimePoint;
+
+
+        Thread thread_readStartpad;
+
         /*****Methods*******/
         public presentation(MainWindow mainWindow)
         {
@@ -174,69 +205,22 @@ namespace GonoGoTask_wpfVer
 
         }
 
-        public int cm2pixal(float cmlen)
-        {/* convert length with unit cm to unit pixal, 96 pixals = 1 inch = 2.54 cm
-
-            args:   
-                cmlen: to be converted length (unit: cm)
-
-            return:
-                pixalen: converted length with unit pixal
-         */
-
-            float ratio = (float)96/(float)2.54;
-
-            int pixalen = (int)(cmlen * ratio);
-
-            return pixalen;
-        }
-
-
-        public int in2pixal(float inlen)
-        {/* convert length with unit inch to unit pixal, 96 pixals = 1 inch = 2.54 cm
-
-            args:   
-                cmlen: to be converted length (unit: inch)
-
-            return:
-                pixalen: converted length with unit pixal
-         */
-
-            int ratio = 96;
-
-            int pixalen = (int) (inlen * ratio);
-
-            return pixalen;
-        }
-
-
+        
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            /* get the setup from the parent interface */
-            // object size and distance parameters
-            objdiameter = in2pixal(float.Parse(parent.textBox_objdiameter.Text));
-            disXFromCenter = in2pixal(float.Parse(parent.textBox_Xdisfromcenter.Text));
-            disYFromCenter = in2pixal(float.Parse(parent.textBox_Ydisfromcenter.Text));
-            disThreshold_close = (int) (objdiameter * float.Parse(parent.textBox_errorMargin.Text) /100);
+            // get the setup from the parent interface
+            GetSetupParameters();
 
-
-            // interfaces time related parameters
-            waitt_goNogo = float.Parse(parent.textBox_tmaxGoNogoShow.Text);
-            waitt_reward = float.Parse(parent.textBox_tRewardShow.Text);
-            waittrange_ready = new float[] { float.Parse(parent.textBox_tReady_min.Text), float.Parse(parent.textBox_tReady_max.Text) };
-            waittrange_cue = new float[] { float.Parse(parent.textBox_tCue_min.Text), float.Parse(parent.textBox_tCue_max.Text) };
-
-
-            // Brush for background of ready and trial
-            brush_bkready = new SolidColorBrush();
-            brush_bkready.Color = Colors.Gray;
-            brush_bktrial = new SolidColorBrush();
-            brush_bktrial.Color = Colors.Black;
-
+            disXFromCenter = disFromCenter;
+            disYFromCenter = disFromCenter;
+            optPostions_List.Add(new int[] { -disXFromCenter, 0 }); // left position
+            optPostions_List.Add(new int[] { 0, -disYFromCenter }); // top position
+            optPostions_List.Add(new int[] { disXFromCenter, 0 }); // right position
 
             //shuffle go and nogo trials
-            Shuffle_GonogoTrials(parent.gotrialnum, parent.nogotrialnum);
+            Shuffle_GonogoTrials(Int32.Parse(parent.textBox_goTrialNum.Text), Int32.Parse(parent.textBox_nogoTrialNum.Text));
 
+            
             // Create necessary elements: go circle, nogo rect, two white points and one crossing
             Create_GoCircle();
             Create_NogoRect();
@@ -245,23 +229,29 @@ namespace GonoGoTask_wpfVer
 
 
 
+
+            // init a global stopwatch
+            globalWatch = new Stopwatch();
+            touchPointsWatch = new Stopwatch();
+            // Thread for reading startpad continously
+            thread_readStartpad = new Thread(new ThreadStart(Thread_ReadStartpad));
+
+
             // create a serial Port IO8 instance, and open it
             serialPort_IO8 = new SerialPort();
-
             try
             {
                 serialPort_SetOpen(parent.serialPortIO8_name, baudRate);
 
-                // present task trial by trail
-                Present_Task();
+                WriteHeaderInf();
+
+                // present task trial by trial
+                //Present_Task();
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message, "Error Message", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-
-            
-
 
         }
 
@@ -282,8 +272,9 @@ namespace GonoGoTask_wpfVer
 
         private void Shuffle_GonogoTrials(int gotrialnum, int nogotrialnum)
         {/* ---- 
-            shuffle go and nogo trials, present in member variable taglist_gonogo 
-         
+            1. shuffle go and nogo trials, present in member variable taglist_gonogo 
+            2. Generate the random t_Ready, and t_Cue for each trial, stored in t_Ready_List and t_Cue_List;
+            3. Select the target position index of the optional positions, stored in targetPosInd_List and otherPosInds_List
              */
 
             // create orderred gonogo list
@@ -294,7 +285,8 @@ namespace GonoGoTask_wpfVer
 
             // shuffle 
             Random r = new Random();
-            int randomIndex, randomPosInd;
+            int randomIndex;
+            
 
             while (tmporder_gonogo.Count > 0)
             {
@@ -304,37 +296,122 @@ namespace GonoGoTask_wpfVer
                 // add the selected value (go/nogo type) into tagarray_gonogo
                 targetType_List.Add(tmporder_gonogo[randomIndex]);
 
+
                 // add the corresponding go/noGo object and the two white points position
-                randomPosInd = r.Next(1, 4);
-                if (randomPosInd == 1)
-                {// goNogo object on the left
-                    goNogoPos_List.Add(new int[] { -disXFromCenter, 0 });
+                int targetPosInd = r.Next(0, 3);
+                int[] otherPosInds = new int[] { 0, 1, 2};
+                otherPosInds = otherPosInds.Where(w => w != targetPosInd).ToArray();
+                targetPosInd_List.Add(targetPosInd);
+                otherPosInds_List.Add(otherPosInds);
 
-                    wpoint1Pos_List.Add(new int[] { 0, -disYFromCenter });
-                    wpoint2Pos_List.Add(new int[] { disXFromCenter, 0 });
-                }
-                else if (randomPosInd == 2)
-                {// goNogo object on the top
-                    goNogoPos_List.Add(new int[] { 0, -disYFromCenter });
-
-                    wpoint1Pos_List.Add(new int[] { -disXFromCenter, 0 });
-                    wpoint2Pos_List.Add(new int[] { disXFromCenter, 0 });
-                }
-
-                else if (randomPosInd == 3) 
-                {// goNogo object on the right
-                    goNogoPos_List.Add(new int[] { disXFromCenter, 0 });
-                    
-                    wpoint1Pos_List.Add(new int[] { -disYFromCenter, 0 });
-                    wpoint2Pos_List.Add(new int[] { 0, -disYFromCenter });
-                }
-                    
+                // generate a random t_Ready and t_Cue, and and them into t_Ready_List and t_Cue_List individually
+                t_Cue_List.Add(TransferTo((float)r.NextDouble(), waittrange_cue[0], waittrange_cue[1]));
+                t_Ready_List.Add(TransferTo((float)r.NextDouble(), waittrange_ready[0], waittrange_ready[1]));
 
                 //remove this value
                 tmporder_gonogo.RemoveAt(randomIndex);
             }
         }
 
+        public int cm2pixal(float cmlen)
+        {/* convert length with unit cm to unit pixal, 96 pixals = 1 inch = 2.54 cm
+
+            args:   
+                cmlen: to be converted length (unit: cm)
+
+            return:
+                pixalen: converted length with unit pixal
+         */
+
+            float ratio = (float)96 / (float)2.54;
+
+            int pixalen = (int)(cmlen * ratio);
+
+            return pixalen;
+        }
+
+
+        public int in2pixal(float inlen)
+        {/* convert length with unit inch to unit pixal, 96 pixals = 1 inch = 2.54 cm
+
+            args:   
+                cmlen: to be converted length (unit: inch)
+
+            return:
+                pixalen: converted length with unit pixal
+         */
+
+            int ratio = 96;
+
+            int pixalen = (int)(inlen * ratio);
+
+            return pixalen;
+        }
+
+
+        private void GetSetupParameters()
+        {/* get the setup from the parent interface */
+
+            // object size and distance parameters
+            objdiameter = in2pixal(float.Parse(parent.textBox_objdiameter.Text));
+            disFromCenter = in2pixal(float.Parse(parent.textBox_disfromcenter.Text));
+            disThreshold_close = (int)((objdiameter / 2) * float.Parse(parent.textBox_errorMargin.Text) / 100);
+
+
+            // interfaces time related parameters
+            waitt_goNogo = float.Parse(parent.textBox_tmaxGoNogoShow.Text);
+            waitt_reward = float.Parse(parent.textBox_tRewardShow.Text);
+            waittrange_ready = new float[] { float.Parse(parent.textBox_tReady_min.Text), float.Parse(parent.textBox_tReady_max.Text) };
+            waittrange_cue = new float[] { float.Parse(parent.textBox_tCue_min.Text), float.Parse(parent.textBox_tCue_max.Text) };
+            tMax_ReactionTime = float.Parse(parent.textBox_MaxReactionTime.Text);
+            tMax_ReachTime = float.Parse(parent.textBox_MaxReachTime.Text);
+
+
+            // Brush for background and border of WaitStart Interface
+            brush_bkwaitstart = new SolidColorBrush();
+            brush_bkwaitstart.Color = Colors.Gray;
+            brush_bdwaitstart = new SolidColorBrush();
+            brush_bdwaitstart.Color = Colors.Black;
+            // Brush for background of the trial
+            brush_bktrial = new SolidColorBrush();
+            brush_bktrial.Color = Colors.Black;
+            brush_ErrorInterface = new SolidColorBrush();
+            brush_ErrorInterface.Color = Colors.Red;
+            brush_CorrectInterface = new SolidColorBrush();
+            brush_CorrectInterface.Color = Colors.Green;
+
+            // get the file for saving 
+            file_saved = parent.file_saved;
+        }
+
+
+        private void WriteHeaderInf()
+        {
+            // save
+            using (StreamWriter file = File.AppendText(file_saved))
+            {
+                // Store all the optional positions
+                foreach (int[] position in optPostions_List)
+                {
+                    file.WriteLine(String.Format("{0, -10}:{1}, {2}", "Optional Postion ", position[0], position[1]));
+                }
+
+
+                file.WriteLine("\n");
+
+                file.WriteLine("Trial Information:");
+                file.WriteLine(String.Format("{0, -10}  {1, -20} {2, -10} {3, -20}  " +
+                    "{4, -20} {5, -20} {6, -20}  {7, -20} {8, -20} {9, -20}  {10, -20} {11, -20}",
+                    "TrialNumber", "TrialStartTime",
+                    "Go or Nogo", "Object Position",
+                    "Ready Interface Onset Time", "Cue Interface Onset Time", "Go/Nogo Interface Onset Time",
+                    "Startpad Onset Time", "Startpad Off Time", "Screen Touched Time",
+                    "Trial Result", "Touched Coordinates"));
+
+
+
+            }
+        }
 
         private void Create_GoCircle()
         {/*
@@ -379,19 +456,36 @@ namespace GonoGoTask_wpfVer
             myGrid.RegisterName(circleGo.Name, circleGo);
             myGrid.UpdateLayout();
 
-            // get the center point and the radius of circleGo
-            Point leftTopPoint_circleGo = circleGo.TransformToAncestor(this).Transform(new Point(0, 0));
-            circleGo_centerPoint = Point.Add(leftTopPoint_circleGo, new Vector(circleGo.Width / 2, circleGo.Height / 2));
-            circleGo_radius = ((circleGo.Height + circleGo.Width) / 2) / 2;
+            Grid parent_GoCircle = (Grid)circleGo.Parent;
+            Grid parent_wholeGrid = (Grid)parent_GoCircle.Parent;
         }
 
         private void Add_GoCircle(int[] pos)
         {/*show the Go Circle at pos*/
 
+            
+
+
             circleGo.Margin = new Thickness(pos[0], pos[1], 0, 0);
             circleGo.Fill = brush_goCircle;
             circleGo.Visibility = Visibility.Visible;
             circleGo.IsEnabled = true;
+            //myGrid.UpdateLayout();
+
+
+            // get the center point and the radius of circleGo
+            Point leftTopPoint_circleGo = circleGo.TransformToAncestor(this).Transform(new Point(0, 0));
+            circleGo_centerPoint = Point.Add(leftTopPoint_circleGo, new Vector(circleGo.Width / 2, circleGo.Height / 2));
+            circleGo_radius = ((circleGo.Height + circleGo.Width) / 2) / 2;
+
+            Ellipse originGo = new Ellipse { Width = 5, Height = 5};
+            double left = circleGo_centerPoint.X - (1 / 2);
+            double top = circleGo_centerPoint.Y - (1 / 2);
+            originGo.Fill = brush_ErrorInterface;
+            originGo.VerticalAlignment = VerticalAlignment.Top;
+            originGo.HorizontalAlignment = HorizontalAlignment.Left;
+            originGo.Margin = new Thickness(left, top, 0, 0);
+            myGrid.Children.Add(originGo);
             myGrid.UpdateLayout();
         }
         private void Remove_GoCircle()
@@ -611,12 +705,11 @@ namespace GonoGoTask_wpfVer
         }
 
 
-        public float randomT(float lower, float upper)
-        {// randomly generate a time in interval [lower, upper]
+        public float TransferTo(float value, float lower, float upper)
+        {// transform value (0=<value<1) into a valueT (lower=<valueT<upper)
 
-            Random rnd = new Random();
             float rndTime;
-            rndTime = (float)rnd.NextDouble() * (upper - lower) + lower;
+            rndTime = value * (upper - lower) + lower;
 
             return rndTime;
         }
@@ -624,60 +717,387 @@ namespace GonoGoTask_wpfVer
         public async void Present_Task()
         {
             int triali = 0;
-            float waitt_ready, waitt_cue;
-            int[] wpoint1pos, wpoint2pos;
-            int[] goNogopos;
-
-            while (triali < targetType_List.Count)
+            float t_Cue, t_Ready;
+            int[] pos_WPoint1, pos_WPoint2;
+            int[] pos_Taget;
+            int targetPosInd;
+                        
+            // start the globalWatch and readStartpad thread
+            globalWatch.Restart();
+            thread_readStartpad.Start();
+            PresentTask = true;
+            while (triali < targetType_List.Count && PresentTask)
             {
-               
-                // parameters for this trial
+                // Extract Parameters for this trial
                 targetType = targetType_List[triali];
-                wpoint1pos = wpoint1Pos_List[triali];
-                wpoint2pos = wpoint2Pos_List[triali];
-                goNogopos = goNogoPos_List[triali];
+                pos_WPoint1 = optPostions_List[otherPosInds_List[triali][0]];
+                pos_WPoint2 = optPostions_List[otherPosInds_List[triali][1]];
+                targetPosInd = targetPosInd_List[triali];
+                pos_Taget = optPostions_List[targetPosInd];
+                t_Cue = t_Cue_List[triali];
+                t_Ready = t_Ready_List[triali];
+
+                // Write trial related Information
+                using (StreamWriter file = File.AppendText(file_saved))
+                {
+                    file.WriteLine("\n");
+
+                    file.WriteLine(String.Format("{0, -20}: {1}", "TrialNum", (triali + 1).ToString()));
+                    file.WriteLine(String.Format("{0, -20}: {1}", "TargetType", targetType.ToString()));
+                    file.WriteLine(String.Format("{0, -20}: {1}", "TargetPositionIndex", targetPosInd.ToString()));
+                    file.WriteLine(String.Format("{0, -20}: {1}", "Ready Interface Time", t_Ready.ToString()));
+                    file.WriteLine(String.Format("{0, -20}: {1}", "Cue Interface Time", t_Cue.ToString()));
+                }
 
 
+                triali++;
                 textbox_main.Text = "triali = " + (triali + 1).ToString();
 
-                // rest to ready interface
-                Interface_Ready();
-
-                // Ready interface: wait for touching the startpad to start a new trial
-                startPad4TrialState = StartPad4TrialState.noTouch;
-                await Wait_Startpad(3);
                 
-                // restart a new trial if touched too short
-                textbox_thread.Text = startPad4TrialState.ToString();
-                if (startPad4TrialState == StartPad4TrialState.TouchedTooShort)
-                    continue;
-
-                try
+                /*----- WaitStartTrial Interface ------*/
+                pressedStartpad = PressedStartpad.No;
+                await Interface_WaitStartTrial();
+                startpadOn_StartTrial_TimePoint = startpadOn_TimePoint;
+                using (StreamWriter file = File.AppendText(file_saved))
                 {
-                    touched_InterfaceGoNogo = false;
-                    interupt_InterfaceOthers = false;
-
-
-                    textBox_State.Text = "";
-
-                    // target cue interface
-                    waitt_cue = randomT(waittrange_cue[0], waittrange_cue[1]);
-                    await Interface_Targetcue(waitt_cue, goNogopos, wpoint1pos, wpoint2pos);
-
-                    triali++;
+                    file.WriteLine(String.Format("{0, -20}: {1}", "Startpad Touched On Time", startpadOn_TimePoint.ToString()));
                 }
-                catch (TaskCanceledException)
+
+                // Cue Interface
+                try {
+                    await Interface_Ready(t_Ready);
+                    await Interface_Cue(t_Cue, pos_Taget, pos_WPoint1, pos_WPoint2);
+                    await Interface_Go(pos_Taget);
+                }
+                catch(TaskCanceledException)
                 {
                     Remove_All();
-                    textbox_main.Text = "main Targetcue cancelled";
+                    textbox_main.Text = "Interruptted by Not Touched Enough for Interface";
                     continue;
                 }
-                await Interface_GoNogo(waitt_goNogo, goNogopos);
+            Remove_All();
             }
 
-            Remove_All();
+            thread_readStartpad.Abort();
         }
 
+        private void Thread_ReadStartpad()
+        {/* Thread for reading startpad*/
+            while (serialPort_IO8.IsOpen)
+            {
+                serialPort_IO8.WriteLine("Z");
+
+                // extract and parse the start pad voltage 
+                string str_Read = serialPort_IO8.ReadExisting();
+                string[] str_vol = str_Read.Split(new Char[] { 'V' });
+
+                if (!String.IsNullOrEmpty(str_vol[0]))
+                {
+                    float voltage = float.Parse(str_vol[0]);
+
+                    if (voltage < 1 && pressedStartpad == PressedStartpad.No)
+                    {/* time point from notouched state to touched state */
+
+                        // the time point for startpad on
+                        startpadOn_TimePoint = globalWatch.ElapsedMilliseconds;
+
+                        pressedStartpad = PressedStartpad.Yes;
+                    }
+                    else if (voltage > 1 && pressedStartpad == PressedStartpad.Yes)
+                    {/* time point from touched state to notouched state */
+
+                        startpadOn_TimePoint = globalWatch.ElapsedMilliseconds;
+                        pressedStartpad = PressedStartpad.No;
+                    }
+                }
+
+                Thread.Sleep(30);
+            }
+        }
+
+
+        private Task Interface_WaitStartTrial()
+        {
+            /* task for WaitStart interface
+             * 
+             * Wait for Startpad touch to trigger a new Trial
+             */
+
+            Remove_All();
+            myGrid.Background = brush_bkwaitstart;
+            myGridBorder.BorderBrush = brush_bdwaitstart;
+
+            Task task_WaitStart = Task.Run(() =>
+            {
+                while (pressedStartpad == PressedStartpad.No) ;
+            });
+
+            return task_WaitStart;
+        }
+
+        private Task Wait_EnoughTouch(float t_EnoughTouch)
+        {
+            /* 
+             * Wait for Enough Touch Time
+             * 
+             * Input: 
+             *    t_EnoughTouch: the required Touch time (s)  
+             */
+
+            Task task = null;
+
+            // start a task and return it
+            return Task.Run(() =>
+            {
+                Stopwatch touchedWatch = new Stopwatch();
+                touchedWatch.Restart();
+                while (pressedStartpad == PressedStartpad.Yes && startpadHoldstate != StartPadHoldState.HoldEnough)
+                {
+                    if (touchedWatch.ElapsedMilliseconds >= t_EnoughTouch * 1000)
+                    {/* touched with enough time */
+                        startpadHoldstate = StartPadHoldState.HoldEnough;
+                    }
+                }
+
+                if (startpadHoldstate != StartPadHoldState.HoldEnough)
+                {
+                    throw new TaskCanceledException(task);
+                }
+
+            });
+        }
+
+        private async Task Interface_Ready(float t_Ready)
+        {/* task for Ready interface:
+            Show the Ready Interface while Listen to the state of the startpad. 
+            * 
+            * Output:
+            *   startPadHoldstate_Ready = 
+            *       StartPadHoldState.HoldEnough (if startpad is touched lasting t_Ready)
+            *       StartPadHoldState.HoldTooShort (if startpad is released before t_Ready) 
+            */
+            
+            try
+            {
+                myGrid.Background = brush_bktrial;
+
+                textbox_thread.Text = "Ready Interface Running......";
+                interfaceState = InterfaceState.Ready;
+               
+                // Wait Startpad Hold Enough Time
+                startpadHoldstate = StartPadHoldState.HoldTooShort;
+                await Wait_EnoughTouch(t_Ready);
+                textbox_thread.Text = "Ready Interface Finshed with Enough Startpad Hold Time";
+
+            }
+            catch (TaskCanceledException)
+            {
+                textbox_thread.Text = "Ready Interface: not Touched Enough";
+
+                Task task = null;
+                throw new TaskCanceledException(task);
+            }
+        }
+
+ 
+        public async Task Interface_Cue(float t_Cue, int[] onecrossingPos, int[] wpointpos1, int[] wpointpos2)
+        {/* task for Cue Interface 
+            Show the Cue Interface while Listen to the state of the startpad. 
+            
+            Args:
+                t_Cue: Cue interface showes duration(s)
+                onecrossingPos: the center position of the one crossing
+                wpoint1pos, wpoint2pos: the positions of the two white points
+
+            * Output:
+            *   startPadHoldstate_Cue = 
+            *       StartPadHoldState.HoldEnough (if startpad is touched lasting t_Cue)
+            *       StartPadHoldState.HoldTooShort (if startpad is released before t_Cue) 
+            */
+
+            try
+            {
+                //myGrid.Children.Clear();
+                Remove_All();
+
+                // add one crossing on the right middle
+                Add_OneCrossing(onecrossingPos);
+                // two white points on left middle and top middle
+                //Add_TwoWhitePoints(wpointpos1, wpointpos2);
+
+                textbox_thread.Text = "Targetcue running......";
+                interfaceState = InterfaceState.TargetCue;
+                // wait target cue for several seconds
+                startpadHoldstate = StartPadHoldState.HoldTooShort;
+                await Wait_EnoughTouch(t_Cue);
+                textbox_thread.Text = "Targetcue run completely";
+
+            }
+            catch (TaskCanceledException)
+            {
+                textbox_thread.Text = "Cue Interface: not Touched Enough";
+
+                Task task = null;
+                throw new TaskCanceledException(task);
+            }
+            
+        }
+
+
+        private Task Wait_Reaction()
+        {/* Wait for Reaction within tMax_ReactionTime */
+
+            // start a task and return it
+            return Task.Run(() =>
+            {
+                Stopwatch waitWatch = new Stopwatch();
+                waitWatch.Start();
+                while (pressedStartpad == PressedStartpad.Yes)
+                {
+                    if (waitWatch.ElapsedMilliseconds >= tMax_ReactionTime * 1000)
+                    {/* No release Startpad within tMax_ReactionTime */
+                        throw new TaskCanceledException("No Reaction within the Max Reaction Time");
+                    }
+                }
+            });
+        }
+
+        private Task Wait_Reach()
+        {/* Wait for Reach within tMax_ReachTime*/
+
+            return Task.Run(() =>
+            {
+                Stopwatch waitWatch = new Stopwatch();
+                waitWatch.Start();
+                while (screenTouchstate == ScreenTouchState.Idle)
+                {
+                    if (waitWatch.ElapsedMilliseconds >= tMax_ReachTime * 1000)
+                    {/*No Screen Touched within tMax_ReachTime*/
+                        throw new TaskCanceledException("No Reach within the Max Reach Time");
+                    }
+                }
+                waitWatch.Restart();
+                while (waitWatch.ElapsedMilliseconds < tMax_1Touch) ;
+                calc_GoTargetTouchState();
+            });
+        }
+
+        private void calc_GoTargetTouchState()
+        {/* Calculate GoTargetTouchState  
+            1. based on the Touch Down Positions in  List downPoints_Pos and circleGo_centerPoint
+            2. Assign the calculated target touch state to the GoTargetTouchState variable gotargetTouchstate
+            */
+
+            double distance;
+           
+            gotargetTouchstate = GoTargetTouchState.goMissed;
+            while (downPoints_Pos.Count > 0)
+            {
+                Point touchp = new Point(downPoints_Pos[0][0], downPoints_Pos[0][1]);
+
+                // distance between the touchpoint and the center of the circleGo
+                distance = Point.Subtract(circleGo_centerPoint, touchp).Length;
+
+
+                if (distance <= circleGo_radius)
+                {// Hit 
+                    gotargetTouchstate = GoTargetTouchState.goHit;
+                    break;
+                }
+                else if (distance <= circleGo_radius + disThreshold_close && gotargetTouchstate != GoTargetTouchState.goHit)
+                {
+                    gotargetTouchstate = GoTargetTouchState.goClose;
+                }
+
+                downPoints_Pos.RemoveAt(0);
+            }
+        }
+
+        private async Task Interface_Go(int[] pos_Target)
+        {/* task for Go Interface: Show the Go Interface while Listen to the state of the startpad.
+            * 1. If Reaction time < Max Reaction Time or Reach Time < Max Reach Time, end up with long reaction or reach time ERROR Interface
+            * 2. Within proper reaction time && reach time, detect the touch point and end up with hit, near and miss.
+            
+            * Args:
+            *    pos_Target: the center position of the Go Target
+
+            * Output:
+            *   startPadHoldstate_Cue = 
+            *       StartPadHoldState.HoldEnough (if startpad is touched lasting t_Cue)
+            *       StartPadHoldState.HoldTooShort (if startpad is released before t_Cue) 
+            */
+
+            try
+            {
+                // Remove the Crossing and Add the Go Circle
+                Remove_OneCrossing();
+                Add_GoCircle(pos_Target);
+                textBox_State.Text = "X = " + circleGo_centerPoint.X.ToString() + ", Y = " + circleGo_centerPoint.Y.ToString();
+
+                // Wait for Reaction within tMax_ReactionTime
+                pressedStartpad = PressedStartpad.Yes;
+                await Wait_Reaction();
+
+                // Wait for Touch within tMax_ReachTime and Calcuate the gotargetTouchstate
+                screenTouchstate = ScreenTouchState.Idle;
+                await Wait_Reach();
+
+                /*---- Go Target Touch States ----*/
+                if (gotargetTouchstate == GoTargetTouchState.goHit)
+                {/*Hit */
+                    Interface_GoCorrect_Hit();
+                    textbox_thread2.Text = "Hit";
+                }
+                else if(gotargetTouchstate == GoTargetTouchState.goClose)
+                {/* touch close to the target*/
+                    Interface_GoCorrect_Close();
+                    textbox_thread2.Text = "Close";
+                }
+                else if(gotargetTouchstate == GoTargetTouchState.goMissed)
+                {/* touch missed*/
+                    Interface_GoERROR_Miss();
+                    textbox_thread2.Text = "Miss";
+                }
+                await Task.Delay(1000);
+            }
+            catch(TaskCanceledException)
+            {
+                Interface_GoERROR_LongReactionReach();
+                await Task.Delay(1000);
+                throw new TaskCanceledException("Not Reaction Within the Max Reaction Time.");
+            }
+            
+        }
+
+        private void Interface_ERROR()
+        {
+            myGridBorder.BorderBrush = brush_ErrorInterface;
+            circleGo.Fill = brush_ErrorInterface;
+            myGrid.UpdateLayout();
+            
+        }
+        private void Interface_GoERROR_LongReactionReach()
+        {
+            Interface_ERROR();
+        }
+
+        private void Interface_GoERROR_Miss()
+        {
+            Interface_ERROR();
+        }
+
+        private void Interface_GoCorrect_Hit()
+        {
+            myGridBorder.BorderBrush = brush_CorrectInterface;
+            circleGo.Fill = brush_CorrectInterface;
+            myGrid.UpdateLayout();
+        }
+
+        private void Interface_GoCorrect_Close()
+        {
+            myGridBorder.BorderBrush = brush_NearInterface;
+            myGrid.UpdateLayout();
+        }
 
         private static Task Wait_Interface(CancellationToken cancellationToken)
         {
@@ -706,7 +1126,7 @@ namespace GonoGoTask_wpfVer
             });
         }
 
-      private static Task Wait_Interface(float t_wait, CancellationToken cancellationToken)
+        private static Task Wait_Interface(float t_wait, CancellationToken cancellationToken)
         {
             /* 
              * wait for several seconds for one kind of interface
@@ -731,154 +1151,19 @@ namespace GonoGoTask_wpfVer
             });
         }
 
-
-        private Task Wait_Startpad(float tMin_Startpad)
-        {
-            /* 
-                task wait for touching startpad
-
-                update startPad4TrialState (StartPad4TrialState.TouchedEnough or StartPad4TrialState.TouchedTooShort)
-            */
-            Task task_Startpad = Task.Run(() =>
-            {
-                Stopwatch touchedWatch = new Stopwatch();
-                PressedStartpad pressedStartpad = PressedStartpad.No;
-                ReadStartpad readStartpad = ReadStartpad.Yes;
-                while (serialPort_IO8.IsOpen && readStartpad == ReadStartpad.Yes)
-                {
-                    serialPort_IO8.WriteLine("Z");
-
-                    // extract and parse the start pad voltage 
-                    string str_Read = serialPort_IO8.ReadExisting();
-                    string[] str_vol = str_Read.Split(new Char[] { 'V' });
-
-                    if (!String.IsNullOrEmpty(str_vol[0]))
-                    {
-                        float voltage = float.Parse(str_vol[0]);
-
-                        if (voltage < 1)
-                        {
-                            if (pressedStartpad == PressedStartpad.No)
-                            {/* first time to touched state */
-
-                                // restart measuring touch time
-                                touchedWatch.Restart();
-
-                                textbox_thread2.Dispatcher.Invoke(new UpdateTextCallback(this.UpdateBackground),
-                                    new object[] { "First Touch" });
-                            }
-                            else if (touchedWatch.ElapsedMilliseconds >= tMin_Startpad * 1000)
-                            { /* touched with enough time */
-
-                                startPad4TrialState = StartPad4TrialState.TouchedEnough;
-
-                                // stop read start pad
-                                readStartpad = ReadStartpad.No;
-                            }
-                            pressedStartpad = PressedStartpad.Yes;
-
-                        }
-                        else
-                        {
-                            if (pressedStartpad == PressedStartpad.Yes)
-                            {/* first time from touched to idle */
-
-                                if (touchedWatch.IsRunning && touchedWatch.ElapsedMilliseconds < tMin_Startpad * 1000)
-                                {/* touched with no enough time */
-
-                                    startPad4TrialState = StartPad4TrialState.TouchedTooShort;
-
-                                    // stop read start pad
-                                    readStartpad = ReadStartpad.No;
-                                }
-                            }
-                            pressedStartpad = PressedStartpad.No;
-                        }
-
-
-                    }
-
-                    Thread.Sleep(30);
-                }
-            });
-
-            return task_Startpad;
-        }
-
         private void UpdateBackground(string message)
         {
             myGrid.Background = brush_bktrial;
+            textbox_thread2.Text = message;
         }
 
-        private void Interface_Ready()
-        {
-            Remove_All();
-            myGrid.Background = brush_bkready;
-            myGridBorder.BorderBrush = brush_bktrial;
-        }
-
-
-
-        public async Task Interface_Targetcue(float waitt_cue, int[] onecrossingPos, int[] wpointpos1, int[] wpointpos2)
-        {/* async task for targetcue interface 
-
-            Args:
-                waitt_cue: wait time for cue interface (ms)
-                onecrossingPos: the center position of the one crossing
-                wpoint1pos, wpoint2pos: the positions of the two white points
-
-            */
-
-
-            using (var cancellationTokenSourece = new CancellationTokenSource())
-            {
-                var buttonTask = Task.Run(() =>
-                {
-                    DateTime startTime = DateTime.Now;
-                    while (interupt_InterfaceOthers == false) ;
-
-                    //
-                    if (interupt_InterfaceOthers == true)
-                    {
-                        cancellationTokenSourece.Cancel();
-                        interupt_InterfaceOthers = false;
-                    }
-
-                });
-
-                try
-                {
-                    //myGrid.Children.Clear();
-                    Remove_All();
-
-                    // add one crossing on the right middle
-                    Add_OneCrossing(onecrossingPos);
-                    // two white points on left middle and top middle
-                    Add_TwoWhitePoints(wpointpos1, wpointpos2);
-
-                    textbox_thread.Text = "Targetcue running......";
-                    interfaceState = InterfaceState.TargetCue;
-                    // wait target cue for several seconds
-                    await Wait_Interface(waitt_cue, cancellationTokenSourece.Token);
-                    textbox_thread.Text = "Targetcue run completely";
-                    
-                }
-                catch (TaskCanceledException)
-                {
-                    textbox_thread.Text = "Targetcue run cancelled";
-
-                    Task task = null;
-                    throw new TaskCanceledException(task);
-                }
-
-            }
-        }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-
             if (serialPort_IO8.IsOpen)
                 serialPort_IO8.Close();
+
+            PresentTask = false;
         }
 
         public void Interface_Reward()
@@ -899,299 +1184,82 @@ namespace GonoGoTask_wpfVer
         }
 
 
-        public async Task Interface_GoNogo(float waitt_gonogo, int[] goNogPos)
-        {/* async task for go/nogo interface 
-
-            Args:
-                waitt_gonogo: wait time for go interface (ms)
-                objpos: the center position of the object (go cicle or nogo rect)
-
-            */
-            using (var cancellationTokenSourece = new CancellationTokenSource())
-            {
-                var buttonTask = Task.Run(() =>
-                {
-                    DateTime startTime = DateTime.Now;
-                    while (touched_InterfaceGoNogo == false) ;
-
-                    // touched detected
-                    if (touched_InterfaceGoNogo == true)
-                    {
-                        cancellationTokenSourece.Cancel();
-                        touched_InterfaceGoNogo = false;
-                    }
-
-                });
-
-                try
-                {
-                    //myGrid.Children.Clear();
-
-                    Remove_OneCrossing();
-
-                    // add go circle button or nogo square button on the right middle visible
-                    if (targetType == TargetType.Go)
-                    {
-                        Add_GoCircle(goNogPos);
-                    }
-
-                    else
-                    {
-                        Add_NogoRect(goNogPos);
-                    }
-          
-                    interfaceState = InterfaceState.GoNogo;
-                    touchState = TouchState.start;
-
-                    textbox_thread.Text = "Gonogo running.....";
-                    // wait target cue for several seconds
-                    await Wait_Interface(waitt_gonogo, cancellationTokenSourece.Token);
-
-                    if (targetType == TargetType.Go)
-                    {
-                        touchState = TouchState.goNoaction;
-                    }
-                    else
-                        touchState = TouchState.nogoNoaction;
-
-                    textbox_thread.Text = "Gonogo Complete.";
-
-                    await Task.Delay(1000);
-                }
-                catch (TaskCanceledException)
-                {
-                    Interface_Reward();
-                    textBox_State.Text = touchState.ToString();
-                    await Task.Delay(1000);
-
-                }
-            }
-        }
-
-        private void BtnStop_Click(object sender, RoutedEventArgs e)
+        private void Btn_Click(object sender, RoutedEventArgs e)
         {
-            
+            // Create an Ellipse  
+            Ellipse circleAdd = new Ellipse();
+
+            // Create a Brush    
+            SolidColorBrush brush = new SolidColorBrush();
+            brush.Color = Colors.Yellow;
+
+
+            circleAdd.Fill = brush;
+
+            // set the size, position of circleGo
+            circleAdd.Height = 100;
+            circleAdd.Width = 100;
+            circleAdd.VerticalAlignment = VerticalAlignment.Center;
+            circleAdd.HorizontalAlignment = HorizontalAlignment.Center;
+
+            circleAdd.Name = "CircleAdded";
+            circleAdd.IsEnabled = false;
+
+            // add to myGrid
+            myGrid.Children.Add(circleAdd);
+            myGrid.RegisterName(circleAdd.Name, circleAdd);
+            myGrid.UpdateLayout();
         }
 
 
         void Touch_FrameReported(object sender, TouchFrameEventArgs e)
-        {
-     
-            if (interfaceState == InterfaceState.Ready)
-            {// ready for starting a new trial
+        {/* Add the Id of New Touch Points into Hashset touchPoints_Id 
+            and the Corresponding Touch Down Positions into List downPoints_Pos (no replicates)*/
+            screenTouchstate = ScreenTouchState.Touched;
+            TouchPointCollection touchPoints = e.GetTouchPoints(myGrid);
+            bool addedNew;
+            long time = touchPointsWatch.ElapsedMilliseconds;
 
-                TouchPointCollection touchPoints = e.GetTouchPoints(myGrid);
-                bool addedNew, removedOld;
-                for (int i = 0; i < touchPoints.Count; i++)
-                {
-                    TouchPoint _touchPoint = touchPoints[i];
-
-                    if (_touchPoint.Action == TouchAction.Down)
-                    { // TouchAction.Down
-                      // check if new Point
-                        lock (touchPoints_Id)
-                        {
-                            addedNew = touchPoints_Id.Add(_touchPoint.TouchDevice.Id);
-                        }
-
-                        // deal the new touch point
-                        if (addedNew)
-                        {
-
-                        }
-
-                    }
-                    else if (_touchPoint.Action == TouchAction.Up)
-                    {// TouchAction.Up
-
-                        // remove the id of the point with up action
-                        lock (touchPoints_Id)
-                        {
-                            removedOld = touchPoints_Id.Remove(_touchPoint.TouchDevice.Id);
-                        }
-
-                        // deal with the point with up action
-                        if (removedOld)
-                        {
-                            double[] pos = new double[2] { _touchPoint.Position.X, _touchPoint.Position.Y };
-
-                            // store the pos of the point with up action
-                            lock (upPoints_pos)
-                            {
-                                upPoints_pos.Add(pos);
-                            }
-                        }
-                        else
-                        {
-                            throw new System.ArgumentException("Touch point ID can't be removed!");
-                        }
-
-                        // all points are already touched up
-                        if (touchPoints_Id.Count == 0)
-                        {
-                            while (upPoints_pos.Count > 0)
-                            {
-
-                                upPoints_pos.RemoveAt(0);
-                            }
-
-                            startTrial = true;
-                        }
-                    }
-
-                }
-            }
-            else if (interfaceState == InterfaceState.GoNogo)
-            {// gonogo interface
-                if (targetType == TargetType.Nogo)
-                { // No Go 
-                    touched_InterfaceGoNogo = true;
-                }
-                else if (targetType == TargetType.Go)
-                { // Go 
-                    bool addedNew, removedOld;
-
-                    TouchPointCollection touchPoints = e.GetTouchPoints(myGrid);
-
-                    for (int i = 0; i < touchPoints.Count; i++)
-                    {
-                        TouchPoint _touchPoint = touchPoints[i];
-
-                        if (_touchPoint.Action == TouchAction.Down)
-                        { // TouchAction.Down
-                            // check if new Point
-                            lock (touchPoints_Id)
-                            {
-                                addedNew = touchPoints_Id.Add(_touchPoint.TouchDevice.Id);
-                            }
-
-                            // deal the new touch point
-                            if (addedNew)
-                            {
-
-                            }
-
-                        }
-                        else if (_touchPoint.Action == TouchAction.Up)
-                        {// TouchAction.Up
-
-                            // remove the id of the point with up action
-                            lock (touchPoints_Id)
-                            {
-                                removedOld = touchPoints_Id.Remove(_touchPoint.TouchDevice.Id);
-                            }
-
-                            // deal with the point with up action
-                            if (removedOld)
-                            {
-                                double[] pos = new double[2] { _touchPoint.Position.X, _touchPoint.Position.Y };
-
-                                // store the pos of the point with up action
-                                lock (upPoints_pos)
-                                {
-                                    upPoints_pos.Add(pos);
-                                }
-                            }
-                            else
-                            {
-                                throw new System.ArgumentException("Touch point ID can't be removed!");
-                            }
-
-                            // all points are already touched up
-                            if (touchPoints_Id.Count == 0)
-                            {
-                                //touched_Downup = true;
-                                
-                                /* calculate TouchState*/
-                                double distance;
-                                touchState = TouchState.goMissed;
-                                while (upPoints_pos.Count > 0)
-                                {
-                                    Point touchp = new Point(upPoints_pos[0][0], upPoints_pos[0][1]);
-                                    // distance between the touchpoint and the center of the circleGo
-                                    distance = Point.Subtract(circleGo_centerPoint, touchp).Length;
-
-                                    // identify TouchState
-                                    if (distance <= circleGo_radius)
-                                    {
-                                        touchState = TouchState.goHit;
-                                    }
-                                    else if (distance <= circleGo_radius + disThreshold_close && touchState != TouchState.goHit)
-                                    {
-                                        touchState = TouchState.goClose;
-                                    }
-                                    /*else if (distance > circleGo_radius + disThreshold_close && (touchState != TouchState.goHit && touchState != TouchState.goClose))
-                                        touchState = TouchState.goMissed;*/
-
-                                    upPoints_pos.RemoveAt(0);
-                                }
-
-                                touched_InterfaceGoNogo = true;
-
-                            }
-                        }
-
-                    }
-                }
-            }
-            else if(interfaceState == InterfaceState.TargetCue)
+            for (int i = 0; i < touchPoints.Count; i++)
             {
-               
-                TouchPointCollection touchPoints = e.GetTouchPoints(myGrid);
-                bool addedNew, removedOld;
-                for (int i = 0; i < touchPoints.Count; i++)
+                TouchPoint _touchPoint = touchPoints[i];
+                if (_touchPoint.Action == TouchAction.Down)
+                { /* TouchAction.Down */
+
+                    textbox_thread.Text = _touchPoint.Position.X.ToString() + ", " + _touchPoint.Position.Y.ToString();
+
+                    if (touchPoints_Id.Count == 0)
+                    {// the first touch point for one touch
+                        touchPointsWatch.Restart();
+                    }
+                    lock (touchPoints_Id)
+                    {
+                        // Add the touchPoint to the Hashset touchPoints_Id, Return true if added, otherwise false.
+                        addedNew = touchPoints_Id.Add(_touchPoint.TouchDevice.Id);
+                    }
+                    if (addedNew)
+                    {/* deal with the New Added TouchPoint*/
+
+                        double[] pos = new double[2] { _touchPoint.Position.X, _touchPoint.Position.Y };
+                        // store the pos of the point with down action
+                        lock (downPoints_Pos)
+                        {
+                            downPoints_Pos.Add(pos);
+                        }
+
+                        downPoints_time.Add(time);
+                    }
+                }
+                else if (_touchPoint.Action == TouchAction.Up)
                 {
-                    TouchPoint _touchPoint = touchPoints[i];
-
-                    if (_touchPoint.Action == TouchAction.Down)
-                    { // TouchAction.Down
-                      // check if new Point
-                        lock (touchPoints_Id)
-                        {
-                            addedNew = touchPoints_Id.Add(_touchPoint.TouchDevice.Id);
-                        }
-
+                    // remove the id of the point with up action
+                    lock (touchPoints_Id)
+                    {
+                        touchPoints_Id.Remove(_touchPoint.TouchDevice.Id);
                     }
-                    else if (_touchPoint.Action == TouchAction.Up)
-                    {// TouchAction.Up
-
-                        // remove the id of the point with up action
-                        lock (touchPoints_Id)
-                        {
-                            removedOld = touchPoints_Id.Remove(_touchPoint.TouchDevice.Id);
-                        }
-
-                        // deal with the point with up action
-                        if (removedOld)
-                        {
-                            double[] pos = new double[2] { _touchPoint.Position.X, _touchPoint.Position.Y };
-
-                            // store the pos of the point with up action
-                            lock (upPoints_pos)
-                            {
-                                upPoints_pos.Add(pos);
-                            }
-                        }
-                        else
-                        {
-                            throw new System.ArgumentException("Touch point ID can't be removed!");
-                        }
-
-                        // all points are already touched up
-                        if (touchPoints_Id.Count == 0)
-                        {
-                            while (upPoints_pos.Count > 0)
-                            {
-
-                                upPoints_pos.RemoveAt(0);
-                            }
-
-                            interupt_InterfaceOthers = true;
-                        }
-                    }
-
                 }
             }
+
         }
     }
 }

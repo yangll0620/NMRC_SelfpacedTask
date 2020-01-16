@@ -8,6 +8,7 @@ using System.IO.Ports;
 using System.Windows.Controls;
 using System.Threading;
 using System.Windows.Media;
+using System.IO;
 
 namespace GonoGoTask_wpfVer
 {
@@ -16,11 +17,14 @@ namespace GonoGoTask_wpfVer
     /// </summary>
     public partial class MainWindow : Window
     {
-        public int gotrialnum, nogotrialnum;
         public string serialPortIO8_name;
 
         public int objdiameter;
         public int rightMargin, leftMargin, topMargin;
+
+
+        private string saved_folder = @"F:\yang7003@umn\NMRC_umn\Projects\GoNogoTaskDev\GononGoTask_wpf\";
+        public string file_saved;
 
         public MainWindow()
         {
@@ -44,10 +48,14 @@ namespace GonoGoTask_wpfVer
             }
             else
             {
-                btn_start.IsEnabled = true;
                 btn_comReconnect.Visibility = Visibility.Hidden;
                 btn_comReconnect.IsEnabled = false;
                 textblock_comState.Visibility = Visibility.Hidden;
+            }
+
+            if (textBox_NHPName.Text != "" && serialPortIO8_name != null)
+            {
+                btn_start.IsEnabled = true;
             }
         }
 
@@ -119,7 +127,6 @@ namespace GonoGoTask_wpfVer
             }
             else
             {
-                btn_start.IsEnabled = true;
                 btn_comReconnect.Visibility = Visibility.Hidden;
                 btn_comReconnect.IsEnabled = false;
                 run_comState.Text = "Found the COM Port for DLP-IO8!";
@@ -129,24 +136,73 @@ namespace GonoGoTask_wpfVer
                 run_instruction.Background = new SolidColorBrush(Colors.White);
                 run_instruction.Foreground = new SolidColorBrush(Colors.Green);
             }
+
+
+            if (textBox_NHPName.Text != "" && serialPortIO8_name != null)
+            {
+                btn_start.IsEnabled = true;
+            }
+
         }
 
-        private void TextBox_goTrialNum_TextChanged(object sender, TextChangedEventArgs e)
+        private void btnStart_Click(object sender, RoutedEventArgs e)
         {
-            gotrialnum = Int32.Parse(textBox_goTrialNum.Text);
-        }
-
-        private void TextBox_nogoTrialNum_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            nogotrialnum = Int32.Parse(textBox_nogoTrialNum.Text);
-        }
-
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-                      
+            saveInputParameters();
             presentation taskpresent = new presentation(this);
             taskpresent.Show();
         }
 
+        private void TextBox_NHPName_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if(textBox_NHPName.Text != "" && serialPortIO8_name != null)
+            {
+                btn_start.IsEnabled = true;
+            }
+        }
+
+        private void saveInputParameters()
+        {
+            DateTime time_now = DateTime.Now;
+
+
+            file_saved = saved_folder + textBox_NHPName.Text + time_now.ToString("-yyyyMMdd-HHmmss") + ".txt";
+            using (StreamWriter file = new StreamWriter(file_saved))
+            {
+                file.WriteLine("Date: " + time_now.ToString("MM/dd/yyyy HH:mm:ss") + "\t\tNHP Name: " + textBox_NHPName.Text);
+                file.WriteLine("\n");
+
+
+                file.WriteLine("Input Parameters:");
+
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Total Number of Go Trials", textBox_goTrialNum.Text));
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Total Number of Nogo Trials", textBox_nogoTrialNum.Text));
+
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Go Target Color", cbo_goColor.Text));
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Nogo Target Color", cbo_nogoColor.Text));
+
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Target Diameter (inch)", textBox_objdiameter.Text));
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Target Distance from the Center (inch)", textBox_disfromcenter.Text));
+
+                file.WriteLine(String.Format("{0, -40}:  [{1} {2}]", "Ready Interface Show Time Range (s)", textBox_tReady_min.Text, textBox_tReady_max.Text));
+                file.WriteLine(String.Format("{0, -40}:  [{1} {2}]", "Cue Interface Show Time Range (s)", textBox_tCue_min.Text, textBox_tCue_max.Text));
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Go/Nogo Interface Max Show Time (s)", textBox_tmaxGoNogoShow.Text));
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Reward Interface Show Time (s)", textBox_tRewardShow.Text));
+
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Max Reach Time (s)", textBox_MaxReachTime.Text));
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Max Reaction Time (s)", textBox_MaxReactionTime.Text));
+
+            }
+        }
+
+        private void btnTest_Click(object sender, RoutedEventArgs e)
+        {
+            saveInputParameters();
+        }
+
+
+
     }
+
+
+   
 }
