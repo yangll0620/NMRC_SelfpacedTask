@@ -127,7 +127,7 @@
                                      HorizontalAlignment="Left" VerticalAlignment="Top" 
                                      HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                      Height="23" Width ="50" Margin="0,10,5,0" 
-                                     TextWrapping="Wrap" Text="10"  FontWeight="Normal" />
+                                     TextWrapping="Wrap" Text="50"  FontWeight="Normal" />
                         </Grid>
                     </GroupBox>
 
@@ -201,7 +201,7 @@
                                      HorizontalAlignment="Right" VerticalAlignment="Top" 
                                      HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                      Height="25" Width ="60" Margin="0,10,5,0" 
-                                     TextWrapping="Wrap" Text="5"  FontWeight="Normal" FontSize="11" />
+                                     TextWrapping="Wrap" Text="4"  FontWeight="Normal" FontSize="11" />
 
 
                     </Grid>

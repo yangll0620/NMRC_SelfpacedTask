@@ -211,23 +211,20 @@ namespace GonoGoTask_wpfVer
             // get the setup from the parent interface
             GetSetupParameters();
 
-            disXFromCenter = disFromCenter;
-            disYFromCenter = disFromCenter;
-            optPostions_List.Add(new int[] { -disXFromCenter, 0 }); // left position
-            optPostions_List.Add(new int[] { 0, -disYFromCenter }); // top position
-            optPostions_List.Add(new int[] { disXFromCenter, 0 }); // right position
+            // Set the Optional Positions in Global Variable optPositions_List
+            SetOptionalPostions();
+
 
             //shuffle go and nogo trials
             Shuffle_GonogoTrials(Int32.Parse(parent.textBox_goTrialNum.Text), Int32.Parse(parent.textBox_nogoTrialNum.Text));
 
             
+
             // Create necessary elements: go circle, nogo rect, two white points and one crossing
             Create_GoCircle();
             Create_NogoRect();
             Create_TwoWhitePoints();
             Create_OneCrossing();
-
-
 
 
             // init a global stopwatch
@@ -246,7 +243,7 @@ namespace GonoGoTask_wpfVer
                 WriteHeaderInf();
 
                 // present task trial by trial
-                //Present_Task();
+                Present_Task();
             }
             catch (Exception ex)
             {
@@ -254,6 +251,26 @@ namespace GonoGoTask_wpfVer
             }
 
         }
+
+
+        private void SetOptionalPostions()
+        {/*Set the Optional Target Postions 
+            the Global Variable: 
+                optPositions_List
+         */
+
+            // Get the Position of the Screen Center Point
+            int screenCenter_X = (int)wholeGrid.ActualWidth / 2;
+            int screenCenter_Y = (int)wholeGrid.ActualHeight / 2;
+
+
+            disXFromCenter = disFromCenter;
+            disYFromCenter = disFromCenter;
+            optPostions_List.Add(new int[] { screenCenter_X - disXFromCenter, screenCenter_Y }); // left position
+            optPostions_List.Add(new int[] { screenCenter_X, screenCenter_Y - disYFromCenter }); // top position
+            optPostions_List.Add(new int[] { screenCenter_X + disXFromCenter, screenCenter_Y }); // right position
+        }
+
 
         private void serialPort_SetOpen (string portName, int baudRate)
         {
@@ -372,6 +389,7 @@ namespace GonoGoTask_wpfVer
             brush_bkwaitstart.Color = Colors.Gray;
             brush_bdwaitstart = new SolidColorBrush();
             brush_bdwaitstart.Color = Colors.Black;
+
             // Brush for background of the trial
             brush_bktrial = new SolidColorBrush();
             brush_bktrial.Color = Colors.Black;
@@ -407,9 +425,6 @@ namespace GonoGoTask_wpfVer
                     "Ready Interface Onset Time", "Cue Interface Onset Time", "Go/Nogo Interface Onset Time",
                     "Startpad Onset Time", "Startpad Off Time", "Screen Touched Time",
                     "Trial Result", "Touched Coordinates"));
-
-
-
             }
         }
 
@@ -444,8 +459,8 @@ namespace GonoGoTask_wpfVer
             // set the size, position of circleGo
             circleGo.Height = objdiameter;
             circleGo.Width = objdiameter;
-            circleGo.VerticalAlignment = VerticalAlignment.Center;
-            circleGo.HorizontalAlignment = HorizontalAlignment.Center;
+            circleGo.VerticalAlignment = VerticalAlignment.Top;
+            circleGo.HorizontalAlignment = HorizontalAlignment.Left;
 
             circleGo.Name = name_circleGo;
             circleGo.Visibility = Visibility.Hidden;
@@ -455,38 +470,26 @@ namespace GonoGoTask_wpfVer
             myGrid.Children.Add(circleGo);
             myGrid.RegisterName(circleGo.Name, circleGo);
             myGrid.UpdateLayout();
-
-            Grid parent_GoCircle = (Grid)circleGo.Parent;
-            Grid parent_wholeGrid = (Grid)parent_GoCircle.Parent;
         }
 
-        private void Add_GoCircle(int[] pos)
-        {/*show the Go Circle at pos*/
+        private void Add_GoCircle(int[] centerPoint_Pos)
+        {/*show the Go Circle with Circle Center at (centerPoint_Pos[0], centerPoint_Pos[1]) */
 
-            
+            int centerPoint_X = centerPoint_Pos[0], centerPoint_Y = centerPoint_Pos[1];
 
+            double left = centerPoint_X - circleGo.Width / 2;
+            double top = centerPoint_Y - circleGo.Height / 2;
+            circleGo.Margin = new Thickness(left, top, 0, 0);
 
-            circleGo.Margin = new Thickness(pos[0], pos[1], 0, 0);
             circleGo.Fill = brush_goCircle;
             circleGo.Visibility = Visibility.Visible;
             circleGo.IsEnabled = true;
-            //myGrid.UpdateLayout();
+            myGrid.UpdateLayout();
 
 
             // get the center point and the radius of circleGo
-            Point leftTopPoint_circleGo = circleGo.TransformToAncestor(this).Transform(new Point(0, 0));
-            circleGo_centerPoint = Point.Add(leftTopPoint_circleGo, new Vector(circleGo.Width / 2, circleGo.Height / 2));
+            circleGo_centerPoint = circleGo.TransformToAncestor(this).Transform(new Point(circleGo.Width / 2, circleGo.Height / 2));
             circleGo_radius = ((circleGo.Height + circleGo.Width) / 2) / 2;
-
-            Ellipse originGo = new Ellipse { Width = 5, Height = 5};
-            double left = circleGo_centerPoint.X - (1 / 2);
-            double top = circleGo_centerPoint.Y - (1 / 2);
-            originGo.Fill = brush_ErrorInterface;
-            originGo.VerticalAlignment = VerticalAlignment.Top;
-            originGo.HorizontalAlignment = HorizontalAlignment.Left;
-            originGo.Margin = new Thickness(left, top, 0, 0);
-            myGrid.Children.Add(originGo);
-            myGrid.UpdateLayout();
         }
         private void Remove_GoCircle()
         {
@@ -520,8 +523,8 @@ namespace GonoGoTask_wpfVer
             int square_height = objdiameter;
             rectNogo.Height = square_height;
             rectNogo.Width = square_width;
-            rectNogo.VerticalAlignment = VerticalAlignment.Center;
-            rectNogo.HorizontalAlignment = HorizontalAlignment.Center;
+            rectNogo.VerticalAlignment = VerticalAlignment.Top;
+            rectNogo.HorizontalAlignment = HorizontalAlignment.Left;
 
             // name
             rectNogo.Name = name_rectNogo;
@@ -536,10 +539,15 @@ namespace GonoGoTask_wpfVer
             myGrid.UpdateLayout();
         }
 
-        private void Add_NogoRect(int[] pos)
-        {/*show the noGo Rect at pos*/
+        private void Add_NogoRect(int[] centerPoint_Pos)
+        {/*show the Nogo Rectangle with Rectangle Center at (centerPoint_Pos[0], centerPoint_Pos[1]) */
 
-            rectNogo.Margin = new Thickness(pos[0], pos[1], 0, 0);
+            int centerPoint_X = centerPoint_Pos[0], centerPoint_Y = centerPoint_Pos[1];
+
+            double left = centerPoint_X - circleGo.Width / 2;
+            double top = centerPoint_Y - circleGo.Height / 2;
+            rectNogo.Margin = new Thickness(left, top, 0, 0);
+
             rectNogo.Fill = brush_nogoRect;
             rectNogo.Visibility = Visibility.Visible;
             rectNogo.IsEnabled = true;
@@ -638,8 +646,8 @@ namespace GonoGoTask_wpfVer
             horiLine.Y2 = horiLine.Y1;        
             
             // horizontal line position
-            horiLine.HorizontalAlignment = HorizontalAlignment.Center;
-            horiLine.VerticalAlignment = VerticalAlignment.Center;
+            horiLine.HorizontalAlignment = HorizontalAlignment.Left;
+            horiLine.VerticalAlignment = VerticalAlignment.Top;
             
             // horizontal line color
             horiLine.Stroke = whiteBrush;
@@ -660,8 +668,8 @@ namespace GonoGoTask_wpfVer
             vertLine.X2 = vertLine.X1;
             vertLine.Y2 = len;
             // vertical line position
-            vertLine.HorizontalAlignment = HorizontalAlignment.Center;
-            vertLine.VerticalAlignment = VerticalAlignment.Center;
+            vertLine.HorizontalAlignment = HorizontalAlignment.Left;
+            vertLine.VerticalAlignment = VerticalAlignment.Top;
             
             // vertical line color
             vertLine.Stroke = whiteBrush;
@@ -677,11 +685,16 @@ namespace GonoGoTask_wpfVer
             myGrid.UpdateLayout();
         }
 
-        private void Add_OneCrossing(int[] pos)
-        {//show One Crossing at the same position of object go/nogo
+        private void Add_OneCrossing(int[] centerPoint_Pos)
+        {/*     Show One Crossing Containing One Horizontal Line and One Vertical Line
+            *   The Center Points of the Two Lines Intersect at centerPoint_Pos
+            * 
+             */
 
-            horiLine.Margin = new Thickness(pos[0], pos[1], 0, 0);
-            vertLine.Margin = new Thickness(pos[0], pos[1], 0, 0);
+            int centerPoint_X = centerPoint_Pos[0], centerPoint_Y = centerPoint_Pos[1];
+
+            horiLine.Margin = new Thickness(centerPoint_X - objdiameter/2, centerPoint_Y, 0, 0);
+            vertLine.Margin = new Thickness(centerPoint_X, centerPoint_Y - objdiameter / 2, 0, 0);
 
             horiLine.Visibility = Visibility.Visible;
             vertLine.Visibility = Visibility.Visible;
@@ -751,7 +764,7 @@ namespace GonoGoTask_wpfVer
 
 
                 triali++;
-                textbox_main.Text = "triali = " + (triali + 1).ToString();
+                textbox_main.Text = "triali = " + (triali + 1).ToString() + ", Target Ind = " + targetPosInd.ToString();
 
                 
                 /*----- WaitStartTrial Interface ------*/
@@ -1013,6 +1026,7 @@ namespace GonoGoTask_wpfVer
             }
         }
 
+
         private async Task Interface_Go(int[] pos_Target)
         {/* task for Go Interface: Show the Go Interface while Listen to the state of the startpad.
             * 1. If Reaction time < Max Reaction Time or Reach Time < Max Reach Time, end up with long reaction or reach time ERROR Interface
@@ -1184,32 +1198,121 @@ namespace GonoGoTask_wpfVer
         }
 
 
-        private void Btn_Click(object sender, RoutedEventArgs e)
+
+        private Ellipse AddCircle(double diameter, Color color)
         {
             // Create an Ellipse  
             Ellipse circleAdd = new Ellipse();
 
             // Create a Brush    
             SolidColorBrush brush = new SolidColorBrush();
-            brush.Color = Colors.Yellow;
+            brush.Color = color;
 
 
             circleAdd.Fill = brush;
 
             // set the size, position of circleGo
-            circleAdd.Height = 100;
-            circleAdd.Width = 100;
-            circleAdd.VerticalAlignment = VerticalAlignment.Center;
-            circleAdd.HorizontalAlignment = HorizontalAlignment.Center;
+            circleAdd.Height = diameter;
+            circleAdd.Width = diameter;
+            circleAdd.VerticalAlignment = VerticalAlignment.Top;
+            circleAdd.HorizontalAlignment = HorizontalAlignment.Left;
 
-            circleAdd.Name = "CircleAdded";
-            circleAdd.IsEnabled = false;
 
-            // add to myGrid
-            myGrid.Children.Add(circleAdd);
-            myGrid.RegisterName(circleAdd.Name, circleAdd);
-            myGrid.UpdateLayout();
+            return circleAdd;
         }
+
+        private Rectangle AddRect(double diameter, Color color)
+        {
+            // Create an Rectangle  
+            Rectangle rect = new Rectangle();
+
+            // Create a Brush    
+            SolidColorBrush brush = new SolidColorBrush();
+            brush.Color = color;
+
+
+            rect.Fill = brush;
+
+            // set the size, position of circleGo
+            rect.Height = diameter;
+            rect.Width = diameter;
+            rect.VerticalAlignment = VerticalAlignment.Top;
+            rect.HorizontalAlignment = HorizontalAlignment.Left;
+
+
+            return rect;
+        }
+
+        private Line AddLine(Point P1, Point P2)
+        {
+            int linethickness = 2;
+
+            Line line = new Line();
+
+            line.X1 = P1.X;
+            line.Y1 = P1.Y;
+            line.X2 = P2.X;
+            line.Y2 = P2.Y;
+
+            line.HorizontalAlignment = HorizontalAlignment.Left;
+            line.VerticalAlignment = VerticalAlignment.Top;
+
+
+            // line color
+            SolidColorBrush whiteBrush = new SolidColorBrush();
+            whiteBrush.Color = Colors.Black;
+            line.Stroke = whiteBrush;
+
+            // horizontal line stroke thickness
+            line.StrokeThickness = linethickness;
+
+            //Line[] Crossing = new Line[] { vertLine, horiLine };
+
+            return line;
+        }
+
+        private void Btn_Click(object sender, RoutedEventArgs e)
+        {
+            double len = 30;
+            Point vertLine_P1 = new Point(0, 0);
+            Point vertLine_P2 = new Point(len,0);
+
+            Line vertLine = AddLine(vertLine_P1, vertLine_P2);
+            vertLine.Margin = new Thickness(100, 10, 0, 0);
+
+
+            myGrid.Children.Add(vertLine);
+            myGrid.UpdateLayout();
+
+            Point Point0 = vertLine.TransformToAncestor(wholeGrid).Transform(new Point(0,0));
+            textbox_thread2.Text = "vertLine(len = " + len.ToString() + "), Point(0,0): " + Point0.X.ToString() + "," + Point0.Y.ToString();
+
+        }
+
+        private void Btn2_Click(object sender, RoutedEventArgs e)
+        {
+            // Get the Screen Center Point
+            Point Point_ScreenCenter = new Point(wholeGrid.ActualWidth / 2, wholeGrid.ActualHeight / 2);
+
+
+            Ellipse Circle2;
+            double diameter = 30;
+
+            Circle2 = AddCircle(diameter, Colors.Yellow);
+            // the Position of the Circle Center
+            double desiredX = wholeGrid.ActualWidth / 2, desiredY = wholeGrid.ActualHeight / 2;
+            double left = desiredX - Circle2.Width / 2;
+            double top = desiredY - Circle2.Height / 2;
+            Circle2.Margin = new Thickness(left, top, 0, 0);
+
+            myGrid.Children.Add(Circle2);
+            myGrid.UpdateLayout();
+
+
+            Point Origin = Circle2.TransformToAncestor(wholeGrid).Transform(new Point(Circle2.Width/2, Circle2.Height/2));
+            textbox_thread2.Text = "Circle2(" + diameter.ToString() + "): " + Origin.X.ToString() + "," + Origin.Y.ToString();
+        }
+
 
 
         void Touch_FrameReported(object sender, TouchFrameEventArgs e)
