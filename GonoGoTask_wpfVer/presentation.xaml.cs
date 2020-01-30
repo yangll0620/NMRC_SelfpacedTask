@@ -143,7 +143,7 @@ namespace GonoGoTask_wpfVer
         float[] waittrange_ready, waittrange_cue, waittrange_noGoShow;
         // Max Reaction and Reach Time
         float tMax_ReactionTime, tMax_ReachTime;
-
+        Int32 t_RewardInterfaceShow;
 
         bool PresentTask;
 
@@ -386,7 +386,7 @@ namespace GonoGoTask_wpfVer
             waittrange_noGoShow = new float[] { float.Parse(parent.textBox_tNogoShow_min.Text), float.Parse(parent.textBox_tNogoShow_max.Text) };
             tMax_ReactionTime = float.Parse(parent.textBox_MaxReactionTime.Text);
             tMax_ReachTime = float.Parse(parent.textBox_MaxReachTime.Text);
-
+            t_RewardInterfaceShow = (Int32)(float.Parse(parent.textBox_tRewardShow.Text) * 1000);
 
             // Brush for background and border of WaitStart Interface
             brush_bkwaitstart = new SolidColorBrush();
@@ -1044,6 +1044,8 @@ namespace GonoGoTask_wpfVer
                 {
                     if (waitWatch.ElapsedMilliseconds >= tMax_ReactionTime * 1000)
                     {/* No release Startpad within tMax_ReactionTime */
+                        textbox_main.Dispatcher.Invoke(new UpdateTextCallback(this.UpdateBackground),
+                    new object[] { "No Reaction within the Max Reaction Time" });
                         throw new TaskCanceledException("No Reaction within the Max Reaction Time");
                     }
                 }
@@ -1147,12 +1149,12 @@ namespace GonoGoTask_wpfVer
                     Interface_GoERROR_Miss();
                     textbox_thread2.Text = "Miss";
                 }
-                await Task.Delay(1000);
+                await Task.Delay(t_RewardInterfaceShow);
             }
             catch(TaskCanceledException)
             {
                 Interface_GoERROR_LongReactionReach();
-                await Task.Delay(1000);
+                await Task.Delay(t_RewardInterfaceShow);
                 throw new TaskCanceledException("Not Reaction Within the Max Reaction Time.");
             }
             
@@ -1180,13 +1182,14 @@ namespace GonoGoTask_wpfVer
                 Add_NogoRect(pos_Target);
                 textBox_State.Text = "X = " + circleGo_centerPoint.X.ToString() + ", Y = " + circleGo_centerPoint.Y.ToString();
 
-                // Wait Startpad TouchedOn  for several seconds
+                // Wait Startpad TouchedOn  for t_noGoShow
+                startpadHoldstate = StartPadHoldState.HoldTooShort;
                 await Wait_EnoughTouch(t_noGoShow);
             }
             catch (TaskCanceledException)
             {
                 Interface_noGoERROR();
-                await Task.Delay(1000);
+                await Task.Delay(t_RewardInterfaceShow);
                 throw new TaskCanceledException("Startpad Touched off within t_nogoshow");
             }
 
