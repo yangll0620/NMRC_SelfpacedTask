@@ -401,6 +401,8 @@ namespace GonoGoTask_wpfVer
             brush_ErrorInterface.Color = Colors.Red;
             brush_CorrectInterface = new SolidColorBrush();
             brush_CorrectInterface.Color = Colors.Green;
+            brush_CloseInterface = new SolidColorBrush();
+            brush_CloseInterface.Color = Colors.Cyan;
 
             // get the file for saving 
             file_saved = parent.file_saved;
@@ -1185,6 +1187,8 @@ namespace GonoGoTask_wpfVer
                 // Wait Startpad TouchedOn  for t_noGoShow
                 startpadHoldstate = StartPadHoldState.HoldTooShort;
                 await Wait_EnoughTouch(t_noGoShow);
+                Interface_noGoCorrect();
+                await Task.Delay(t_RewardInterfaceShow);
             }
             catch (TaskCanceledException)
             {
@@ -1200,6 +1204,7 @@ namespace GonoGoTask_wpfVer
         {
             myGridBorder.BorderBrush = brush_ErrorInterface;
             circleGo.Fill = brush_ErrorInterface;
+            circleGoClose.Stroke = brush_ErrorInterface;
             myGrid.UpdateLayout();
             
         }
@@ -1217,6 +1222,7 @@ namespace GonoGoTask_wpfVer
         {
             myGridBorder.BorderBrush = brush_CorrectInterface;
             circleGo.Fill = brush_CorrectInterface;
+            circleGoClose.Stroke = brush_CorrectInterface;
             myGrid.UpdateLayout();
         }
 
@@ -1224,6 +1230,7 @@ namespace GonoGoTask_wpfVer
         {
             myGridBorder.BorderBrush = brush_CloseInterface;
             circleGo.Fill = brush_CloseInterface;
+            circleGoClose.Stroke = brush_CloseInterface;
             myGrid.UpdateLayout();
         }
 
@@ -1232,7 +1239,13 @@ namespace GonoGoTask_wpfVer
             myGridBorder.BorderBrush = brush_ErrorInterface;
             rectNogo.Fill = brush_ErrorInterface;
             myGrid.UpdateLayout();
+        }
 
+        private void Interface_noGoCorrect()
+        {
+            myGridBorder.BorderBrush = brush_CorrectInterface;
+            rectNogo.Fill = brush_CorrectInterface;
+            myGrid.UpdateLayout();
         }
 
         private static Task Wait_Interface(CancellationToken cancellationToken)
