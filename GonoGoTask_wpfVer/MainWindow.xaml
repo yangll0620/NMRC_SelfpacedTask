@@ -215,31 +215,43 @@
                     <Grid HorizontalAlignment="Left" VerticalAlignment="Top" Height="220"  Width="360" Margin="0,0,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="2*"/>
-                            <RowDefinition Height="2*"/>
+                            <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
 
-                        <Grid Grid.Row="1" Margin="0, 10, 0, 0">
+                        <Grid Grid.Row="1" Margin="0, 0, 0, 0">
                             <Grid.RowDefinitions>
-                                <RowDefinition Height="*"/>
                                 <RowDefinition Height="*"/>
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
 
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition/>
+                                <ColumnDefinition />
                             </Grid.ColumnDefinitions>
 
-                            <TextBlock Grid.Row="0"
+
+
+                            <TextBlock Grid.Row="1" Grid.Column="0"
                                 HorizontalAlignment="Right" VerticalAlignment="Center" 
                                        TextAlignment="Right" Padding="3"
-                                   Height="23" Margin="0,12,60,0"  FontWeight="Normal"  >
-                            t_maxGo/noGoShow</TextBlock>
-                            <TextBox x:Name="textBox_tmaxGoNogoShow" Grid.Row="0"
+                                   Height="23" Margin="0,12,65,0"  FontWeight="Normal"  >
+                            t_RewardShow</TextBlock>
+                            <TextBox x:Name="textBox_tRewardShow" Grid.Row="1" Grid.Column="0"
                                      HorizontalAlignment="Right" VerticalAlignment="Center" 
                                      HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                      Height="23" Width="50" Margin="0,10,10,0" 
-                                     TextWrapping="Wrap" Text="3"  FontWeight="Normal" />
+                                     TextWrapping="Wrap" Text="2"  FontWeight="Normal" />
+
+                            <TextBlock Grid.Row="0" Grid.Column="0"
+                                HorizontalAlignment="Right" VerticalAlignment="Center" 
+                                       TextAlignment="Right" Padding="3"
+                                   Height="23" Margin="0,12,65,0"  FontWeight="Normal"  >
+                            Max Reach Time</TextBlock>
+                            <TextBox x:Name="textBox_MaxReachTime" Grid.Row="0" Grid.Column="0"
+                                     HorizontalAlignment="Right" VerticalAlignment="Center" 
+                                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                     Height="23" Width="50" Margin="0,10,10,0" 
+                                     TextWrapping="Wrap" Text="2"  FontWeight="Normal" />
 
 
 
@@ -247,32 +259,8 @@
                                 HorizontalAlignment="Right" VerticalAlignment="Center" 
                                        TextAlignment="Right" Padding="3"
                                    Height="23" Margin="0,12,65,0"  FontWeight="Normal"  >
-                            t_RewardShow</TextBlock>
-                            <TextBox x:Name="textBox_tRewardShow" Grid.Row="0" Grid.Column="1"
-                                     HorizontalAlignment="Right" VerticalAlignment="Center" 
-                                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                                     Height="23" Width="50" Margin="0,10,10,0" 
-                                     TextWrapping="Wrap" Text="2"  FontWeight="Normal" />
-
-                            <TextBlock Grid.Row="1" Grid.Column="0"
-                                HorizontalAlignment="Right" VerticalAlignment="Center" 
-                                       TextAlignment="Right" Padding="3"
-                                   Height="23" Margin="0,12,65,0"  FontWeight="Normal"  >
-                            Max Reach Time</TextBlock>
-                            <TextBox x:Name="textBox_MaxReachTime" Grid.Row="1" Grid.Column="0"
-                                     HorizontalAlignment="Right" VerticalAlignment="Center" 
-                                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                                     Height="23" Width="50" Margin="0,10,10,0" 
-                                     TextWrapping="Wrap" Text="2"  FontWeight="Normal" />
-
-
-
-                            <TextBlock Grid.Row="1" Grid.Column="1"
-                                HorizontalAlignment="Right" VerticalAlignment="Center" 
-                                       TextAlignment="Right" Padding="3"
-                                   Height="23" Margin="0,12,65,0"  FontWeight="Normal"  >
                             Max Reaction Time</TextBlock>
-                            <TextBox x:Name="textBox_MaxReactionTime" Grid.Row="1" Grid.Column="1"
+                            <TextBox x:Name="textBox_MaxReactionTime" Grid.Row="0" Grid.Column="1"
                                      HorizontalAlignment="Right" VerticalAlignment="Center" 
                                      HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                      Height="23" Width="50" Margin="0,10,10,0" 
@@ -283,8 +271,9 @@
                         <Grid Grid.Row="0" Margin="0,0,100,10">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="*"/>
-                                <RowDefinition Height="*"/>
-                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
                             </Grid.RowDefinitions>
 
                             <Grid.ColumnDefinitions>
@@ -332,6 +321,25 @@
                                      HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                      Height="23" Width ="50" Margin="0,10,0,0" 
                                      TextWrapping="Wrap" Text="3"  FontWeight="Normal" />
+
+
+                            <TextBlock Grid.Row="3" Grid.Column="0"  
+                                   HorizontalAlignment="Right" 
+                                   Margin="0,10,0,0"  FontWeight="Normal" TextAlignment="Right" VerticalAlignment="Center">
+                            t_noGoShow</TextBlock>
+
+                            <TextBox x:Name="textBox_tNogoShow_min" Grid.Row="3" Grid.Column="1"  
+                                     HorizontalAlignment="Center" VerticalAlignment="Top" 
+                                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                     Height="23" Width ="50" Margin="0,10,0,0" 
+                                     TextWrapping="Wrap" Text="1"  FontWeight="Normal" />
+                            <TextBox x:Name="textBox_tNogoShow_max" Grid.Row="3" Grid.Column="2"  
+                                     HorizontalAlignment="Center" VerticalAlignment="Top" 
+                                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                     Height="23" Width ="50" Margin="0,10,0,0" 
+                                     TextWrapping="Wrap" Text="3"  FontWeight="Normal" />
+
+
                         </Grid>
                     </Grid>
                 </GroupBox>

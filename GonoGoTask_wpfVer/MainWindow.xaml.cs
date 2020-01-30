@@ -185,7 +185,7 @@ namespace GonoGoTask_wpfVer
 
                 file.WriteLine(String.Format("{0, -40}:  [{1} {2}]", "Ready Interface Show Time Range (s)", textBox_tReady_min.Text, textBox_tReady_max.Text));
                 file.WriteLine(String.Format("{0, -40}:  [{1} {2}]", "Cue Interface Show Time Range (s)", textBox_tCue_min.Text, textBox_tCue_max.Text));
-                file.WriteLine(String.Format("{0, -40}:  {1}", "Go/Nogo Interface Max Show Time (s)", textBox_tmaxGoNogoShow.Text));
+                file.WriteLine(String.Format("{0, -40}:  [{1} {2}]", "Nogo Interface Show Range Time (s)", textBox_tNogoShow_min.Text, textBox_tNogoShow_max.Text));
                 file.WriteLine(String.Format("{0, -40}:  {1}", "Reward Interface Show Time (s)", textBox_tRewardShow.Text));
 
                 file.WriteLine(String.Format("{0, -40}:  {1}", "Max Reach Time (s)", textBox_MaxReachTime.Text));

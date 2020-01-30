@@ -11,3 +11,7 @@ NMRC Go/Nogo Task
 
 
    flowdiagram
+   hardwareframe
+   goInterface
+   shuffleTrials
+   issues

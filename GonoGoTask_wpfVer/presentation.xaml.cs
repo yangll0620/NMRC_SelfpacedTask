@@ -83,7 +83,7 @@ namespace GonoGoTask_wpfVer
         string file_saved;
 
         // diameter for crossing, circle, square and white points
-        int objdiameter;
+        int objdiameter, closediameter;
         int disFromCenter, disXFromCenter, disYFromCenter;
         // the threshold distance defining close
         int disThreshold_close; 
@@ -96,10 +96,12 @@ namespace GonoGoTask_wpfVer
         List<float> t_Ready_List = new List<float>();
         // randomized t_Cue list
         List<float> t_Cue_List = new List<float>();
+        // randomized t_Cue list
+        List<float> t_noGoShow_List = new List<float>();
 
 
         // objects of Go cirle, nogo Rectangle, lines of the crossing, and two white points
-        Ellipse circleGo;
+        Ellipse circleGo, circleGoClose;
         SolidColorBrush brush_goCircle;
         Rectangle rectNogo;
         SolidColorBrush brush_nogoRect;
@@ -107,10 +109,11 @@ namespace GonoGoTask_wpfVer
         Ellipse point1, point2;
 
         // Colors for Correct and Error
-        SolidColorBrush brush_ErrorInterface, brush_CorrectInterface, brush_NearInterface;
+        SolidColorBrush brush_ErrorInterface, brush_CorrectInterface, brush_CloseInterface;
 
         Point circleGo_centerPoint; // the center of circleGo 
         double circleGo_radius; // the radius of circleGO
+        double circleGoClose_radius; // the radius of circleGO
 
         // background of ready and trial
         SolidColorBrush brush_bkwaitstart, brush_bdwaitstart, brush_bktrial;
@@ -120,6 +123,7 @@ namespace GonoGoTask_wpfVer
 
         // name of all the objects
         string name_circleGo = "circleGo";
+        string name_circleGoClose = "circleGoClose";
         string name_rectNogo = "rectNogo";
         string name_vLine = "vLine", name_hLine = "hLine";
         string name_point1 = "wpoint1", name_point2 = "wpoint2";
@@ -135,8 +139,8 @@ namespace GonoGoTask_wpfVer
 
 
         // wait range for each event
-        float waitt_goNogo, waitt_reward;
-        float[] waittrange_ready, waittrange_cue;
+        float waitt_reward;
+        float[] waittrange_ready, waittrange_cue, waittrange_noGoShow;
         // Max Reaction and Reach Time
         float tMax_ReactionTime, tMax_ReachTime;
 
@@ -324,6 +328,7 @@ namespace GonoGoTask_wpfVer
                 // generate a random t_Ready and t_Cue, and and them into t_Ready_List and t_Cue_List individually
                 t_Cue_List.Add(TransferTo((float)r.NextDouble(), waittrange_cue[0], waittrange_cue[1]));
                 t_Ready_List.Add(TransferTo((float)r.NextDouble(), waittrange_ready[0], waittrange_ready[1]));
+                t_noGoShow_List.Add(TransferTo((float)r.NextDouble(), waittrange_noGoShow[0], waittrange_noGoShow[1]));
 
                 //remove this value
                 tmporder_gonogo.RemoveAt(randomIndex);
@@ -372,14 +377,13 @@ namespace GonoGoTask_wpfVer
             // object size and distance parameters
             objdiameter = in2pixal(float.Parse(parent.textBox_objdiameter.Text));
             disFromCenter = in2pixal(float.Parse(parent.textBox_disfromcenter.Text));
-            disThreshold_close = (int)((objdiameter / 2) * float.Parse(parent.textBox_errorMargin.Text) / 100);
-
+            closediameter = (int)(objdiameter * (1 + float.Parse(parent.textBox_errorMargin.Text) / 100));
 
             // interfaces time related parameters
-            waitt_goNogo = float.Parse(parent.textBox_tmaxGoNogoShow.Text);
             waitt_reward = float.Parse(parent.textBox_tRewardShow.Text);
             waittrange_ready = new float[] { float.Parse(parent.textBox_tReady_min.Text), float.Parse(parent.textBox_tReady_max.Text) };
             waittrange_cue = new float[] { float.Parse(parent.textBox_tCue_min.Text), float.Parse(parent.textBox_tCue_max.Text) };
+            waittrange_noGoShow = new float[] { float.Parse(parent.textBox_tNogoShow_min.Text), float.Parse(parent.textBox_tNogoShow_max.Text) };
             tMax_ReactionTime = float.Parse(parent.textBox_MaxReactionTime.Text);
             tMax_ReachTime = float.Parse(parent.textBox_MaxReachTime.Text);
 
@@ -432,10 +436,6 @@ namespace GonoGoTask_wpfVer
         {/*
             Create the go circle: circleGo
 
-            Arg:
-                pos: the position ([left, top]) the go circle, vertical and horizontal aligned to center 
-
-
             */
 
             // Create an Ellipse  
@@ -470,6 +470,10 @@ namespace GonoGoTask_wpfVer
             myGrid.Children.Add(circleGo);
             myGrid.RegisterName(circleGo.Name, circleGo);
             myGrid.UpdateLayout();
+
+
+            // create the go close circle
+            Create_GoCircleClose();
         }
 
         private void Add_GoCircle(int[] centerPoint_Pos)
@@ -490,10 +494,69 @@ namespace GonoGoTask_wpfVer
             // get the center point and the radius of circleGo
             circleGo_centerPoint = circleGo.TransformToAncestor(this).Transform(new Point(circleGo.Width / 2, circleGo.Height / 2));
             circleGo_radius = ((circleGo.Height + circleGo.Width) / 2) / 2;
+
+
+            // add the go close circle
+            Add_GoCircleClose(centerPoint_Pos);
         }
         private void Remove_GoCircle()
         {
             circleGo.Visibility = Visibility.Hidden;
+            circleGo.IsEnabled = false;
+            myGrid.UpdateLayout();
+
+            // Remove the go close circle
+            Remove_GoCircleClose();
+        }
+
+
+        private void Create_GoCircleClose()
+        {/*
+            Create the go Close circle: circleGoClose
+
+            */
+
+            // Create an Ellipse  
+            circleGoClose = new Ellipse();
+
+            circleGoClose.Stroke = brush_goCircle;
+
+            // set the size, position of circleGo
+            circleGoClose.Height = closediameter;
+            circleGoClose.Width = closediameter;
+            circleGoClose.VerticalAlignment = VerticalAlignment.Top;
+            circleGoClose.HorizontalAlignment = HorizontalAlignment.Left;
+
+            circleGoClose.Name = name_circleGoClose;
+            circleGoClose.Visibility = Visibility.Hidden;
+            circleGoClose.IsEnabled = false;
+
+            // add to myGrid
+            myGrid.Children.Add(circleGoClose);
+            myGrid.RegisterName(circleGoClose.Name, circleGoClose);
+            myGrid.UpdateLayout();
+        }
+
+        private void Add_GoCircleClose(int[] centerPoint_Pos)
+        {/*show the Go Close Circle with Circle Center at (centerPoint_Pos[0], centerPoint_Pos[1]) */
+
+            int centerPoint_X = centerPoint_Pos[0], centerPoint_Y = centerPoint_Pos[1];
+
+            double left = centerPoint_X - circleGoClose.Width / 2;
+            double top = centerPoint_Y - circleGoClose.Height / 2;
+            circleGoClose.Margin = new Thickness(left, top, 0, 0);
+
+            circleGoClose.Visibility = Visibility.Visible;
+            circleGoClose.IsEnabled = true;
+            myGrid.UpdateLayout();
+
+
+            // get the center point and the radius of circleGo
+            circleGoClose_radius = ((circleGoClose.Height + circleGoClose.Width) / 2) / 2;
+        }
+        private void Remove_GoCircleClose()
+        {
+            circleGoClose.Visibility = Visibility.Hidden;
             circleGo.IsEnabled = false;
             myGrid.UpdateLayout();
         }
@@ -730,7 +793,7 @@ namespace GonoGoTask_wpfVer
         public async void Present_Task()
         {
             int triali = 0;
-            float t_Cue, t_Ready;
+            float t_Cue, t_Ready, t_noGoShow;
             int[] pos_WPoint1, pos_WPoint2;
             int[] pos_Taget;
             int targetPosInd;
@@ -749,6 +812,7 @@ namespace GonoGoTask_wpfVer
                 pos_Taget = optPostions_List[targetPosInd];
                 t_Cue = t_Cue_List[triali];
                 t_Ready = t_Ready_List[triali];
+                t_noGoShow = t_noGoShow_List[triali];
 
                 // Write trial related Information
                 using (StreamWriter file = File.AppendText(file_saved))
@@ -780,7 +844,18 @@ namespace GonoGoTask_wpfVer
                 try {
                     await Interface_Ready(t_Ready);
                     await Interface_Cue(t_Cue, pos_Taget, pos_WPoint1, pos_WPoint2);
-                    await Interface_Go(pos_Taget);
+
+                    // Go or noGo Interface
+                    if(targetType == TargetType.Go)
+                    {
+                        await Interface_Go(pos_Taget);
+                    }
+                    else
+                    {
+                        await Interface_noGo(t_noGoShow, pos_Taget);
+                    }
+
+                    
                 }
                 catch(TaskCanceledException)
                 {
@@ -1017,7 +1092,7 @@ namespace GonoGoTask_wpfVer
                     gotargetTouchstate = GoTargetTouchState.goHit;
                     break;
                 }
-                else if (distance <= circleGo_radius + disThreshold_close && gotargetTouchstate != GoTargetTouchState.goHit)
+                else if (gotargetTouchstate == GoTargetTouchState.goMissed && distance <= circleGoClose_radius)
                 {
                     gotargetTouchstate = GoTargetTouchState.goClose;
                 }
@@ -1083,7 +1158,42 @@ namespace GonoGoTask_wpfVer
             
         }
 
-        private void Interface_ERROR()
+
+        private async Task Interface_noGo(float t_noGoShow, int[] pos_Target)
+        {/* task for noGo Interface: Show the noGo Interface while Listen to the state of the startpad.
+            * If StartpadTouched off within t_nogoshow, go to noGo Interface; Otherwise, noGo Correct Interface
+            
+            * Args:
+            *    t_noGoShow: noGo interface shows duration(s)
+            *    pos_Target: the center position of the Go Target
+
+            * Output:
+            *   startPadHoldstate_Cue = 
+            *       StartPadHoldState.HoldEnough (if startpad is touched lasting t_Cue)
+            *       StartPadHoldState.HoldTooShort (if startpad is released before t_Cue) 
+            */
+
+            try
+            {
+                // Remove the Crossing and Add the noGo Rect
+                Remove_OneCrossing();
+                Add_NogoRect(pos_Target);
+                textBox_State.Text = "X = " + circleGo_centerPoint.X.ToString() + ", Y = " + circleGo_centerPoint.Y.ToString();
+
+                // Wait Startpad TouchedOn  for several seconds
+                await Wait_EnoughTouch(t_noGoShow);
+            }
+            catch (TaskCanceledException)
+            {
+                Interface_noGoERROR();
+                await Task.Delay(1000);
+                throw new TaskCanceledException("Startpad Touched off within t_nogoshow");
+            }
+
+        }
+
+
+        private void Interface_GoERROR()
         {
             myGridBorder.BorderBrush = brush_ErrorInterface;
             circleGo.Fill = brush_ErrorInterface;
@@ -1092,12 +1202,12 @@ namespace GonoGoTask_wpfVer
         }
         private void Interface_GoERROR_LongReactionReach()
         {
-            Interface_ERROR();
+            Interface_GoERROR();
         }
 
         private void Interface_GoERROR_Miss()
         {
-            Interface_ERROR();
+            Interface_GoERROR();
         }
 
         private void Interface_GoCorrect_Hit()
@@ -1109,8 +1219,17 @@ namespace GonoGoTask_wpfVer
 
         private void Interface_GoCorrect_Close()
         {
-            myGridBorder.BorderBrush = brush_NearInterface;
+            myGridBorder.BorderBrush = brush_CloseInterface;
+            circleGo.Fill = brush_CloseInterface;
             myGrid.UpdateLayout();
+        }
+
+        private void Interface_noGoERROR()
+        {
+            myGridBorder.BorderBrush = brush_ErrorInterface;
+            rectNogo.Fill = brush_ErrorInterface;
+            myGrid.UpdateLayout();
+
         }
 
         private static Task Wait_Interface(CancellationToken cancellationToken)
