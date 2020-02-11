@@ -123,8 +123,6 @@ namespace GonoGoTask_wpfVer
         SolidColorBrush brush_bkwaitstart, brush_bdwaitstart, brush_bktrial;
         
 
-        InterfaceState interfaceState;
-
         // name of all the objects
         string name_circleGo = "circleGo";
         string name_circleGoClose = "circleGoClose";
@@ -142,12 +140,11 @@ namespace GonoGoTask_wpfVer
 
 
 
-        // wait range for each event
-        float waitt_reward;
+        // wait (range) for each event
         float[] waittrange_ready, waittrange_cue, waittrange_noGoShow;
         // Max Reaction and Reach Time
         float tMax_ReactionTime, tMax_ReachTime;
-        Int32 t_RewardInterfaceShow;
+        Int32 t_FeedbackShow;
 
         bool PresentTask;
 
@@ -165,21 +162,12 @@ namespace GonoGoTask_wpfVer
         List<long> downPoints_time = new List<long>(); 
 
 
-        // tag of starting a trial
-        bool startTrial = false;
-        // tag of touching during go interface 
-        bool touched_InterfaceGoNogo = false;
-        //tag of interupting during interfaces except go interface
-        bool interupt_InterfaceOthers = false;
-
         ScreenTouchState screenTouchstate;
         
 
         // hold states for Ready, Cue Interfaces
         StartPadHoldState startpadHoldstate;
 
-
-        CancellationTokenSource cancellationTokenSourece = new CancellationTokenSource();
 
 
         // serial port for DLP-IO8-G
@@ -236,8 +224,10 @@ namespace GonoGoTask_wpfVer
 
             // Set audio Feedback related members 
             SetAudioFeedback();
+        }
 
-
+        public void StartExp()
+        {
             // init a global stopwatch
             globalWatch = new Stopwatch();
             touchPointsWatch = new Stopwatch();
@@ -260,7 +250,6 @@ namespace GonoGoTask_wpfVer
             {
                 MessageBox.Show(ex.Message, "Error Message", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-
         }
 
 
@@ -294,6 +283,11 @@ namespace GonoGoTask_wpfVer
             optPostions_List.Add(new int[] { screenCenter_X - disXFromCenter, screenCenter_Y }); // left position
             optPostions_List.Add(new int[] { screenCenter_X, screenCenter_Y - disYFromCenter }); // top position
             optPostions_List.Add(new int[] { screenCenter_X + disXFromCenter, screenCenter_Y }); // right position
+        }
+
+        public List<int[]> GetOptionalPositions()
+        {
+            return optPostions_List;
         }
 
 
@@ -356,58 +350,22 @@ namespace GonoGoTask_wpfVer
             }
         }
 
-        public int cm2pixal(float cmlen)
-        {/* convert length with unit cm to unit pixal, 96 pixals = 1 inch = 2.54 cm
-
-            args:   
-                cmlen: to be converted length (unit: cm)
-
-            return:
-                pixalen: converted length with unit pixal
-         */
-
-            float ratio = (float)96 / (float)2.54;
-
-            int pixalen = (int)(cmlen * ratio);
-
-            return pixalen;
-        }
-
-
-        public int in2pixal(float inlen)
-        {/* convert length with unit inch to unit pixal, 96 pixals = 1 inch = 2.54 cm
-
-            args:   
-                cmlen: to be converted length (unit: inch)
-
-            return:
-                pixalen: converted length with unit pixal
-         */
-
-            int ratio = 96;
-
-            int pixalen = (int)(inlen * ratio);
-
-            return pixalen;
-        }
-
 
         private void GetSetupParameters()
         {/* get the setup from the parent interface */
 
             // object size and distance parameters
-            objdiameter = in2pixal(float.Parse(parent.textBox_objdiameter.Text));
-            disFromCenter = in2pixal(float.Parse(parent.textBox_disfromcenter.Text));
+            objdiameter = Convert2Pixal.in2pixal(float.Parse(parent.textBox_objdiameter.Text));
+            disFromCenter = Convert2Pixal.in2pixal(float.Parse(parent.textBox_disfromcenter.Text));
             closediameter = (int)(objdiameter * (1 + float.Parse(parent.textBox_errorMargin.Text) / 100));
 
             // interfaces time related parameters
-            waitt_reward = float.Parse(parent.textBox_tRewardShow.Text);
             waittrange_ready = new float[] { float.Parse(parent.textBox_tReady_min.Text), float.Parse(parent.textBox_tReady_max.Text) };
             waittrange_cue = new float[] { float.Parse(parent.textBox_tCue_min.Text), float.Parse(parent.textBox_tCue_max.Text) };
             waittrange_noGoShow = new float[] { float.Parse(parent.textBox_tNogoShow_min.Text), float.Parse(parent.textBox_tNogoShow_max.Text) };
             tMax_ReactionTime = float.Parse(parent.textBox_MaxReactionTime.Text);
             tMax_ReachTime = float.Parse(parent.textBox_MaxReachTime.Text);
-            t_RewardInterfaceShow = (Int32)(float.Parse(parent.textBox_tRewardShow.Text) * 1000);
+            t_FeedbackShow = (Int32)(float.Parse(parent.textBox_tRewardShow.Text) * 1000);
 
             // Brush for background and border of WaitStart Interface
             brush_bkwaitstart = new SolidColorBrush();
@@ -993,7 +951,6 @@ namespace GonoGoTask_wpfVer
                 myGrid.Background = brush_bktrial;
 
                 textbox_thread.Text = "Ready Interface Running......";
-                interfaceState = InterfaceState.Ready;
                
                 // Wait Startpad Hold Enough Time
                 startpadHoldstate = StartPadHoldState.HoldTooShort;
@@ -1037,7 +994,6 @@ namespace GonoGoTask_wpfVer
                 //Add_TwoWhitePoints(wpointpos1, wpointpos2);
 
                 textbox_thread.Text = "Targetcue running......";
-                interfaceState = InterfaceState.TargetCue;
                 // wait target cue for several seconds
                 startpadHoldstate = StartPadHoldState.HoldTooShort;
                 await Wait_EnoughTouch(t_Cue);
@@ -1172,12 +1128,12 @@ namespace GonoGoTask_wpfVer
                     Interface_GoERROR_Miss();
                     textbox_thread2.Text = "Miss";
                 }
-                await Task.Delay(t_RewardInterfaceShow);
+                await Task.Delay(t_FeedbackShow);
             }
             catch(TaskCanceledException)
             {
                 Interface_GoERROR_LongReactionReach();
-                await Task.Delay(t_RewardInterfaceShow);
+                await Task.Delay(t_FeedbackShow);
                 throw new TaskCanceledException("Not Reaction Within the Max Reaction Time.");
             }
             
@@ -1209,12 +1165,12 @@ namespace GonoGoTask_wpfVer
                 startpadHoldstate = StartPadHoldState.HoldTooShort;
                 await Wait_EnoughTouch(t_noGoShow);
                 Feedback_noGoCorrect();
-                await Task.Delay(t_RewardInterfaceShow);
+                await Task.Delay(t_FeedbackShow);
             }
             catch (TaskCanceledException)
             {
                 Feedback_noGoError();
-                await Task.Delay(t_RewardInterfaceShow);
+                await Task.Delay(t_FeedbackShow);
                 throw new TaskCanceledException("Startpad Touched off within t_nogoshow");
             }
 

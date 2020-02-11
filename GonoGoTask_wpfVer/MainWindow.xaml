@@ -20,7 +20,7 @@
         <GroupBox Header="Required Inputs" HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Row="0"
                   Margin="15,15,0,0"  
                   FontFamily="Microsoft Sans Serif" FontWeight="Bold">
-            <Grid HorizontalAlignment="Left" VerticalAlignment="Top" Height="50"  Width="600" Margin="0,10,0,0">
+            <Grid HorizontalAlignment="Left" VerticalAlignment="Top" Height="50"  Width="550" Margin="0,10,0,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="1.8*" />
                     <ColumnDefinition Width="2.5*" />
@@ -355,8 +355,8 @@
 
 
         <Button x:Name="btn_test"
-            Content="Test" HorizontalAlignment="Right" VerticalAlignment="Top"
-                Margin="0,35,17,0"  Width="100" Height="35" 
-                FontWeight="Bold" FontFamily="Microsoft Sans Serif" FontSize="14" Click="btnTest_Click" />
+            Content="Show Optional Targets" HorizontalAlignment="Right" VerticalAlignment="Top"
+                Margin="0,35,17,0"  Width="155" Height="35" 
+                FontWeight="Bold" FontFamily="Microsoft Sans Serif" FontSize="14" Click="btnShowAllTargets_Click" />
     </Grid>
 </Window>

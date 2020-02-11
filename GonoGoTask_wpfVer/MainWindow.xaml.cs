@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Windows.Shapes;
 using System.Windows;
 using System.IO.Ports;
 using System.Windows.Controls;
 using System.Threading;
 using System.Windows.Media;
 using System.IO;
+
 
 namespace GonoGoTask_wpfVer
 {
@@ -19,7 +18,6 @@ namespace GonoGoTask_wpfVer
     {
         public string serialPortIO8_name;
 
-        public int objdiameter;
         public int rightMargin, leftMargin, topMargin;
 
 
@@ -151,6 +149,7 @@ namespace GonoGoTask_wpfVer
             saveInputParameters();
             presentation taskpresent = new presentation(this);
             taskpresent.Show();
+            taskpresent.StartExp();
         }
 
         private void TextBox_NHPName_TextChanged(object sender, TextChangedEventArgs e)
@@ -195,9 +194,66 @@ namespace GonoGoTask_wpfVer
             }
         }
 
-        private void btnTest_Click(object sender, RoutedEventArgs e)
+        private void btnShowAllTargets_Click(object sender, RoutedEventArgs e)
         {
-            saveInputParameters();
+            Window Win = new Window();
+            Win.Background = new SolidColorBrush(Colors.Black);
+            Win.WindowState = WindowState.Maximized;
+            Win.Show();
+
+            // Add a Grid
+            Grid wholeGrid = new Grid();
+            wholeGrid.Height = Win.ActualHeight;
+            wholeGrid.Width = Win.ActualWidth;
+            Win.Content = wholeGrid;
+            wholeGrid.UpdateLayout();
+
+
+            int Diameter = Convert2Pixal.in2pixal(float.Parse(textBox_objdiameter.Text));
+            List<int[]> optPostions_List = new List<int[]>();
+
+            int screenCenter_X = (int)wholeGrid.ActualWidth / 2;
+            int screenCenter_Y = (int)wholeGrid.ActualHeight / 2;
+            int disFromCenter = Convert2Pixal.in2pixal(float.Parse(textBox_disfromcenter.Text));
+            int disXFromCenter = disFromCenter;
+            int disYFromCenter = disFromCenter;
+
+            optPostions_List.Add(new int[] { screenCenter_X - disXFromCenter, screenCenter_Y }); // left position
+            optPostions_List.Add(new int[] { screenCenter_X, screenCenter_Y - disYFromCenter }); // top position
+            optPostions_List.Add(new int[] { screenCenter_X + disXFromCenter, screenCenter_Y }); // right position
+
+
+            foreach (int[] centerPoint_Pos in optPostions_List)
+            {
+                Ellipse circleGo = Create_GoCircle((double) Diameter, centerPoint_Pos);
+                wholeGrid.Children.Add(circleGo);
+            }
+            wholeGrid.UpdateLayout();
+
+            
+        }
+
+        private Ellipse Create_GoCircle(double Diameter, int[] centerPoint_Pos)
+        {/*
+            Create the go circle
+
+            */
+
+            // Create an Ellipse  
+            Ellipse circleGo = new System.Windows.Shapes.Ellipse();
+
+            // set the size, position of circleGo
+            circleGo.Height = Diameter;
+            circleGo.Width = Diameter;
+            circleGo.VerticalAlignment = VerticalAlignment.Top;
+            circleGo.HorizontalAlignment = HorizontalAlignment.Left;
+            circleGo.Fill = new SolidColorBrush(Colors.Blue);
+
+            double left = centerPoint_Pos[0] - circleGo.Width / 2;
+            double top = centerPoint_Pos[1] - circleGo.Height / 2;
+            circleGo.Margin = new Thickness(left, top, 0, 0);
+
+            return circleGo;
         }
 
 
