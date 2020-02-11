@@ -214,7 +214,7 @@ project.lock.json
 
 
 # sphinx-docs
-/docs/build/
+docs/build/*
 
 
 #####
