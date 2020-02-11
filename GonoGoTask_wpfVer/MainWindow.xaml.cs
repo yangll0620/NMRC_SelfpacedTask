@@ -23,8 +23,9 @@ namespace GonoGoTask_wpfVer
         public int rightMargin, leftMargin, topMargin;
 
 
-        private string saved_folder = @"F:\yang7003@umn\NMRC_umn\Projects\GoNogoTaskDev\GononGoTask_wpf\";
+        private string saved_folder = @"..\..\..\savefolder\";
         public string file_saved;
+
 
         public MainWindow()
         {

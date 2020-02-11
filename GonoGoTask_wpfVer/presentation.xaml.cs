@@ -85,8 +85,6 @@ namespace GonoGoTask_wpfVer
         // diameter for crossing, circle, square and white points
         int objdiameter, closediameter;
         int disFromCenter, disXFromCenter, disYFromCenter;
-        // the threshold distance defining close
-        int disThreshold_close; 
 
         TargetType targetType;
         
@@ -114,6 +112,12 @@ namespace GonoGoTask_wpfVer
         Point circleGo_centerPoint; // the center of circleGo 
         double circleGo_radius; // the radius of circleGO
         double circleGoClose_radius; // the radius of circleGO
+
+        // audio feedback
+        private string audioFeedback_folder = @"..\..\audios";
+        private string audioFilename_Correct = @"Correct.wav";
+        private string audioFilename_Error = @"Error.wav";
+        System.Media.SoundPlayer player_Correct, player_Error;
 
         // background of ready and trial
         SolidColorBrush brush_bkwaitstart, brush_bdwaitstart, brush_bktrial;
@@ -230,6 +234,9 @@ namespace GonoGoTask_wpfVer
             Create_TwoWhitePoints();
             Create_OneCrossing();
 
+            // Set audio Feedback related members 
+            SetAudioFeedback();
+
 
             // init a global stopwatch
             globalWatch = new Stopwatch();
@@ -256,6 +263,20 @@ namespace GonoGoTask_wpfVer
 
         }
 
+
+        private void SetAudioFeedback()
+        {/*set the player_Correct and player_Error members
+            */
+            
+            String audio_Correct = System.IO.Path.Combine(audioFeedback_folder, audioFilename_Correct);
+            String audio_Error = System.IO.Path.Combine(audioFeedback_folder, audioFilename_Error);
+
+            player_Correct = new System.Media.SoundPlayer();
+            player_Error = new System.Media.SoundPlayer();
+
+            player_Correct.SoundLocation = audio_Correct;
+            player_Error.SoundLocation = audio_Error;
+        }
 
         private void SetOptionalPostions()
         {/*Set the Optional Target Postions 
@@ -1143,7 +1164,7 @@ namespace GonoGoTask_wpfVer
                 }
                 else if(gotargetTouchstate == GoTargetTouchState.goClose)
                 {/* touch close to the target*/
-                    Interface_GoCorrect_Close();
+                    Feedback_GoCorrect_Close();
                     textbox_thread2.Text = "Close";
                 }
                 else if(gotargetTouchstate == GoTargetTouchState.goMissed)
@@ -1187,12 +1208,12 @@ namespace GonoGoTask_wpfVer
                 // Wait Startpad TouchedOn  for t_noGoShow
                 startpadHoldstate = StartPadHoldState.HoldTooShort;
                 await Wait_EnoughTouch(t_noGoShow);
-                Interface_noGoCorrect();
+                Feedback_noGoCorrect();
                 await Task.Delay(t_RewardInterfaceShow);
             }
             catch (TaskCanceledException)
             {
-                Interface_noGoERROR();
+                Feedback_noGoError();
                 await Task.Delay(t_RewardInterfaceShow);
                 throw new TaskCanceledException("Startpad Touched off within t_nogoshow");
             }
@@ -1202,11 +1223,15 @@ namespace GonoGoTask_wpfVer
 
         private void Interface_GoERROR()
         {
+            // Visual Feedback
             myGridBorder.BorderBrush = brush_ErrorInterface;
             circleGo.Fill = brush_ErrorInterface;
             circleGoClose.Stroke = brush_ErrorInterface;
             myGrid.UpdateLayout();
-            
+
+            // Audio Feedback
+            player_Error.Play()
+;            
         }
         private void Interface_GoERROR_LongReactionReach()
         {
@@ -1220,85 +1245,50 @@ namespace GonoGoTask_wpfVer
 
         private void Interface_GoCorrect_Hit()
         {
+            // Visual Feedback
             myGridBorder.BorderBrush = brush_CorrectInterface;
             circleGo.Fill = brush_CorrectInterface;
             circleGoClose.Stroke = brush_CorrectInterface;
             myGrid.UpdateLayout();
+
+            // Audio Feedback
+            player_Correct.Play();
         }
 
-        private void Interface_GoCorrect_Close()
+        private void Feedback_GoCorrect_Close()
         {
+            // Visual Feedback
             myGridBorder.BorderBrush = brush_CloseInterface;
             circleGo.Fill = brush_CloseInterface;
             circleGoClose.Stroke = brush_CloseInterface;
             myGrid.UpdateLayout();
+
+            // Audio Feedback
+            player_Correct.Play();
         }
 
-        private void Interface_noGoERROR()
+        private void Feedback_noGoError()
         {
+            // Visual Feedback
             myGridBorder.BorderBrush = brush_ErrorInterface;
             rectNogo.Fill = brush_ErrorInterface;
             myGrid.UpdateLayout();
+
+            // Audio Feedback
+            player_Error.Play();
         }
 
-        private void Interface_noGoCorrect()
+        private void Feedback_noGoCorrect()
         {
+            // Visual Feedback
             myGridBorder.BorderBrush = brush_CorrectInterface;
             rectNogo.Fill = brush_CorrectInterface;
             myGrid.UpdateLayout();
+
+            // Audio Feedback
+            player_Correct.Play();
         }
 
-        private static Task Wait_Interface(CancellationToken cancellationToken)
-        {
-            /* 
-             * wait until cancellation
-             * 
-             * Input: 
-             *       cancellationToken
-             */
-
-            Task task = null;
-
-            // start a task and return it
-            return Task.Run(() =>
-            {
-
-                while(true)
-                {
-                    // Check if a cancellation is required
-                    if (cancellationToken.IsCancellationRequested)
-                        throw new TaskCanceledException(task);
-
-                    //Do something
-                    Thread.Sleep(10);
-                }
-            });
-        }
-
-        private static Task Wait_Interface(float t_wait, CancellationToken cancellationToken)
-        {
-            /* 
-             * wait for several seconds for one kind of interface
-             * 
-             * Input: 
-             *    t_wait: the waited time (s)  
-             */
-
-            Task task = null;
-
-            // start a task and return it
-            return Task.Run(() =>
-            {
-                Stopwatch waitWatch = new Stopwatch();
-                waitWatch.Restart();
-                while (waitWatch.ElapsedMilliseconds < t_wait * 1000)
-                {
-                    // Check if a cancellation is required
-                    if (cancellationToken.IsCancellationRequested)
-                        throw new TaskCanceledException(task);
-                }
-            });
-        }
 
         private void UpdateBackground(string message)
         {
@@ -1313,23 +1303,6 @@ namespace GonoGoTask_wpfVer
                 serialPort_IO8.Close();
 
             PresentTask = false;
-        }
-
-        public void Interface_Reward()
-        {
-            myGridBorder.BorderBrush = Brushes.Yellow;
-
-            if (targetType == TargetType.Go)
-            {
-                circleGo.Fill = Brushes.Yellow;
-            }
-
-            else
-            {
-                rectNogo.Fill = Brushes.Yellow;
-            }
-            
-            myGrid.UpdateLayout();
         }
 
 
