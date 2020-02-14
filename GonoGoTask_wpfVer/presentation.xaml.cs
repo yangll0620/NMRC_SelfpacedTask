@@ -54,7 +54,7 @@ namespace GonoGoTask_wpfVer
             goClose, // the distance between the closest touch point and the center of the circleGo is less than a threshold
             goMissed, // touched with longer distance 
         }
-        
+
         /*startpad related enumerate*/
         private enum ReadStartpad
         {
@@ -66,6 +66,13 @@ namespace GonoGoTask_wpfVer
         {
             No,
             Yes
+        }
+
+        private enum GiveJuicerState
+        {
+            No,
+            PercentageGiven,
+            FullGiven
         }
 
         private enum StartPadHoldState
@@ -87,7 +94,7 @@ namespace GonoGoTask_wpfVer
         int disFromCenter, disXFromCenter, disYFromCenter;
 
         TargetType targetType;
-        
+
         // randomized Go noGo tag list, tag_gonogo ==1: go, ==0: nogo
         List<TargetType> targetType_List = new List<TargetType>();
         // randomized t_Ready list
@@ -121,7 +128,7 @@ namespace GonoGoTask_wpfVer
 
         // background of ready and trial
         SolidColorBrush brush_bkwaitstart, brush_bdwaitstart, brush_bktrial;
-        
+
 
         // name of all the objects
         string name_circleGo = "circleGo";
@@ -129,7 +136,7 @@ namespace GonoGoTask_wpfVer
         string name_rectNogo = "rectNogo";
         string name_vLine = "vLine", name_hLine = "hLine";
         string name_point1 = "wpoint1", name_point2 = "wpoint2";
-        
+
         // all the optional positions, in which one is for target, the remaining for white points
         List<int[]> optPostions_List = new List<int[]>();
 
@@ -159,11 +166,11 @@ namespace GonoGoTask_wpfVer
         long tMax_1Touch = 10;
         GoTargetTouchState gotargetTouchstate;
         // list storing the touch time of the touch points when touched down
-        List<long> downPoints_time = new List<long>(); 
+        List<long> downPoints_time = new List<long>();
 
 
         ScreenTouchState screenTouchstate;
-        
+
 
         // hold states for Ready, Cue Interfaces
         StartPadHoldState startpadHoldstate;
@@ -178,9 +185,15 @@ namespace GonoGoTask_wpfVer
         PressedStartpad pressedStartpad;
         public delegate void UpdateTextCallback(string message);
 
+        /*Juicer Parameters*/
+        GiveJuicerState giveJuicerState;
+        // juiver given duration(ms)
+        int t_JuicerFullGiven = 1000, t_JuicerPercentageGiven = 500;
+        Thread thread_GiveJuicer;
+
 
         // Global stopwatch
-        Stopwatch globalWatch; 
+        Stopwatch globalWatch;
         // variables for recording the startpad touched on and off time point
         long startpadOn_TimePoint, startpadOff_TimePoint;
         long startpadOn_StartTrial_TimePoint;
@@ -201,7 +214,7 @@ namespace GonoGoTask_wpfVer
 
         }
 
-        
+
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             // get the setup from the parent interface
@@ -214,7 +227,7 @@ namespace GonoGoTask_wpfVer
             //shuffle go and nogo trials
             Shuffle_GonogoTrials(Int32.Parse(parent.textBox_goTrialNum.Text), Int32.Parse(parent.textBox_nogoTrialNum.Text));
 
-            
+
 
             // Create necessary elements: go circle, nogo rect, two white points and one crossing
             Create_GoCircle();
@@ -224,6 +237,21 @@ namespace GonoGoTask_wpfVer
 
             // Set audio Feedback related members 
             SetAudioFeedback();
+
+            // Set EditButtons Invisible
+            SetEditButtonsInvisible();
+        }
+
+        private void SetEditButtonsInvisible()
+        {
+            textbox_main.Visibility = Visibility.Hidden;
+            textbox_thread2.Visibility = Visibility.Hidden;
+            textbox_thread.Visibility = Visibility.Hidden;
+            textBox_State.Visibility = Visibility.Hidden;
+            btn.Visibility = Visibility.Hidden;
+            btn.IsEnabled = false;
+            btn2.Visibility = Visibility.Hidden;
+            btn2.IsEnabled = false;
         }
 
         public void StartExp()
@@ -231,8 +259,10 @@ namespace GonoGoTask_wpfVer
             // init a global stopwatch
             globalWatch = new Stopwatch();
             touchPointsWatch = new Stopwatch();
+            
             // Thread for reading startpad continously
             thread_readStartpad = new Thread(new ThreadStart(Thread_ReadStartpad));
+            thread_GiveJuicer = new Thread(new ThreadStart(Thread_Juicer));
 
 
             // create a serial Port IO8 instance, and open it
@@ -782,6 +812,7 @@ namespace GonoGoTask_wpfVer
             // start the globalWatch and readStartpad thread
             globalWatch.Restart();
             thread_readStartpad.Start();
+            thread_GiveJuicer.Start();
             PresentTask = true;
             while (triali < targetType_List.Count && PresentTask)
             {
@@ -848,6 +879,7 @@ namespace GonoGoTask_wpfVer
             }
 
             thread_readStartpad.Abort();
+            thread_GiveJuicer.Abort();
         }
 
         private void Thread_ReadStartpad()
@@ -879,10 +911,37 @@ namespace GonoGoTask_wpfVer
                         pressedStartpad = PressedStartpad.No;
                     }
                 }
-
                 Thread.Sleep(30);
             }
         }
+
+        private void Thread_Juicer()
+        {/* 
+            Control Juicer Devices
+            */
+
+            string codeHigh = "3", codeLow = "E";
+            serialPort_IO8.WriteLine(codeLow);
+            while (serialPort_IO8.IsOpen)
+            {
+                if(giveJuicerState == GiveJuicerState.FullGiven)
+                {
+                    serialPort_IO8.WriteLine(codeHigh);
+                    Thread.Sleep(t_JuicerFullGiven);
+                    serialPort_IO8.WriteLine(codeLow);
+                    giveJuicerState = GiveJuicerState.No;
+                }
+                if (giveJuicerState == GiveJuicerState.PercentageGiven)
+                {
+                    serialPort_IO8.WriteLine(codeHigh);
+                    Thread.Sleep(t_JuicerPercentageGiven);
+                    serialPort_IO8.WriteLine(codeLow);
+                    giveJuicerState = GiveJuicerState.No;
+                }
+            }
+        }
+
+
 
 
         private Task Interface_WaitStartTrial()
@@ -1185,6 +1244,10 @@ namespace GonoGoTask_wpfVer
             circleGoClose.Stroke = brush_ErrorInterface;
             myGrid.UpdateLayout();
 
+
+            //Juicer Feedback
+            giveJuicerState = GiveJuicerState.No;
+
             // Audio Feedback
             player_Error.Play()
 ;            
@@ -1207,8 +1270,14 @@ namespace GonoGoTask_wpfVer
             circleGoClose.Stroke = brush_CorrectInterface;
             myGrid.UpdateLayout();
 
+
+            //Juicer Feedback
+            giveJuicerState = GiveJuicerState.FullGiven;
+
             // Audio Feedback
             player_Correct.Play();
+
+
         }
 
         private void Feedback_GoCorrect_Close()
@@ -1218,6 +1287,9 @@ namespace GonoGoTask_wpfVer
             circleGo.Fill = brush_CloseInterface;
             circleGoClose.Stroke = brush_CloseInterface;
             myGrid.UpdateLayout();
+
+            //Juicer Feedback
+            giveJuicerState = GiveJuicerState.PercentageGiven;
 
             // Audio Feedback
             player_Correct.Play();
@@ -1230,6 +1302,10 @@ namespace GonoGoTask_wpfVer
             rectNogo.Fill = brush_ErrorInterface;
             myGrid.UpdateLayout();
 
+
+            //Juicer Feedback
+            giveJuicerState = GiveJuicerState.No;
+
             // Audio Feedback
             player_Error.Play();
         }
@@ -1240,6 +1316,10 @@ namespace GonoGoTask_wpfVer
             myGridBorder.BorderBrush = brush_CorrectInterface;
             rectNogo.Fill = brush_CorrectInterface;
             myGrid.UpdateLayout();
+
+
+            //Juicer Feedback
+            giveJuicerState = GiveJuicerState.FullGiven;
 
             // Audio Feedback
             player_Correct.Play();
