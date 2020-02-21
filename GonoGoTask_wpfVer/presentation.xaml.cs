@@ -121,7 +121,7 @@ namespace GonoGoTask_wpfVer
         double circleGoClose_radius; // the radius of circleGO
 
         // audio feedback
-        private string audioFeedback_folder = @"..\..\audios";
+        private string audioFeedback_folder = @"F:\yang7003@umn\NMRC_umn\Projects\GoNogoTaskDev\GononGoTask_wpf\GonoGoTask_wpfVer\audios";
         private string audioFilename_Correct = @"Correct.wav";
         private string audioFilename_Error = @"Error.wav";
         System.Media.SoundPlayer player_Correct, player_Error;
@@ -873,7 +873,7 @@ namespace GonoGoTask_wpfVer
                     {
                         await Interface_Go(pos_Taget);
 
-                        using (StreamWriter file = File.AppendText(file_saved))
+/*                        using (StreamWriter file = File.AppendText(file_saved))
                         {
                             for(int i = 0; i< downPoints_PosTime.Count; i++)
                             {
@@ -884,7 +884,7 @@ namespace GonoGoTask_wpfVer
                             file.WriteLine(String.Format("{0, -20}: {1}", "calc TouchState Points:", calcTouchStateString));
 
                             
-                        }
+                        }*/
                     }
                     else
                     {

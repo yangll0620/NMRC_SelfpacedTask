@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:GonoGoTask_wpfVer"
         mc:Ignorable="d"
         Title="GonoGoTask" Height="450" Width="800"
-        Closing="Window_Closing">
+        Closing="Window_Closing" Icon="GonoGo2.ico">
     <Grid>
 
         <!--Grid RowDefinitions: 0, 1, 2-->

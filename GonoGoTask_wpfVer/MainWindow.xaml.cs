@@ -20,7 +20,7 @@ namespace GonoGoTask_wpfVer
     {
         public string serialPortIO8_name;
 
-        private string saved_folder = @"..\..\..\savefolder\";
+        private string saved_folder = @"F:\yang7003@umn\NMRC_umn\Projects\GoNogoTaskDev\GononGoTask_wpf\savefolder\";
         public string file_saved;
 
 
@@ -162,9 +162,9 @@ namespace GonoGoTask_wpfVer
             btn_start.IsEnabled = false;
 
             // Get the touch Screen
-            swf.Screen touchScreen = Utility.Detect_notTouchScreen();
+            swf.Screen touchScreen = Utility.Detect_TouchScreen();
 
-            /* Show the taskpresent Window on the Touch Screen*/
+            // Show the taskpresent Window on the Touch Screen
             presentation taskpresent = new presentation(this);
             sd.Rectangle Rect_touchScreen = touchScreen.WorkingArea;
             taskpresent.Top = Rect_touchScreen.Top;
