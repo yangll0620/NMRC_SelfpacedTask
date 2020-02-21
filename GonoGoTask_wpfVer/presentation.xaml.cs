@@ -395,7 +395,7 @@ namespace GonoGoTask_wpfVer
             // object size and distance parameters
             objdiameter = Convert2Pixal.in2pixal(float.Parse(parent.textBox_objdiameter.Text));
             disFromCenter = Convert2Pixal.in2pixal(float.Parse(parent.textBox_disfromcenter.Text));
-            closediameter = (int)(objdiameter * (1 + float.Parse(parent.textBox_errorMargin.Text) / 100));
+            closediameter = (int)(objdiameter * (1 + float.Parse(parent.textBox_closeMargin.Text) / 100));
 
             // interfaces time related parameters
             waittrange_ready = new float[] { float.Parse(parent.textBox_tReady_min.Text), float.Parse(parent.textBox_tReady_max.Text) };

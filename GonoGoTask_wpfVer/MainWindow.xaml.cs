@@ -9,7 +9,7 @@ using System.Windows.Media;
 using System.IO;
 using swf = System.Windows.Forms;
 using sd = System.Drawing;
-
+using Newtonsoft.Json;
 
 namespace GonoGoTask_wpfVer
 {
@@ -174,6 +174,8 @@ namespace GonoGoTask_wpfVer
             taskpresent.StartExp();
         }
 
+
+
         private void TextBox_NHPName_TextChanged(object sender, TextChangedEventArgs e)
         {
             if(textBox_NHPName.Text != "" && serialPortIO8_name != null)
@@ -196,6 +198,8 @@ namespace GonoGoTask_wpfVer
 
                 file.WriteLine("Input Parameters:");
 
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Close Margin (%)", textBox_closeMargin.Text));
+
                 file.WriteLine(String.Format("{0, -40}:  {1}", "Total Number of Go Trials", textBox_goTrialNum.Text));
                 file.WriteLine(String.Format("{0, -40}:  {1}", "Total Number of Nogo Trials", textBox_nogoTrialNum.Text));
 
@@ -204,6 +208,7 @@ namespace GonoGoTask_wpfVer
 
                 file.WriteLine(String.Format("{0, -40}:  {1}", "Target Diameter (inch)", textBox_objdiameter.Text));
                 file.WriteLine(String.Format("{0, -40}:  {1}", "Target Distance from the Center (inch)", textBox_disfromcenter.Text));
+
 
                 file.WriteLine(String.Format("{0, -40}:  [{1} {2}]", "Ready Interface Show Time Range (s)", textBox_tReady_min.Text, textBox_tReady_max.Text));
                 file.WriteLine(String.Format("{0, -40}:  [{1} {2}]", "Cue Interface Show Time Range (s)", textBox_tCue_min.Text, textBox_tCue_max.Text));
@@ -288,6 +293,40 @@ namespace GonoGoTask_wpfVer
             return circleGo;
         }
 
+        private void btnLoadConf_Click(object sender, RoutedEventArgs e)
+        {
+            Microsoft.Win32.OpenFileDialog openFileDlg = new Microsoft.Win32.OpenFileDialog();
+
+            // Set filter for file extension and default file extension 
+            openFileDlg.DefaultExt = ".json";
+            openFileDlg.Filter = "Json Files|*.json";
+
+            Nullable<bool> result = openFileDlg.ShowDialog();
+
+            // Get the selected file name and display in a TextBox 
+            if (result == true)
+            {
+                // Open document 
+                string filename = openFileDlg.FileName;
+
+
+                JsonTextReader reader = new JsonTextReader(new StringReader(json));
+                while (reader.Read())
+                {
+                    if (reader.Value != null)
+                    {
+                        Console.WriteLine("Token: {0}, Value: {1}", reader.TokenType, reader.Value);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Token: {0}", reader.TokenType);
+                    }
+                }
+            }
+
+           
+        }
+        
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
