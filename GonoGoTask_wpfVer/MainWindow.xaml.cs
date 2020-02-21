@@ -7,6 +7,8 @@ using System.Windows.Controls;
 using System.Threading;
 using System.Windows.Media;
 using System.IO;
+using swf = System.Windows.Forms;
+using sd = System.Drawing;
 
 
 namespace GonoGoTask_wpfVer
@@ -18,9 +20,6 @@ namespace GonoGoTask_wpfVer
     {
         public string serialPortIO8_name;
 
-        public int rightMargin, leftMargin, topMargin;
-
-
         private string saved_folder = @"..\..\..\savefolder\";
         public string file_saved;
 
@@ -28,6 +27,17 @@ namespace GonoGoTask_wpfVer
         public MainWindow()
         {
             InitializeComponent();
+
+
+            // Get the first notTouch Screen */
+            swf.Screen showMainScreen = Utility.Detect_notTouchScreen();
+
+
+            /* Show the  MainWindow on the Touch Screen*/
+            sd.Rectangle Rect_touchScreen = showMainScreen.WorkingArea;
+            this.Top = Rect_touchScreen.Top;
+            this.Left = Rect_touchScreen.Left;
+
 
             // locate serial Port Name
             locate_serialPortIO8();
@@ -147,7 +157,19 @@ namespace GonoGoTask_wpfVer
         private void btnStart_Click(object sender, RoutedEventArgs e)
         {
             saveInputParameters();
+
+            //WindowState = WindowState.Minimized;
+            btn_start.IsEnabled = false;
+
+            // Get the touch Screen
+            swf.Screen touchScreen = Utility.Detect_notTouchScreen();
+
+            /* Show the taskpresent Window on the Touch Screen*/
             presentation taskpresent = new presentation(this);
+            sd.Rectangle Rect_touchScreen = touchScreen.WorkingArea;
+            taskpresent.Top = Rect_touchScreen.Top;
+            taskpresent.Left = Rect_touchScreen.Left;
+
             taskpresent.Show();
             taskpresent.StartExp();
         }
@@ -194,18 +216,28 @@ namespace GonoGoTask_wpfVer
             }
         }
 
+
+
         private void btnShowAllTargets_Click(object sender, RoutedEventArgs e)
         {
-            Window Win = new Window();
-            Win.Background = new SolidColorBrush(Colors.Black);
-            Win.WindowState = WindowState.Maximized;
-            Win.Show();
+            // Get the touch Screen
+            swf.Screen touchScreen = Utility.Detect_TouchScreen();
+
+            /* Show the Win_allTargets on the Touch Screen*/
+            Window Win_allTargets = new Window();
+            sd.Rectangle Rect_touchScreen = touchScreen.WorkingArea;
+            Win_allTargets.Top = Rect_touchScreen.Top;
+            Win_allTargets.Left = Rect_touchScreen.Left;
+
+            Win_allTargets.Background = new SolidColorBrush(Colors.Black);
+            Win_allTargets.Show();
+            Win_allTargets.WindowState = WindowState.Maximized;
 
             // Add a Grid
             Grid wholeGrid = new Grid();
-            wholeGrid.Height = Win.ActualHeight;
-            wholeGrid.Width = Win.ActualWidth;
-            Win.Content = wholeGrid;
+            wholeGrid.Height = Win_allTargets.ActualHeight;
+            wholeGrid.Width = Win_allTargets.ActualWidth;
+            Win_allTargets.Content = wholeGrid;
             wholeGrid.UpdateLayout();
 
 
@@ -254,6 +286,11 @@ namespace GonoGoTask_wpfVer
             circleGo.Margin = new Thickness(left, top, 0, 0);
 
             return circleGo;
+        }
+
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
         }
 
 

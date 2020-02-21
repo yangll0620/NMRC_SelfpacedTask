@@ -155,18 +155,24 @@ namespace GonoGoTask_wpfVer
 
         bool PresentTask;
 
+        // time stamp
+        long timestamp_0;
+
 
         // set storing the touch point id (no replicates)
         HashSet<int> touchPoints_Id = new HashSet<int>();
-        // list storing the position of the touch points when touched down
+
+        // list storing the position/Timepoint of the touch points when touched down
         List<double[]> downPoints_Pos = new List<double[]>();
-        // Stop Watch for recording the time interval between the first touchpoint and the last touchpoint
-        Stopwatch touchPointsWatch;
+        // list storing the position/Timepoint of the touch points when touched down
+        List<double[]> downPoints_PosTime = new List<double[]>();
+        // Stop Watch for recording the time interval between the first touchpoint and the last touchpoint within One Touch
+        Stopwatch tpoints1TouchWatch;
         // the Max Duration for One Touch (ms)
-        long tMax_1Touch = 10;
+        long tMax_1Touch = 40;
         GoTargetTouchState gotargetTouchstate;
-        // list storing the touch time of the touch points when touched down
-        List<long> downPoints_time = new List<long>();
+
+        String calcTouchStateString;
 
 
         ScreenTouchState screenTouchstate;
@@ -188,7 +194,7 @@ namespace GonoGoTask_wpfVer
         /*Juicer Parameters*/
         GiveJuicerState giveJuicerState;
         // juiver given duration(ms)
-        int t_JuicerFullGiven = 1000, t_JuicerPercentageGiven = 500;
+        int t_JuicerFullGiven = 1500, t_JuicerPercentageGiven = 700;
         Thread thread_GiveJuicer;
 
 
@@ -205,7 +211,7 @@ namespace GonoGoTask_wpfVer
         public presentation(MainWindow mainWindow)
         {
             InitializeComponent();
-            WindowState = WindowState.Maximized;
+            
 
             Touch.FrameReported += new TouchFrameEventHandler(Touch_FrameReported);
 
@@ -217,6 +223,8 @@ namespace GonoGoTask_wpfVer
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            WindowState = WindowState.Maximized;
+
             // get the setup from the parent interface
             GetSetupParameters();
 
@@ -258,7 +266,7 @@ namespace GonoGoTask_wpfVer
         {
             // init a global stopwatch
             globalWatch = new Stopwatch();
-            touchPointsWatch = new Stopwatch();
+            tpoints1TouchWatch = new Stopwatch();
             
             // Thread for reading startpad continously
             thread_readStartpad = new Thread(new ThreadStart(Thread_ReadStartpad));
@@ -411,7 +419,7 @@ namespace GonoGoTask_wpfVer
             brush_CorrectInterface = new SolidColorBrush();
             brush_CorrectInterface.Color = Colors.Green;
             brush_CloseInterface = new SolidColorBrush();
-            brush_CloseInterface.Color = Colors.Cyan;
+            brush_CloseInterface.Color = Colors.DarkCyan;
 
             // get the file for saving 
             file_saved = parent.file_saved;
@@ -813,6 +821,7 @@ namespace GonoGoTask_wpfVer
             globalWatch.Restart();
             thread_readStartpad.Start();
             thread_GiveJuicer.Start();
+            timestamp_0 = DateTime.Now.Ticks;
             PresentTask = true;
             while (triali < targetType_List.Count && PresentTask)
             {
@@ -852,15 +861,30 @@ namespace GonoGoTask_wpfVer
                     file.WriteLine(String.Format("{0, -20}: {1}", "Startpad Touched On Time", startpadOn_TimePoint.ToString()));
                 }
 
-                // Cue Interface
+                /*-------- Trial Interfaces -------*/
                 try {
+                    // Ready Interface
                     await Interface_Ready(t_Ready);
+                    // Cue Interface
                     await Interface_Cue(t_Cue, pos_Taget, pos_WPoint1, pos_WPoint2);
 
                     // Go or noGo Interface
                     if(targetType == TargetType.Go)
                     {
                         await Interface_Go(pos_Taget);
+
+                        using (StreamWriter file = File.AppendText(file_saved))
+                        {
+                            for(int i = 0; i< downPoints_PosTime.Count; i++)
+                            {
+                                double[] downPoint = downPoints_PosTime[i];
+                                String downPointstr = downPoint[0].ToString() + " ("  + downPoint[1].ToString() + ", " + downPoint[2].ToString()+ ")";
+                                file.WriteLine(String.Format("{0}{1, -20}: {2}", "Touch Point",i.ToString() ,downPointstr));
+                            }
+                            file.WriteLine(String.Format("{0, -20}: {1}", "calc TouchState Points:", calcTouchStateString));
+
+                            
+                        }
                     }
                     else
                     {
@@ -1104,10 +1128,12 @@ namespace GonoGoTask_wpfVer
                         throw new TaskCanceledException("No Reach within the Max Reach Time");
                     }
                 }
+                downPoints_Pos.Clear();
+                downPoints_PosTime.Clear();
                 waitWatch.Restart();
-                while (waitWatch.ElapsedMilliseconds < tMax_1Touch) ;
+                while (waitWatch.ElapsedMilliseconds <= tMax_1Touch) ;
                 calc_GoTargetTouchState();
-            });
+            }); 
         }
 
         private void calc_GoTargetTouchState()
@@ -1116,9 +1142,9 @@ namespace GonoGoTask_wpfVer
             2. Assign the calculated target touch state to the GoTargetTouchState variable gotargetTouchstate
             */
 
-            double distance;
-           
+            double distance; 
             gotargetTouchstate = GoTargetTouchState.goMissed;
+            calcTouchStateString = "r = " + circleGo_radius.ToString(); 
             while (downPoints_Pos.Count > 0)
             {
                 Point touchp = new Point(downPoints_Pos[0][0], downPoints_Pos[0][1]);
@@ -1126,10 +1152,12 @@ namespace GonoGoTask_wpfVer
                 // distance between the touchpoint and the center of the circleGo
                 distance = Point.Subtract(circleGo_centerPoint, touchp).Length;
 
-
+                calcTouchStateString = calcTouchStateString + "\n dis = " + distance.ToString() + 
+                    ", (" + downPoints_Pos[0][0].ToString() + "," + downPoints_Pos[0][1].ToString() + ")";
                 if (distance <= circleGo_radius)
                 {// Hit 
                     gotargetTouchstate = GoTargetTouchState.goHit;
+                    downPoints_Pos.Clear();
                     break;
                 }
                 else if (gotargetTouchstate == GoTargetTouchState.goMissed && distance <= circleGoClose_radius)
@@ -1139,6 +1167,8 @@ namespace GonoGoTask_wpfVer
 
                 downPoints_Pos.RemoveAt(0);
             }
+            downPoints_Pos.Clear();
+            calcTouchStateString = calcTouchStateString + "\n" + gotargetTouchstate.ToString();
         }
 
 
@@ -1171,22 +1201,21 @@ namespace GonoGoTask_wpfVer
                 screenTouchstate = ScreenTouchState.Idle;
                 await Wait_Reach();
 
+
                 /*---- Go Target Touch States ----*/
                 if (gotargetTouchstate == GoTargetTouchState.goHit)
                 {/*Hit */
                     Interface_GoCorrect_Hit();
-                    textbox_thread2.Text = "Hit";
                 }
-                else if(gotargetTouchstate == GoTargetTouchState.goClose)
+                else if (gotargetTouchstate == GoTargetTouchState.goClose)
                 {/* touch close to the target*/
                     Feedback_GoCorrect_Close();
-                    textbox_thread2.Text = "Close";
                 }
-                else if(gotargetTouchstate == GoTargetTouchState.goMissed)
+                else if (gotargetTouchstate == GoTargetTouchState.goMissed)
                 {/* touch missed*/
                     Interface_GoERROR_Miss();
-                    textbox_thread2.Text = "Miss";
                 }
+                
                 await Task.Delay(t_FeedbackShow);
             }
             catch(TaskCanceledException)
@@ -1255,11 +1284,17 @@ namespace GonoGoTask_wpfVer
         private void Interface_GoERROR_LongReactionReach()
         {
             Interface_GoERROR();
+
         }
 
         private void Interface_GoERROR_Miss()
         {
             Interface_GoERROR();
+
+            using (StreamWriter file = File.AppendText(file_saved))
+            {
+                file.WriteLine(String.Format("{0, -20}: {1}", "TouchState:", "Miss"));
+            }
         }
 
         private void Interface_GoCorrect_Hit()
@@ -1277,7 +1312,10 @@ namespace GonoGoTask_wpfVer
             // Audio Feedback
             player_Correct.Play();
 
-
+            using (StreamWriter file = File.AppendText(file_saved))
+            {
+                file.WriteLine(String.Format("{0, -20}: {1}", "TouchState:", "Hit"));
+            }
         }
 
         private void Feedback_GoCorrect_Close()
@@ -1293,6 +1331,11 @@ namespace GonoGoTask_wpfVer
 
             // Audio Feedback
             player_Correct.Play();
+
+            using (StreamWriter file = File.AppendText(file_saved))
+            {
+                file.WriteLine(String.Format("{0, -20}: {1}", "TouchState:", "Close"));
+            }
         }
 
         private void Feedback_noGoError()
@@ -1465,8 +1508,8 @@ namespace GonoGoTask_wpfVer
             screenTouchstate = ScreenTouchState.Touched;
             TouchPointCollection touchPoints = e.GetTouchPoints(myGrid);
             bool addedNew;
-            long time = touchPointsWatch.ElapsedMilliseconds;
-
+            long time = tpoints1TouchWatch.ElapsedMilliseconds;
+            long timestamp_now = (DateTime.Now.Ticks - timestamp_0) / TimeSpan.TicksPerMillisecond;
             for (int i = 0; i < touchPoints.Count; i++)
             {
                 TouchPoint _touchPoint = touchPoints[i];
@@ -1477,7 +1520,7 @@ namespace GonoGoTask_wpfVer
 
                     if (touchPoints_Id.Count == 0)
                     {// the first touch point for one touch
-                        touchPointsWatch.Restart();
+                        tpoints1TouchWatch.Restart();
                     }
                     lock (touchPoints_Id)
                     {
@@ -1487,14 +1530,17 @@ namespace GonoGoTask_wpfVer
                     if (addedNew)
                     {/* deal with the New Added TouchPoint*/
 
-                        double[] pos = new double[2] { _touchPoint.Position.X, _touchPoint.Position.Y };
                         // store the pos of the point with down action
                         lock (downPoints_Pos)
                         {
-                            downPoints_Pos.Add(pos);
+                            downPoints_Pos.Add(new double[2] { _touchPoint.Position.X, _touchPoint.Position.Y });
                         }
 
-                        downPoints_time.Add(time);
+                        // store the pos and time of the point with down action, used for file writing
+                        lock (downPoints_PosTime)
+                        {
+                            downPoints_PosTime.Add(new double[3] { timestamp_now, _touchPoint.Position.X, _touchPoint.Position.Y });
+                        }
                     }
                 }
                 else if (_touchPoint.Action == TouchAction.Up)

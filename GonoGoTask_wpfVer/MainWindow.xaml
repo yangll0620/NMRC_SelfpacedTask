@@ -5,7 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GonoGoTask_wpfVer"
         mc:Ignorable="d"
-        Title="GonoGoTask" Height="450" Width="800">
+        Title="GonoGoTask" Height="450" Width="800"
+        Closing="Window_Closing">
     <Grid>
 
         <!--Grid RowDefinitions: 0, 1, 2-->
@@ -98,7 +99,7 @@
                                  HorizontalAlignment="Right" VerticalAlignment="Top" 
                                  HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                  Height="25" Width ="50" Margin="0,5,5,0" 
-                                 TextWrapping="Wrap" Text="3"  FontSize="11" FontWeight="Normal" />
+                                 TextWrapping="Wrap" Text="20"  FontSize="11" FontWeight="Normal" />
 
                             <Label Content="# of noGo Trials" Grid.Column="1"
                                    HorizontalAlignment="Right" VerticalAlignment="Top" 
@@ -108,7 +109,7 @@
                                  HorizontalAlignment="Right" VerticalAlignment="Top" 
                                  HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                  Height="25" Width ="50" Margin="0,5,5,0" 
-                                 TextWrapping="Wrap" Text="2"  FontWeight="Normal" FontSize="11"/>
+                                 TextWrapping="Wrap" Text="0"  FontWeight="Normal" FontSize="11"/>
 
                         </Grid>
 
@@ -127,7 +128,7 @@
                                      HorizontalAlignment="Left" VerticalAlignment="Top" 
                                      HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                      Height="23" Width ="50" Margin="0,10,5,0" 
-                                     TextWrapping="Wrap" Text="50"  FontWeight="Normal" />
+                                     TextWrapping="Wrap" Text="100"  FontWeight="Normal" />
                         </Grid>
                     </GroupBox>
 
