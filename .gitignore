@@ -52,7 +52,7 @@ x64/
 
 
 # sphinx-docs
-docs/build/html/
+docs/build/
 
 # OS generated files #
 .DS_Store*

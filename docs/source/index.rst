@@ -8,10 +8,12 @@ NMRC Go/Nogo Task
 
 .. toctree::
    :maxdepth: 2
+   :glob:
 
 
    flowdiagram
    hardwareframe
-   goInterface
+   InterfaceGo
    shuffleTrials
    issues
+   classpresentation

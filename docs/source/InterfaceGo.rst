@@ -1,5 +1,5 @@
 ************
-Go Interface
+Interface Go
 ************
 
 Function Wait_Reach():
