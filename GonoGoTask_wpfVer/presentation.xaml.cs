@@ -121,9 +121,7 @@ namespace GonoGoTask_wpfVer
         double circleGoClose_radius; // the radius of circleGO
 
         // audio feedback
-        private string audioFeedback_folder = @"F:\yang7003@umn\NMRC_umn\Projects\GoNogoTaskDev\GononGoTask_wpf\GonoGoTask_wpfVer\audios";
-        private string audioFilename_Correct = @"Correct.wav";
-        private string audioFilename_Error = @"Error.wav";
+        private string audioFile_Correct, audioFile_Error;
         System.Media.SoundPlayer player_Correct, player_Error;
 
         // background of ready and trial
@@ -294,15 +292,11 @@ namespace GonoGoTask_wpfVer
         private void SetAudioFeedback()
         {/*set the player_Correct and player_Error members
             */
-            
-            String audio_Correct = System.IO.Path.Combine(audioFeedback_folder, audioFilename_Correct);
-            String audio_Error = System.IO.Path.Combine(audioFeedback_folder, audioFilename_Error);
-
             player_Correct = new System.Media.SoundPlayer();
             player_Error = new System.Media.SoundPlayer();
 
-            player_Correct.SoundLocation = audio_Correct;
-            player_Error.SoundLocation = audio_Error;
+            player_Correct.SoundLocation = audioFile_Correct;
+            player_Error.SoundLocation = audioFile_Error;
         }
 
         private void SetOptionalPostions()
@@ -403,7 +397,7 @@ namespace GonoGoTask_wpfVer
             waittrange_noGoShow = new float[] { float.Parse(parent.textBox_tNogoShow_min.Text), float.Parse(parent.textBox_tNogoShow_max.Text) };
             tMax_ReactionTime = float.Parse(parent.textBox_MaxReactionTime.Text);
             tMax_ReachTime = float.Parse(parent.textBox_MaxReachTime.Text);
-            t_FeedbackShow = (Int32)(float.Parse(parent.textBox_tRewardShow.Text) * 1000);
+            t_FeedbackShow = (Int32)(float.Parse(parent.textBox_tVisFeedback.Text) * 1000);
 
             // Brush for background and border of WaitStart Interface
             brush_bkwaitstart = new SolidColorBrush();
@@ -423,6 +417,8 @@ namespace GonoGoTask_wpfVer
 
             // get the file for saving 
             file_saved = parent.file_saved;
+            audioFile_Correct = parent.audioFile_Correct;
+            audioFile_Error = parent.audioFile_Error;
         }
 
 
@@ -432,9 +428,10 @@ namespace GonoGoTask_wpfVer
             using (StreamWriter file = File.AppendText(file_saved))
             {
                 // Store all the optional positions
-                foreach (int[] position in optPostions_List)
+                for(int i=0; i< optPostions_List.Count; i++)
                 {
-                    file.WriteLine(String.Format("{0, -10}:{1}, {2}", "Optional Postion ", position[0], position[1]));
+                    int[] position = optPostions_List[i];
+                    file.WriteLine(String.Format("{0}{1, -10}:{2}, {3}", "Optional Postion ", i, position[0], position[1]));
                 }
 
 
@@ -1376,7 +1373,7 @@ namespace GonoGoTask_wpfVer
         }
 
 
-        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        public void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             if (serialPort_IO8.IsOpen)
                 serialPort_IO8.Close();
