@@ -32,7 +32,7 @@
                 <TextBox x:Name="textBox_NHPName" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Top"
                          HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                          Width="76" Height="25" Margin="90,10,10,0"
-                       TextWrapping="Wrap" Text="Barb"  FontWeight="Normal" TextChanged="TextBox_NHPName_TextChanged" />
+                       TextWrapping="Wrap"  FontWeight="Normal" TextChanged="TextBox_NHPName_TextChanged" />
 
                 <TextBlock  x:Name="textblock_comState"
                     TextWrapping="WrapWithOverflow"  Grid.Column="1"   
@@ -91,7 +91,7 @@
                                  HorizontalAlignment="Right" VerticalAlignment="Top" 
                                  HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                  Height="25" Width ="50" Margin="0,5,5,0" 
-                                 TextWrapping="Wrap" Text="20"  FontSize="11" FontWeight="Normal" />
+                                 TextWrapping="Wrap"   FontSize="11" FontWeight="Normal" />
 
                             <Label Content="# of noGo Trials" Grid.Column="1"
                                    HorizontalAlignment="Right" VerticalAlignment="Top" 
@@ -101,7 +101,7 @@
                                  HorizontalAlignment="Right" VerticalAlignment="Top" 
                                  HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                  Height="25" Width ="50" Margin="0,5,5,0" 
-                                 TextWrapping="Wrap" Text="0"  FontWeight="Normal" FontSize="11"/>
+                                 TextWrapping="Wrap"  FontWeight="Normal" FontSize="11"/>
 
                         </Grid>
 
@@ -120,7 +120,7 @@
                                      HorizontalAlignment="Left" VerticalAlignment="Top" 
                                      HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                      Height="23" Width ="50" Margin="0,10,5,0" 
-                                     TextWrapping="Wrap" Text="100"  FontWeight="Normal" />
+                                     TextWrapping="Wrap"   FontWeight="Normal" />
                         </Grid>
                     </GroupBox>
 
@@ -152,7 +152,7 @@
                                     HorizontalAlignment="Right" VerticalAlignment="Top" 
                                     Width="65" Height="25" Margin="0,5,5,0" 
                                     VerticalContentAlignment="Center" FontWeight="Normal" >
-                            <ComboBoxItem IsSelected="True">Blue</ComboBoxItem>
+                            <ComboBoxItem>Blue</ComboBoxItem>
                             <ComboBoxItem>Green</ComboBoxItem>
                             <ComboBoxItem>Red</ComboBoxItem>
                             <ComboBoxItem>Yellow</ComboBoxItem>
@@ -170,7 +170,7 @@
                             <ComboBoxItem>Blue</ComboBoxItem>
                             <ComboBoxItem>Red</ComboBoxItem>
                             <ComboBoxItem>Green</ComboBoxItem>
-                            <ComboBoxItem IsSelected="True">Yellow</ComboBoxItem>
+                            <ComboBoxItem>Yellow</ComboBoxItem>
                         </ComboBox>
 
 
@@ -185,7 +185,7 @@
                                      HorizontalAlignment="Right" VerticalAlignment="Top" 
                                      HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                      Height="25" Width ="60" Margin="0,10,5,0" 
-                                     TextWrapping="Wrap" Text="3"  FontWeight="Normal"/>
+                                     TextWrapping="Wrap"   FontWeight="Normal"/>
 
                         <TextBlock  TextWrapping="WrapWithOverflow"  Grid.Row="1" Grid.Column="1"   
                                    HorizontalAlignment="Right" VerticalAlignment="top" 
@@ -194,7 +194,7 @@
                                      HorizontalAlignment="Right" VerticalAlignment="Top" 
                                      HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                      Height="25" Width ="60" Margin="0,10,5,0" 
-                                     TextWrapping="Wrap" Text="4"  FontWeight="Normal" FontSize="11" />
+                                     TextWrapping="Wrap"   FontWeight="Normal" FontSize="11" />
 
 
                     </Grid>
@@ -228,12 +228,12 @@
                                 HorizontalAlignment="Right" VerticalAlignment="Center" 
                                        TextAlignment="Right" Padding="3"
                                    Height="23" Margin="0,12,65,0"  FontWeight="Normal"  >
-                            t_RewardShow</TextBlock>
-                            <TextBox x:Name="textBox_tRewardShow" Grid.Row="1" Grid.Column="0"
+                            t_VisualFeedback</TextBlock>
+                            <TextBox x:Name="textBox_tVisFeedback" Grid.Row="1" Grid.Column="0"
                                      HorizontalAlignment="Right" VerticalAlignment="Center" 
                                      HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                      Height="23" Width="50" Margin="0,10,10,0" 
-                                     TextWrapping="Wrap" Text="2"  FontWeight="Normal" />
+                                     TextWrapping="Wrap"   FontWeight="Normal" />
 
                             <TextBlock Grid.Row="0" Grid.Column="0"
                                 HorizontalAlignment="Right" VerticalAlignment="Center" 
@@ -244,7 +244,7 @@
                                      HorizontalAlignment="Right" VerticalAlignment="Center" 
                                      HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                      Height="23" Width="50" Margin="0,10,10,0" 
-                                     TextWrapping="Wrap" Text="2"  FontWeight="Normal" />
+                                     TextWrapping="Wrap"  FontWeight="Normal" />
 
 
 
@@ -257,7 +257,7 @@
                                      HorizontalAlignment="Right" VerticalAlignment="Center" 
                                      HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                      Height="23" Width="50" Margin="0,10,10,0" 
-                                     TextWrapping="Wrap" Text="2"  FontWeight="Normal" />
+                                     TextWrapping="Wrap"  FontWeight="Normal" />
 
                         </Grid>
 
@@ -289,16 +289,14 @@
                                    HorizontalAlignment="Right" VerticalAlignment="Center"
                                    Margin="0,10,0,0"  FontWeight="Normal" TextAlignment="Right" >
                             t_Ready</TextBlock>
-                            <TextBox x:Name="textBox_tReady_min" Grid.Row="1" Grid.Column="1" 
-                                     VerticalAlignment="Top" HorizontalAlignment="Center" 
-                                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                                     Height="23" Width="50" Margin="0,10,0,0" 
-                                     TextWrapping="Wrap" Text="1"  FontWeight="Normal" />
+                            <TextBox x:Name="textBox_tReady_min" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Center" 
+                                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Width="50" Margin="18,10,18,1" 
+                                     TextWrapping="Wrap"  FontWeight="Normal" />
                             <TextBox x:Name="textBox_tReady_max" Grid.Row="1" Grid.Column="2"  
                                      HorizontalAlignment="Center" VerticalAlignment="Top" 
                                      HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                      Height="23" Width ="50" Margin="0,10,0,0" 
-                                     TextWrapping="Wrap" Text="3"  FontWeight="Normal" />
+                                     TextWrapping="Wrap"  FontWeight="Normal" />
 
                             <TextBlock Grid.Row="2" Grid.Column="0"  
                                    HorizontalAlignment="Right" 
@@ -308,12 +306,12 @@
                                      HorizontalAlignment="Center" VerticalAlignment="Top" 
                                      HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                      Height="23" Width ="50" Margin="0,10,0,0" 
-                                     TextWrapping="Wrap" Text="1"  FontWeight="Normal" />
+                                     TextWrapping="Wrap"  FontWeight="Normal" />
                             <TextBox x:Name="textBox_tCue_max" Grid.Row="2" Grid.Column="2"  
                                      HorizontalAlignment="Center" VerticalAlignment="Top" 
                                      HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                      Height="23" Width ="50" Margin="0,10,0,0" 
-                                     TextWrapping="Wrap" Text="3"  FontWeight="Normal" />
+                                     TextWrapping="Wrap"   FontWeight="Normal" />
 
 
                             <TextBlock Grid.Row="3" Grid.Column="0"  
@@ -325,12 +323,12 @@
                                      HorizontalAlignment="Center" VerticalAlignment="Top" 
                                      HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                      Height="23" Width ="50" Margin="0,10,0,0" 
-                                     TextWrapping="Wrap" Text="3"  FontWeight="Normal" />
+                                     TextWrapping="Wrap"  FontWeight="Normal" />
                             <TextBox x:Name="textBox_tNogoShow_max" Grid.Row="3" Grid.Column="2"  
                                      HorizontalAlignment="Center" VerticalAlignment="Top" 
                                      HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                      Height="23" Width ="50" Margin="0,10,0,0" 
-                                     TextWrapping="Wrap" Text="3"  FontWeight="Normal" />
+                                     TextWrapping="Wrap"  FontWeight="Normal" />
 
 
                         </Grid>

@@ -10,6 +10,7 @@ using System.IO;
 using swf = System.Windows.Forms;
 using sd = System.Drawing;
 using Newtonsoft.Json;
+using System.Text;
 
 namespace GonoGoTask_wpfVer
 {
@@ -20,9 +21,11 @@ namespace GonoGoTask_wpfVer
     {
         public string serialPortIO8_name;
 
-        private string saved_folder = @"F:\yang7003@umn\NMRC_umn\Projects\GoNogoTaskDev\GononGoTask_wpf\savefolder\";
+        private string saved_folder;
         public string file_saved;
+        public string audioFile_Correct, audioFile_Error;
 
+        presentation taskPresentWindow;
 
         public MainWindow()
         {
@@ -165,13 +168,13 @@ namespace GonoGoTask_wpfVer
             swf.Screen touchScreen = Utility.Detect_TouchScreen();
 
             // Show the taskpresent Window on the Touch Screen
-            presentation taskpresent = new presentation(this);
+            taskPresentWindow = new presentation(this);
             sd.Rectangle Rect_touchScreen = touchScreen.WorkingArea;
-            taskpresent.Top = Rect_touchScreen.Top;
-            taskpresent.Left = Rect_touchScreen.Left;
+            taskPresentWindow.Top = Rect_touchScreen.Top;
+            taskPresentWindow.Left = Rect_touchScreen.Left;
 
-            taskpresent.Show();
-            taskpresent.StartExp();
+            taskPresentWindow.Show();
+            taskPresentWindow.StartExp();
         }
 
 
@@ -213,7 +216,7 @@ namespace GonoGoTask_wpfVer
                 file.WriteLine(String.Format("{0, -40}:  [{1} {2}]", "Ready Interface Show Time Range (s)", textBox_tReady_min.Text, textBox_tReady_max.Text));
                 file.WriteLine(String.Format("{0, -40}:  [{1} {2}]", "Cue Interface Show Time Range (s)", textBox_tCue_min.Text, textBox_tCue_max.Text));
                 file.WriteLine(String.Format("{0, -40}:  [{1} {2}]", "Nogo Interface Show Range Time (s)", textBox_tNogoShow_min.Text, textBox_tNogoShow_max.Text));
-                file.WriteLine(String.Format("{0, -40}:  {1}", "Reward Interface Show Time (s)", textBox_tRewardShow.Text));
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Reward Interface Show Time (s)", textBox_tVisFeedback.Text));
 
                 file.WriteLine(String.Format("{0, -40}:  {1}", "Max Reach Time (s)", textBox_MaxReachTime.Text));
                 file.WriteLine(String.Format("{0, -40}:  {1}", "Max Reaction Time (s)", textBox_MaxReactionTime.Text));
@@ -293,6 +296,45 @@ namespace GonoGoTask_wpfVer
             return circleGo;
         }
 
+
+        private void LoadConfigFile(string configFile)
+        {
+            // Read the Config. File and convert to JsonObject
+            string jsonStr;
+            using (StreamReader r = new StreamReader(configFile))
+            {
+                jsonStr = r.ReadToEnd();
+            }
+            dynamic array = JsonConvert.DeserializeObject(jsonStr);
+
+
+            // Config into the Interface
+            var config = array[0];
+            textBox_NHPName.Text = config["NHP Name"];
+            textBox_goTrialNum.Text = config["Go Trials Num"];
+            textBox_nogoTrialNum.Text = config["noGo Trials Num"];
+            textBox_closeMargin.Text = config["Close Margin Percentage"];
+            textBox_objdiameter.Text = config["Target Diameter"];
+            textBox_disfromcenter.Text = config["Target Distance from the Center"];
+            textBox_tVisFeedback.Text = config["Visual Feedback Show Time"];
+            textBox_MaxReachTime.Text = config["Max Reach Time"];
+            textBox_MaxReactionTime.Text = config["Max Reaction Time"];
+
+            textBox_tReady_min.Text = config["Ready Show Time Range"][0];
+            textBox_tReady_max.Text = config["Ready Show Time Range"][1];
+            textBox_tCue_min.Text = config["Cue Show Time Range"][0];
+            textBox_tCue_max.Text = config["Cue Show Time Range"][1];
+            textBox_tNogoShow_min.Text = config["Nogo Show Range Time"][0];
+            textBox_tNogoShow_max.Text = config["Nogo Show Range Time"][1];
+
+            cbo_goColor.Text = config["Go Color"];
+            cbo_nogoColor.Text = config["noGo Color"];
+
+            audioFile_Correct = config["audioFile_Correct"];
+            audioFile_Error = config["audioFile_Error"];
+            saved_folder = config["saved_folder"];
+        }
+
         private void btnLoadConf_Click(object sender, RoutedEventArgs e)
         {
             Microsoft.Win32.OpenFileDialog openFileDlg = new Microsoft.Win32.OpenFileDialog();
@@ -307,29 +349,27 @@ namespace GonoGoTask_wpfVer
             if (result == true)
             {
                 // Open document 
-                string filename = openFileDlg.FileName;
-
-
-                JsonTextReader reader = new JsonTextReader(new StringReader(json));
-                while (reader.Read())
-                {
-                    if (reader.Value != null)
-                    {
-                        Console.WriteLine("Token: {0}, Value: {1}", reader.TokenType, reader.Value);
-                    }
-                    else
-                    {
-                        Console.WriteLine("Token: {0}", reader.TokenType);
-                    }
-                }
+                string configFile = openFileDlg.FileName;
+                LoadConfigFile(configFile);    
             }
-
-           
         }
         
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            int i = 0;
+
+            WindowCollection windowCollection = App.Current.Windows;
+            foreach (Window win in windowCollection)
+            {
+
+                i++;
+            }
+
+            if (taskPresentWindow != null)
+            {
+                taskPresentWindow.Window_Closing(sender, e);
+            }
         }
 
 
@@ -337,5 +377,15 @@ namespace GonoGoTask_wpfVer
     }
 
 
-   
+
+    public class Item
+    {
+        public string NHPName;
+        public string audioFeedback_folder;
+        public string audioFilename_Correct;
+        public string audioFilename_Error;
+        public string saved_folder;
+    }
+
+
 }
