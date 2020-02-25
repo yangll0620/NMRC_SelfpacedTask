@@ -10,7 +10,7 @@ using System.IO;
 using swf = System.Windows.Forms;
 using sd = System.Drawing;
 using Newtonsoft.Json;
-using System.Text;
+using System.Reflection;
 
 namespace GonoGoTask_wpfVer
 {
@@ -64,6 +64,9 @@ namespace GonoGoTask_wpfVer
                 btn_comReconnect.IsEnabled = false;
                 textblock_comState.Visibility = Visibility.Hidden;
             }
+
+            // Load Default Config File
+            LoadConfigFile("");
 
             if (textBox_NHPName.Text != "" && serialPortIO8_name != null)
             {
@@ -191,6 +194,11 @@ namespace GonoGoTask_wpfVer
         {
             DateTime time_now = DateTime.Now;
 
+            // if saved_folder not exist, created!
+            if (Directory.Exists(saved_folder) == false)
+            {
+                System.IO.Directory.CreateDirectory(saved_folder);
+            }
 
             file_saved = saved_folder + textBox_NHPName.Text + time_now.ToString("-yyyyMMdd-HHmmss") + ".txt";
             using (StreamWriter file = new StreamWriter(file_saved))
@@ -228,10 +236,11 @@ namespace GonoGoTask_wpfVer
 
         private void btnShowAllTargets_Click(object sender, RoutedEventArgs e)
         {
+
             // Get the touch Screen
             swf.Screen touchScreen = Utility.Detect_TouchScreen();
 
-            /* Show the Win_allTargets on the Touch Screen*/
+            //Show the Win_allTargets on the Touch Screen
             Window Win_allTargets = new Window();
             sd.Rectangle Rect_touchScreen = touchScreen.WorkingArea;
             Win_allTargets.Top = Rect_touchScreen.Top;
@@ -265,12 +274,10 @@ namespace GonoGoTask_wpfVer
 
             foreach (int[] centerPoint_Pos in optPostions_List)
             {
-                Ellipse circleGo = Create_GoCircle((double) Diameter, centerPoint_Pos);
+                Ellipse circleGo = Create_GoCircle((double)Diameter, centerPoint_Pos);
                 wholeGrid.Children.Add(circleGo);
             }
             wholeGrid.UpdateLayout();
-
-            
         }
 
         private Ellipse Create_GoCircle(double Diameter, int[] centerPoint_Pos)
@@ -298,16 +305,35 @@ namespace GonoGoTask_wpfVer
 
 
         private void LoadConfigFile(string configFile)
-        {
+        {/*Load Config File .json 
+            configFile == '': load the default Config File
+            */
+
             // Read the Config. File and convert to JsonObject
             string jsonStr;
-            using (StreamReader r = new StreamReader(configFile))
+            if (String.IsNullOrEmpty(configFile))
             {
-                jsonStr = r.ReadToEnd();
+                var assembly = Assembly.GetExecutingAssembly();
+                var defaultConfigFile = "GonoGoTask_wpfVer.Resources.ConfigFiles.defaultConfig.json";
+
+                using (Stream stream = assembly.GetManifestResourceStream(defaultConfigFile))
+                {
+                    using (StreamReader r = new StreamReader(stream))
+                    {
+                        jsonStr = r.ReadToEnd();
+                    }
+                }
+
             }
+            else
+            {
+                using (StreamReader r = new StreamReader(configFile))
+                {
+                    jsonStr = r.ReadToEnd();
+                }
+            }
+                      
             dynamic array = JsonConvert.DeserializeObject(jsonStr);
-
-
             // Config into the Interface
             var config = array[0];
             textBox_NHPName.Text = config["NHP Name"];
@@ -337,6 +363,7 @@ namespace GonoGoTask_wpfVer
 
         private void btnLoadConf_Click(object sender, RoutedEventArgs e)
         {
+
             Microsoft.Win32.OpenFileDialog openFileDlg = new Microsoft.Win32.OpenFileDialog();
 
             // Set filter for file extension and default file extension 
@@ -350,7 +377,7 @@ namespace GonoGoTask_wpfVer
             {
                 // Open document 
                 string configFile = openFileDlg.FileName;
-                LoadConfigFile(configFile);    
+                LoadConfigFile(configFile);
             }
         }
         

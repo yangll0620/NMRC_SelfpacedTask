@@ -292,11 +292,23 @@ namespace GonoGoTask_wpfVer
         private void SetAudioFeedback()
         {/*set the player_Correct and player_Error members
             */
-            player_Correct = new System.Media.SoundPlayer();
-            player_Error = new System.Media.SoundPlayer();
 
-            player_Correct.SoundLocation = audioFile_Correct;
-            player_Error.SoundLocation = audioFile_Error;
+            player_Correct = new System.Media.SoundPlayer(Properties.Resources.Correct);
+            player_Error = new System.Media.SoundPlayer(Properties.Resources.Error);
+
+
+            // Assign new audios
+            if (String.Compare(audioFile_Correct, "default", true) != 0)
+            {
+                player_Correct.SoundLocation = audioFile_Correct;
+            }
+            if (String.Compare(audioFile_Error, "default", true) != 0)
+            {
+                player_Error.SoundLocation = audioFile_Error;
+            }
+
+            
+
         }
 
         private void SetOptionalPostions()
@@ -315,11 +327,6 @@ namespace GonoGoTask_wpfVer
             optPostions_List.Add(new int[] { screenCenter_X - disXFromCenter, screenCenter_Y }); // left position
             optPostions_List.Add(new int[] { screenCenter_X, screenCenter_Y - disYFromCenter }); // top position
             optPostions_List.Add(new int[] { screenCenter_X + disXFromCenter, screenCenter_Y }); // right position
-        }
-
-        public List<int[]> GetOptionalPositions()
-        {
-            return optPostions_List;
         }
 
 
@@ -870,18 +877,18 @@ namespace GonoGoTask_wpfVer
                     {
                         await Interface_Go(pos_Taget);
 
-/*                        using (StreamWriter file = File.AppendText(file_saved))
+                        using (StreamWriter file = File.AppendText(file_saved))
                         {
-                            for(int i = 0; i< downPoints_PosTime.Count; i++)
+                            for (int i = 0; i < downPoints_PosTime.Count; i++)
                             {
                                 double[] downPoint = downPoints_PosTime[i];
-                                String downPointstr = downPoint[0].ToString() + " ("  + downPoint[1].ToString() + ", " + downPoint[2].ToString()+ ")";
-                                file.WriteLine(String.Format("{0}{1, -20}: {2}", "Touch Point",i.ToString() ,downPointstr));
+                                String downPointstr = downPoint[0].ToString() + " (" + downPoint[1].ToString() + ", " + downPoint[2].ToString() + ")";
+                                file.WriteLine(String.Format("{0}{1, -20}: {2}", "Touch Point", i.ToString(), downPointstr));
                             }
                             file.WriteLine(String.Format("{0, -20}: {1}", "calc TouchState Points:", calcTouchStateString));
 
-                            
-                        }*/
+
+                        }
                     }
                     else
                     {
@@ -901,6 +908,7 @@ namespace GonoGoTask_wpfVer
 
             thread_readStartpad.Abort();
             thread_GiveJuicer.Abort();
+            globalWatch.Stop();
         }
 
         private void Thread_ReadStartpad()
@@ -961,8 +969,6 @@ namespace GonoGoTask_wpfVer
                 }
             }
         }
-
-
 
 
         private Task Interface_WaitStartTrial()
@@ -1165,7 +1171,7 @@ namespace GonoGoTask_wpfVer
                 downPoints_Pos.RemoveAt(0);
             }
             downPoints_Pos.Clear();
-            calcTouchStateString = calcTouchStateString + "\n" + gotargetTouchstate.ToString();
+            calcTouchStateString = calcTouchStateString + "\n " + gotargetTouchstate.ToString();
         }
 
 
@@ -1287,11 +1293,6 @@ namespace GonoGoTask_wpfVer
         private void Interface_GoERROR_Miss()
         {
             Interface_GoERROR();
-
-            using (StreamWriter file = File.AppendText(file_saved))
-            {
-                file.WriteLine(String.Format("{0, -20}: {1}", "TouchState:", "Miss"));
-            }
         }
 
         private void Interface_GoCorrect_Hit()
@@ -1308,11 +1309,6 @@ namespace GonoGoTask_wpfVer
 
             // Audio Feedback
             player_Correct.Play();
-
-            using (StreamWriter file = File.AppendText(file_saved))
-            {
-                file.WriteLine(String.Format("{0, -20}: {1}", "TouchState:", "Hit"));
-            }
         }
 
         private void Feedback_GoCorrect_Close()
@@ -1328,11 +1324,6 @@ namespace GonoGoTask_wpfVer
 
             // Audio Feedback
             player_Correct.Play();
-
-            using (StreamWriter file = File.AppendText(file_saved))
-            {
-                file.WriteLine(String.Format("{0, -20}: {1}", "TouchState:", "Close"));
-            }
         }
 
         private void Feedback_noGoError()

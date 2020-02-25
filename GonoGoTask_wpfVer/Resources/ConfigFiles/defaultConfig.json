@@ -1,0 +1,21 @@
+[
+  {
+    "NHP Name": "Barb",
+    "Go Trials Num": 20,
+    "noGo Trials Num": 5,
+    "Close Margin Percentage": 50,
+    "Go Color": "Blue",
+    "noGo Color": "Yellow",
+    "Target Diameter": 1,
+    "Target Distance from the Center": 2,
+    "Ready Show Time Range": [ 1, 3 ],
+    "Cue Show Time Range": [ 1, 3 ],
+    "Nogo Show Range Time": [ 1, 3 ],
+    "Visual Feedback Show Time": 2,
+    "Max Reach Time": 0.8,
+    "Max Reaction Time": 2,
+    "audioFile_Correct": "default",
+    "audioFile_Error": "default",
+    "saved_folder": "F:\\yang7003@umn\\NMRC_umn\\Projects\\GoNogoTaskDev\\Savefolder\\"
+  }
+]
