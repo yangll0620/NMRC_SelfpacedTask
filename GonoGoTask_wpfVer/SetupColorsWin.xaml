@@ -1,0 +1,179 @@
+﻿<Window x:Class="GonoGoTask_wpfVer.SetupColorsWin"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:GonoGoTask_wpfVer"
+        mc:Ignorable="d"
+        Title="SetupColorsWin" Height="300" Width="360">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <!--Go and noGo Color -->
+        <Label Content="Go" Grid.Row="0" Grid.Column="0" 
+                               HorizontalAlignment="Right" VerticalAlignment="top" 
+                               HorizontalContentAlignment="Right" VerticalContentAlignment="Center"
+                               Height="25" Margin="0,5,110,0"  FontWeight="Normal"/>
+        <ComboBox x:Name="cbo_goColor" Grid.Row="0" Grid.Column="0" 
+                                    HorizontalAlignment="Right" VerticalAlignment="Top" 
+                                    Width="80" Height="25" Margin="0,5,25,0" 
+                                    VerticalContentAlignment="Center" FontWeight="Normal" >
+            <ComboBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <Rectangle Fill="{Binding Name}" Width="16" Height="16" Margin="0,2,5,2" />
+                        <TextBlock Text="{Binding Name}" />
+                    </StackPanel>
+                </DataTemplate>
+            </ComboBox.ItemTemplate>
+        </ComboBox>
+
+        <Label Content="noGo" Grid.Row="0" Grid.Column="1" 
+                                   HorizontalAlignment="Right" VerticalAlignment="top" 
+                                   HorizontalContentAlignment="Right" VerticalContentAlignment="Center"
+                                   Height="25" Margin="0,5,90,0"  FontWeight="Normal" Grid.ColumnSpan="2"/>
+
+        <ComboBox x:Name="cbo_nogoColor" Grid.Row="0" Grid.Column="2" 
+                                      HorizontalAlignment="Right" VerticalAlignment="Top" 
+                                      Width="80" Height="25" Margin="0,5,5,0" 
+                                      VerticalContentAlignment="Center" FontWeight="Normal">
+            <ComboBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <Rectangle Fill="{Binding Name}" Width="16" Height="16" Margin="0,2,5,2" />
+                        <TextBlock Text="{Binding Name}" />
+                    </StackPanel>
+                </DataTemplate>
+            </ComboBox.ItemTemplate>
+        </ComboBox>
+
+
+        <!-- Background Colors of WaitTrials and Trials -->
+        <Label Content="Wait BK" Grid.Row="1" Grid.Column="0" 
+                                   HorizontalAlignment="Right" VerticalAlignment="top" 
+                                   HorizontalContentAlignment="Right" VerticalContentAlignment="Center"
+                                   Height="25" Margin="0,5,110,0"  FontWeight="Normal"/>
+
+        <ComboBox x:Name="cbo_BKWaitTrialColor" Grid.Row="1" Grid.Column="0" 
+                                      HorizontalAlignment="Right" VerticalAlignment="Top" 
+                                      Width="80" Height="25" Margin="0,5,25,0" 
+                                      VerticalContentAlignment="Center" FontWeight="Normal">
+            <ComboBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <Rectangle Fill="{Binding Name}" Width="16" Height="16" Margin="0,2,5,2" />
+                        <TextBlock Text="{Binding Name}" />
+                    </StackPanel>
+                </DataTemplate>
+            </ComboBox.ItemTemplate>
+        </ComboBox>
+
+        <Label Content="Trial BK" Grid.Row="1" Grid.Column="1" 
+                                   HorizontalAlignment="Right" VerticalAlignment="top" 
+                                   HorizontalContentAlignment="Right" VerticalContentAlignment="Center"
+                                   Height="25" Margin="0,5,90,0"  FontWeight="Normal"/>
+
+        <ComboBox x:Name="cbo_BKTrialColor" Grid.Row="1" Grid.Column="1" 
+                                      HorizontalAlignment="Right" VerticalAlignment="Top" 
+                                      Width="80" Height="25" Margin="0,5,5,0" 
+                                      VerticalContentAlignment="Center" FontWeight="Normal">
+            <ComboBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <Rectangle Fill="{Binding Name}" Width="16" Height="16" Margin="0,2,5,2" />
+                        <TextBlock Text="{Binding Name}" />
+                    </StackPanel>
+                </DataTemplate>
+            </ComboBox.ItemTemplate>
+        </ComboBox>
+
+        <!-- Visual Feedback Colors -->
+        <Label Content="Correct Fill" Grid.Row="2" Grid.Column="0" 
+                                   HorizontalAlignment="Right" VerticalAlignment="top" 
+                                   HorizontalContentAlignment="Right" VerticalContentAlignment="Center"
+                                   Height="25" Margin="0,5,110,0"  FontWeight="Normal"/>
+
+        <ComboBox x:Name="cbo_CorrFillColor" Grid.Row="2" Grid.Column="0" 
+                                      HorizontalAlignment="Right" VerticalAlignment="Top" 
+                                      Width="80" Height="25" Margin="0,5,25,0" 
+                                      VerticalContentAlignment="Center" FontWeight="Normal">
+            <ComboBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <Rectangle Fill="{Binding Name}" Width="16" Height="16" Margin="0,2,5,2" />
+                        <TextBlock Text="{Binding Name}" />
+                    </StackPanel>
+                </DataTemplate>
+            </ComboBox.ItemTemplate>
+        </ComboBox>
+
+
+        <Label Content="Correct Outline" Grid.Row="2" Grid.Column="1" 
+                                   HorizontalAlignment="Right" VerticalAlignment="top" 
+                                   HorizontalContentAlignment="Right" VerticalContentAlignment="Center"
+                                   Height="25" Margin="0,5,90,0"  FontWeight="Normal"/>
+
+        <ComboBox x:Name="cbo_CorrOutlineColor" Grid.Row="2" Grid.Column="1" 
+                                      HorizontalAlignment="Right" VerticalAlignment="Top" 
+                                      Width="80" Height="25" Margin="0,5,5,0" 
+                                      VerticalContentAlignment="Center" FontWeight="Normal">
+            <ComboBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <Rectangle Fill="{Binding Name}" Width="16" Height="16" Margin="0,2,5,2" />
+                        <TextBlock Text="{Binding Name}" />
+                    </StackPanel>
+                </DataTemplate>
+            </ComboBox.ItemTemplate>
+        </ComboBox>
+
+
+        <Label Content="Error Fill" Grid.Row="3" Grid.Column="0" 
+                                   HorizontalAlignment="Right" VerticalAlignment="top" 
+                                   HorizontalContentAlignment="Right" VerticalContentAlignment="Center"
+                                   Height="25" Margin="0,5,110,0"  FontWeight="Normal"/>
+
+        <ComboBox x:Name="cbo_ErrorFillColor" Grid.Row="3" Grid.Column="0" 
+                                      HorizontalAlignment="Right" VerticalAlignment="Top" 
+                                      Width="80" Height="25" Margin="0,5,25,0" 
+                                      VerticalContentAlignment="Center" FontWeight="Normal">
+            <ComboBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <Rectangle Fill="{Binding Name}" Width="16" Height="16" Margin="0,2,5,2" />
+                        <TextBlock Text="{Binding Name}" />
+                    </StackPanel>
+                </DataTemplate>
+            </ComboBox.ItemTemplate>
+        </ComboBox>
+
+
+
+        <Label Content="Error Outline" Grid.Row="3" Grid.Column="1" 
+                                   HorizontalAlignment="Right" VerticalAlignment="top" 
+                                   HorizontalContentAlignment="Right" VerticalContentAlignment="Center"
+                                   Height="25" Margin="0,5,90,0"  FontWeight="Normal"/>
+        <ComboBox x:Name="cbo_ErrorOutlineColor" Grid.Row="3" Grid.Column="1" 
+                                      HorizontalAlignment="Right" VerticalAlignment="Top" 
+                                      Width="80" Height="25" Margin="0,5,5,0" 
+                                      VerticalContentAlignment="Center" FontWeight="Normal">
+            <ComboBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <Rectangle Fill="{Binding Name}" Width="16" Height="16" Margin="0,2,5,2" />
+                        <TextBlock Text="{Binding Name}" />
+                    </StackPanel>
+                </DataTemplate>
+            </ComboBox.ItemTemplate>
+        </ComboBox>
+    </Grid>
+</Window>

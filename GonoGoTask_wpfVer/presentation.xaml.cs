@@ -10,7 +10,7 @@ using System.Windows.Shapes;
 using System.Diagnostics;
 using System.IO.Ports;
 using System.IO;
-using System.Windows.Controls;
+using System.Reflection;
 
 namespace GonoGoTask_wpfVer
 {
@@ -114,7 +114,7 @@ namespace GonoGoTask_wpfVer
         Ellipse point1, point2;
 
         // Colors for Correct and Error
-        SolidColorBrush brush_ErrorInterface, brush_CorrectInterface, brush_CloseInterface;
+        SolidColorBrush brush_ErrorFill, brush_ErrorStroke, brush_CorrectFill, brush_CloseFill;
 
         Point circleGo_centerPoint; // the center of circleGo 
         double circleGo_radius; // the radius of circleGO
@@ -125,7 +125,7 @@ namespace GonoGoTask_wpfVer
         System.Media.SoundPlayer player_Correct, player_Error;
 
         // background of ready and trial
-        SolidColorBrush brush_bkwaitstart, brush_bdwaitstart, brush_bktrial;
+        SolidColorBrush brush_BKWaitTrialStart, brush_BDWaitTrialStart, brush_BKTrial;
 
 
         // name of all the objects
@@ -151,7 +151,7 @@ namespace GonoGoTask_wpfVer
         float tMax_ReactionTime, tMax_ReachTime;
         Int32 t_FeedbackShow;
 
-        bool PresentTask;
+        bool PresentTrial;
 
         // time stamp
         long timestamp_0;
@@ -184,6 +184,7 @@ namespace GonoGoTask_wpfVer
         // serial port for DLP-IO8-G
         SerialPort serialPort_IO8;
         int baudRate = 115200;
+        Thread thread_ReadWrite_IO8;
 
         /* startpad parameters */
         PressedStartpad pressedStartpad;
@@ -193,7 +194,6 @@ namespace GonoGoTask_wpfVer
         GiveJuicerState giveJuicerState;
         // juiver given duration(ms)
         int t_JuicerFullGiven = 1500, t_JuicerPercentageGiven = 700;
-        Thread thread_GiveJuicer;
 
 
         // Global stopwatch
@@ -203,19 +203,15 @@ namespace GonoGoTask_wpfVer
         long startpadOn_StartTrial_TimePoint;
 
 
-        Thread thread_readStartpad;
-
         /*****Methods*******/
         public presentation(MainWindow mainWindow)
         {
             InitializeComponent();
             
-
             Touch.FrameReported += new TouchFrameEventHandler(Touch_FrameReported);
 
+            // parent
             parent = mainWindow;
-
-
         }
 
 
@@ -243,51 +239,7 @@ namespace GonoGoTask_wpfVer
 
             // Set audio Feedback related members 
             SetAudioFeedback();
-
-            // Set EditButtons Invisible
-            SetEditButtonsInvisible();
         }
-
-        private void SetEditButtonsInvisible()
-        {
-            textbox_main.Visibility = Visibility.Hidden;
-            textbox_thread2.Visibility = Visibility.Hidden;
-            textbox_thread.Visibility = Visibility.Hidden;
-            textBox_State.Visibility = Visibility.Hidden;
-            btn.Visibility = Visibility.Hidden;
-            btn.IsEnabled = false;
-            btn2.Visibility = Visibility.Hidden;
-            btn2.IsEnabled = false;
-        }
-
-        public void StartExp()
-        {
-            // init a global stopwatch
-            globalWatch = new Stopwatch();
-            tpoints1TouchWatch = new Stopwatch();
-            
-            // Thread for reading startpad continously
-            thread_readStartpad = new Thread(new ThreadStart(Thread_ReadStartpad));
-            thread_GiveJuicer = new Thread(new ThreadStart(Thread_Juicer));
-
-
-            // create a serial Port IO8 instance, and open it
-            serialPort_IO8 = new SerialPort();
-            try
-            {
-                serialPort_SetOpen(parent.serialPortIO8_name, baudRate);
-
-                WriteHeaderInf();
-
-                // present task trial by trial
-                Present_Task();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message, "Error Message", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
 
         private void SetAudioFeedback()
         {/*set the player_Correct and player_Error members
@@ -394,8 +346,8 @@ namespace GonoGoTask_wpfVer
         {/* get the setup from the parent interface */
 
             // object size and distance parameters
-            objdiameter = Convert2Pixal.in2pixal(float.Parse(parent.textBox_objdiameter.Text));
-            disFromCenter = Convert2Pixal.in2pixal(float.Parse(parent.textBox_disfromcenter.Text));
+            objdiameter = Utility.in2pixal(float.Parse(parent.textBox_objdiameter.Text));
+            disFromCenter = Utility.in2pixal(float.Parse(parent.textBox_disfromcenter.Text));
             closediameter = (int)(objdiameter * (1 + float.Parse(parent.textBox_closeMargin.Text) / 100));
 
             // interfaces time related parameters
@@ -406,22 +358,38 @@ namespace GonoGoTask_wpfVer
             tMax_ReachTime = float.Parse(parent.textBox_MaxReachTime.Text);
             t_FeedbackShow = (Int32)(float.Parse(parent.textBox_tVisFeedback.Text) * 1000);
 
-            // Brush for background and border of WaitStart Interface
-            brush_bkwaitstart = new SolidColorBrush();
-            brush_bkwaitstart.Color = Colors.Gray;
-            brush_bdwaitstart = new SolidColorBrush();
-            brush_bdwaitstart.Color = Colors.Black;
 
-            // Brush for background of the trial
-            brush_bktrial = new SolidColorBrush();
-            brush_bktrial.Color = Colors.Black;
-            brush_ErrorInterface = new SolidColorBrush();
-            brush_ErrorInterface.Color = Colors.Red;
-            brush_CorrectInterface = new SolidColorBrush();
-            brush_CorrectInterface.Color = Colors.Green;
-            brush_CloseInterface = new SolidColorBrush();
-            brush_CloseInterface.Color = Colors.DarkCyan;
+            /* ---- Get all the Set Colors ----- */
+            Color selectedColor;
+            // goCircle Color
+            selectedColor = (Color)(parent.cbo_goColor.SelectedItem as PropertyInfo).GetValue(null, null);
+            brush_goCircle = new SolidColorBrush(selectedColor);
+            // nogoRect Color
+            selectedColor = (Color)(parent.cbo_nogoColor.SelectedItem as PropertyInfo).GetValue(null, null);
+            brush_nogoRect = new SolidColorBrush(selectedColor);
 
+
+            // Wait Background 
+            selectedColor = (Color)(parent.cbo_BKWaitTrialColor.SelectedItem as PropertyInfo).GetValue(null, null);
+            brush_BKWaitTrialStart = new SolidColorBrush(selectedColor);
+            // Wait Boarder
+            brush_BDWaitTrialStart = brush_BKWaitTrialStart;
+
+            // Trial Background
+            selectedColor = (Color)(parent.cbo_BKTrialColor.SelectedItem as PropertyInfo).GetValue(null, null);
+            brush_BKTrial = new SolidColorBrush(selectedColor);
+
+            // Error Fill Color
+            selectedColor = (Color)(parent.cbo_ErrorFillColor.SelectedItem as PropertyInfo).GetValue(null, null);
+            brush_ErrorFill = new SolidColorBrush(selectedColor);
+            // Correct Fill Color
+            selectedColor = (Color)(parent.cbo_CorrFillColor.SelectedItem as PropertyInfo).GetValue(null, null);
+            brush_CorrectFill = new SolidColorBrush(selectedColor);
+            // Close Fill Color
+            brush_CloseFill = brush_CorrectFill;
+
+            
+            
             // get the file for saving 
             file_saved = parent.file_saved;
             audioFile_Correct = parent.audioFile_Correct;
@@ -463,20 +431,7 @@ namespace GonoGoTask_wpfVer
 
             // Create an Ellipse  
             circleGo = new Ellipse();
-
-            // Create a Brush    
-            brush_goCircle = new SolidColorBrush();
-
-            if(parent.cbo_goColor.Text == "Blue")
-                brush_goCircle.Color = Colors.Blue;
-            else if(parent.cbo_goColor.Text == "Red")
-                brush_goCircle.Color = Colors.Red;
-            else if (parent.cbo_goColor.Text == "Green")
-                brush_goCircle.Color = Colors.Green;
-            else if (parent.cbo_goColor.Text == "Yellow")
-                brush_goCircle.Color = Colors.Yellow;
-
-
+                   
             circleGo.Fill = brush_goCircle;
 
             // set the size, position of circleGo
@@ -569,7 +524,10 @@ namespace GonoGoTask_wpfVer
             double top = centerPoint_Y - circleGoClose.Height / 2;
             circleGoClose.Margin = new Thickness(left, top, 0, 0);
 
-            circleGoClose.Visibility = Visibility.Visible;
+            if(parent.showCloseCircle==true)
+                circleGoClose.Visibility = Visibility.Visible;
+            else
+                circleGoClose.Visibility = Visibility.Hidden;
             circleGoClose.IsEnabled = true;
             myGrid.UpdateLayout();
 
@@ -590,17 +548,6 @@ namespace GonoGoTask_wpfVer
 
             // Create an Ellipse  
             rectNogo = new Rectangle();
-
-            // Create a Brush for nogo Rectangle    
-            brush_nogoRect = new SolidColorBrush();
-            if (parent.cbo_nogoColor.Text == "Blue")
-                brush_nogoRect.Color = Colors.Blue;
-            else if (parent.cbo_nogoColor.Text == "Red")
-                brush_nogoRect.Color = Colors.Red;
-            else if (parent.cbo_nogoColor.Text == "Green")
-                brush_nogoRect.Color = Colors.Green;
-            else if (parent.cbo_nogoColor.Text == "Yellow")
-                brush_nogoRect.Color = Colors.Yellow;
 
             rectNogo.Fill = brush_nogoRect;
 
@@ -813,21 +760,45 @@ namespace GonoGoTask_wpfVer
             return rndTime;
         }
 
-        public async void Present_Task()
+
+        public async void Present_Start()
         {
-            int triali = 0;
+            // init a global stopwatch
+            globalWatch = new Stopwatch();
+            tpoints1TouchWatch = new Stopwatch();
+
+            // Thread for Read and Write IO8
+            thread_ReadWrite_IO8 = new Thread(new ThreadStart(Thread_ReadWrite_IO8));
+
+            // create a serial Port IO8 instance, and open it
+            serialPort_IO8 = new SerialPort();
+            try
+            {
+                serialPort_SetOpen(parent.serialPortIO8_name, baudRate);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error Message", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+
+            // Write Head Inf 
+            WriteHeaderInf();
+
+                        
+            // start the globalWatch and readStartpad thread
+            globalWatch.Restart();
+            thread_ReadWrite_IO8.Start();
+            timestamp_0 = DateTime.Now.Ticks;
+
+
+            // Present Each Trial
             float t_Cue, t_Ready, t_noGoShow;
             int[] pos_WPoint1, pos_WPoint2;
             int[] pos_Taget;
             int targetPosInd;
-                        
-            // start the globalWatch and readStartpad thread
-            globalWatch.Restart();
-            thread_readStartpad.Start();
-            thread_GiveJuicer.Start();
-            timestamp_0 = DateTime.Now.Ticks;
-            PresentTask = true;
-            while (triali < targetType_List.Count && PresentTask)
+            int triali = 0;
+            PresentTrial = true;
+            while (triali < targetType_List.Count && PresentTrial)
             {
                 // Extract Parameters for this trial
                 targetType = targetType_List[triali];
@@ -853,7 +824,6 @@ namespace GonoGoTask_wpfVer
 
 
                 triali++;
-                textbox_main.Text = "triali = " + (triali + 1).ToString() + ", Target Ind = " + targetPosInd.ToString();
 
                 
                 /*----- WaitStartTrial Interface ------*/
@@ -900,75 +870,95 @@ namespace GonoGoTask_wpfVer
                 catch(TaskCanceledException)
                 {
                     Remove_All();
-                    textbox_main.Text = "Interruptted by Not Touched Enough for Interface";
                     continue;
                 }
             Remove_All();
             }
-
-            thread_readStartpad.Abort();
-            thread_GiveJuicer.Abort();
+            thread_ReadWrite_IO8.Abort();
             globalWatch.Stop();
         }
 
-        private void Thread_ReadStartpad()
-        {/* Thread for reading startpad*/
-            while (serialPort_IO8.IsOpen)
-            {
-                serialPort_IO8.WriteLine("Z");
+        public void Present_Stop()
+        {// Stop Presentation
 
-                // extract and parse the start pad voltage 
-                string str_Read = serialPort_IO8.ReadExisting();
-                string[] str_vol = str_Read.Split(new Char[] { 'V' });
+            PresentTrial = false;
+            if (serialPort_IO8.IsOpen)
+                serialPort_IO8.Close();
 
-                if (!String.IsNullOrEmpty(str_vol[0]))
-                {
-                    float voltage = float.Parse(str_vol[0]);
-
-                    if (voltage < 1 && pressedStartpad == PressedStartpad.No)
-                    {/* time point from notouched state to touched state */
-
-                        // the time point for startpad on
-                        startpadOn_TimePoint = globalWatch.ElapsedMilliseconds;
-
-                        pressedStartpad = PressedStartpad.Yes;
-                    }
-                    else if (voltage > 1 && pressedStartpad == PressedStartpad.Yes)
-                    {/* time point from touched state to notouched state */
-
-                        startpadOn_TimePoint = globalWatch.ElapsedMilliseconds;
-                        pressedStartpad = PressedStartpad.No;
-                    }
-                }
-                Thread.Sleep(30);
-            }
+            
         }
 
-        private void Thread_Juicer()
-        {/* 
-            Control Juicer Devices
-            */
 
-            string codeHigh = "3", codeLow = "E";
-            serialPort_IO8.WriteLine(codeLow);
+        private void Thread_ReadWrite_IO8()
+        {/* Thread for reading/writing serial port IO8*/
+
+            string codeHigh_JuicerPin = "3", codeLow_JuicerPin = "E";
+            serialPort_IO8.WriteLine(codeLow_JuicerPin);
+            Stopwatch startpadReadWatch = new Stopwatch();
+            startpadReadWatch.Start();
+            long startpadReadInterval = 30;
+
             while (serialPort_IO8.IsOpen)
             {
-                if(giveJuicerState == GiveJuicerState.FullGiven)
+                // ----- Juicer Control
+                if (giveJuicerState == GiveJuicerState.FullGiven)
                 {
-                    serialPort_IO8.WriteLine(codeHigh);
+                    serialPort_IO8.WriteLine(codeHigh_JuicerPin);
                     Thread.Sleep(t_JuicerFullGiven);
-                    serialPort_IO8.WriteLine(codeLow);
+                    serialPort_IO8.WriteLine(codeLow_JuicerPin);
                     giveJuicerState = GiveJuicerState.No;
                 }
                 if (giveJuicerState == GiveJuicerState.PercentageGiven)
                 {
-                    serialPort_IO8.WriteLine(codeHigh);
+                    serialPort_IO8.WriteLine(codeHigh_JuicerPin);
                     Thread.Sleep(t_JuicerPercentageGiven);
-                    serialPort_IO8.WriteLine(codeLow);
+                    serialPort_IO8.WriteLine(codeLow_JuicerPin);
                     giveJuicerState = GiveJuicerState.No;
                 }
+                //--- End of Juicer Control
+
+
+
+                //--- Startpad Read
+                if(startpadReadWatch.ElapsedMilliseconds >= startpadReadInterval)
+                {
+                    serialPort_IO8.WriteLine("Z");
+
+                    // Read the Startpad Voltage
+                    string str_Read = serialPort_IO8.ReadExisting();
+
+                    // Restart the startpadReadWatch
+                    startpadReadWatch.Restart();
+
+                    // parse the start pad voltage 
+                    string[] str_vol = str_Read.Split(new Char[] { 'V' });
+
+                    if (!String.IsNullOrEmpty(str_vol[0]))
+                    {
+                        float voltage = float.Parse(str_vol[0]);
+
+                        if (voltage < 1 && pressedStartpad == PressedStartpad.No)
+                        {/* time point from notouched state to touched state */
+
+                            // the time point for startpad on
+                            startpadOn_TimePoint = globalWatch.ElapsedMilliseconds;
+
+                            pressedStartpad = PressedStartpad.Yes;
+                        }
+                        else if (voltage > 1 && pressedStartpad == PressedStartpad.Yes)
+                        {/* time point from touched state to notouched state */
+
+                            startpadOn_TimePoint = globalWatch.ElapsedMilliseconds;
+                            pressedStartpad = PressedStartpad.No;
+                        }
+                    }
+                }
+
             }
+
+            startpadReadWatch.Stop();
         }
+
 
 
         private Task Interface_WaitStartTrial()
@@ -979,8 +969,8 @@ namespace GonoGoTask_wpfVer
              */
 
             Remove_All();
-            myGrid.Background = brush_bkwaitstart;
-            myGridBorder.BorderBrush = brush_bdwaitstart;
+            myGrid.Background = brush_BKWaitTrialStart;
+            myGridBorder.BorderBrush = brush_BDWaitTrialStart;
 
             Task task_WaitStart = Task.Run(() =>
             {
@@ -1034,20 +1024,15 @@ namespace GonoGoTask_wpfVer
             
             try
             {
-                myGrid.Background = brush_bktrial;
-
-                textbox_thread.Text = "Ready Interface Running......";
+                myGrid.Background = brush_BKTrial;
                
                 // Wait Startpad Hold Enough Time
                 startpadHoldstate = StartPadHoldState.HoldTooShort;
                 await Wait_EnoughTouch(t_Ready);
-                textbox_thread.Text = "Ready Interface Finshed with Enough Startpad Hold Time";
 
             }
             catch (TaskCanceledException)
             {
-                textbox_thread.Text = "Ready Interface: not Touched Enough";
-
                 Task task = null;
                 throw new TaskCanceledException(task);
             }
@@ -1079,17 +1064,13 @@ namespace GonoGoTask_wpfVer
                 // two white points on left middle and top middle
                 //Add_TwoWhitePoints(wpointpos1, wpointpos2);
 
-                textbox_thread.Text = "Targetcue running......";
                 // wait target cue for several seconds
                 startpadHoldstate = StartPadHoldState.HoldTooShort;
                 await Wait_EnoughTouch(t_Cue);
-                textbox_thread.Text = "Targetcue run completely";
 
             }
             catch (TaskCanceledException)
-            {
-                textbox_thread.Text = "Cue Interface: not Touched Enough";
-
+            { 
                 Task task = null;
                 throw new TaskCanceledException(task);
             }
@@ -1109,8 +1090,6 @@ namespace GonoGoTask_wpfVer
                 {
                     if (waitWatch.ElapsedMilliseconds >= tMax_ReactionTime * 1000)
                     {/* No release Startpad within tMax_ReactionTime */
-                        textbox_main.Dispatcher.Invoke(new UpdateTextCallback(this.UpdateBackground),
-                    new object[] { "No Reaction within the Max Reaction Time" });
                         throw new TaskCanceledException("No Reaction within the Max Reaction Time");
                     }
                 }
@@ -1194,7 +1173,6 @@ namespace GonoGoTask_wpfVer
                 // Remove the Crossing and Add the Go Circle
                 Remove_OneCrossing();
                 Add_GoCircle(pos_Target);
-                textBox_State.Text = "X = " + circleGo_centerPoint.X.ToString() + ", Y = " + circleGo_centerPoint.Y.ToString();
 
                 // Wait for Reaction within tMax_ReactionTime
                 pressedStartpad = PressedStartpad.Yes;
@@ -1250,7 +1228,6 @@ namespace GonoGoTask_wpfVer
                 // Remove the Crossing and Add the noGo Rect
                 Remove_OneCrossing();
                 Add_NogoRect(pos_Target);
-                textBox_State.Text = "X = " + circleGo_centerPoint.X.ToString() + ", Y = " + circleGo_centerPoint.Y.ToString();
 
                 // Wait Startpad TouchedOn  for t_noGoShow
                 startpadHoldstate = StartPadHoldState.HoldTooShort;
@@ -1271,9 +1248,10 @@ namespace GonoGoTask_wpfVer
         private void Interface_GoERROR()
         {
             // Visual Feedback
-            myGridBorder.BorderBrush = brush_ErrorInterface;
-            circleGo.Fill = brush_ErrorInterface;
-            circleGoClose.Stroke = brush_ErrorInterface;
+            myGridBorder.BorderBrush = brush_ErrorFill;
+            circleGo.Fill = brush_ErrorFill;
+            circleGo.Stroke = brush_ErrorStroke;
+            circleGoClose.Stroke = brush_ErrorStroke;
             myGrid.UpdateLayout();
 
 
@@ -1298,9 +1276,9 @@ namespace GonoGoTask_wpfVer
         private void Interface_GoCorrect_Hit()
         {
             // Visual Feedback
-            myGridBorder.BorderBrush = brush_CorrectInterface;
-            circleGo.Fill = brush_CorrectInterface;
-            circleGoClose.Stroke = brush_CorrectInterface;
+            myGridBorder.BorderBrush = brush_CorrectFill;
+            circleGo.Fill = brush_CorrectFill;
+            circleGoClose.Stroke = brush_CorrectFill;
             myGrid.UpdateLayout();
 
 
@@ -1314,9 +1292,9 @@ namespace GonoGoTask_wpfVer
         private void Feedback_GoCorrect_Close()
         {
             // Visual Feedback
-            myGridBorder.BorderBrush = brush_CloseInterface;
-            circleGo.Fill = brush_CloseInterface;
-            circleGoClose.Stroke = brush_CloseInterface;
+            myGridBorder.BorderBrush = brush_CloseFill;
+            circleGo.Fill = brush_CloseFill;
+            circleGoClose.Stroke = brush_CloseFill;
             myGrid.UpdateLayout();
 
             //Juicer Feedback
@@ -1329,8 +1307,9 @@ namespace GonoGoTask_wpfVer
         private void Feedback_noGoError()
         {
             // Visual Feedback
-            myGridBorder.BorderBrush = brush_ErrorInterface;
-            rectNogo.Fill = brush_ErrorInterface;
+            myGridBorder.BorderBrush = brush_ErrorFill;
+            rectNogo.Fill = brush_ErrorFill;
+            rectNogo.Stroke = brush_ErrorStroke;
             myGrid.UpdateLayout();
 
 
@@ -1344,8 +1323,8 @@ namespace GonoGoTask_wpfVer
         private void Feedback_noGoCorrect()
         {
             // Visual Feedback
-            myGridBorder.BorderBrush = brush_CorrectInterface;
-            rectNogo.Fill = brush_CorrectInterface;
+            myGridBorder.BorderBrush = brush_CorrectFill;
+            rectNogo.Fill = brush_CorrectFill;
             myGrid.UpdateLayout();
 
 
@@ -1359,17 +1338,17 @@ namespace GonoGoTask_wpfVer
 
         private void UpdateBackground(string message)
         {
-            myGrid.Background = brush_bktrial;
-            textbox_thread2.Text = message;
+            myGrid.Background = brush_BKTrial;
         }
+
+
 
 
         public void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            if (serialPort_IO8.IsOpen)
-                serialPort_IO8.Close();
-
-            PresentTask = false;
+            Present_Stop();
+            parent.btn_start.IsEnabled = true;
+            parent.btn_stop.IsEnabled = false;
         }
 
 
@@ -1446,49 +1425,6 @@ namespace GonoGoTask_wpfVer
             return line;
         }
 
-        private void Btn_Click(object sender, RoutedEventArgs e)
-        {
-            double len = 30;
-            Point vertLine_P1 = new Point(0, 0);
-            Point vertLine_P2 = new Point(len,0);
-
-            Line vertLine = AddLine(vertLine_P1, vertLine_P2);
-            vertLine.Margin = new Thickness(100, 10, 0, 0);
-
-
-            myGrid.Children.Add(vertLine);
-            myGrid.UpdateLayout();
-
-            Point Point0 = vertLine.TransformToAncestor(wholeGrid).Transform(new Point(0,0));
-            textbox_thread2.Text = "vertLine(len = " + len.ToString() + "), Point(0,0): " + Point0.X.ToString() + "," + Point0.Y.ToString();
-
-        }
-
-        private void Btn2_Click(object sender, RoutedEventArgs e)
-        {
-            // Get the Screen Center Point
-            Point Point_ScreenCenter = new Point(wholeGrid.ActualWidth / 2, wholeGrid.ActualHeight / 2);
-
-
-            Ellipse Circle2;
-            double diameter = 30;
-
-            Circle2 = AddCircle(diameter, Colors.Yellow);
-            // the Position of the Circle Center
-            double desiredX = wholeGrid.ActualWidth / 2, desiredY = wholeGrid.ActualHeight / 2;
-            double left = desiredX - Circle2.Width / 2;
-            double top = desiredY - Circle2.Height / 2;
-            Circle2.Margin = new Thickness(left, top, 0, 0);
-
-            myGrid.Children.Add(Circle2);
-            myGrid.UpdateLayout();
-
-
-            Point Origin = Circle2.TransformToAncestor(wholeGrid).Transform(new Point(Circle2.Width/2, Circle2.Height/2));
-            textbox_thread2.Text = "Circle2(" + diameter.ToString() + "): " + Origin.X.ToString() + "," + Origin.Y.ToString();
-        }
-
-
 
         void Touch_FrameReported(object sender, TouchFrameEventArgs e)
         {/* Add the Id of New Touch Points into Hashset touchPoints_Id 
@@ -1503,8 +1439,6 @@ namespace GonoGoTask_wpfVer
                 TouchPoint _touchPoint = touchPoints[i];
                 if (_touchPoint.Action == TouchAction.Down)
                 { /* TouchAction.Down */
-
-                    textbox_thread.Text = _touchPoint.Position.X.ToString() + ", " + _touchPoint.Position.Y.ToString();
 
                     if (touchPoints_Id.Count == 0)
                     {// the first touch point for one touch

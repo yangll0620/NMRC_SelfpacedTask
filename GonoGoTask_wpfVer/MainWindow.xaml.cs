@@ -25,21 +25,22 @@ namespace GonoGoTask_wpfVer
         public string file_saved;
         public string audioFile_Correct, audioFile_Error;
 
-        presentation taskPresentWindow;
+        public bool showCloseCircle;
+
+        private List<Window> openedWins = new List<Window>();
+        presentation taskPresentWin;
 
         public MainWindow()
         {
             InitializeComponent();
 
 
-            // Get the first notTouch Screen */
-            swf.Screen showMainScreen = Utility.Detect_notTouchScreen();
-
-
-            /* Show the  MainWindow on the Touch Screen*/
-            sd.Rectangle Rect_touchScreen = showMainScreen.WorkingArea;
-            this.Top = Rect_touchScreen.Top;
-            this.Left = Rect_touchScreen.Left;
+            // Get the first not Primary Screen 
+            swf.Screen showMainScreen = Utility.Detect_oneNonPrimaryScreen();
+            // Show the  MainWindow on the Touch Screen
+            sd.Rectangle Rect_showMainScreen = showMainScreen.WorkingArea;
+            this.Top = Rect_showMainScreen.Top;
+            this.Left = Rect_showMainScreen.Left;
 
 
             // locate serial Port Name
@@ -65,12 +66,28 @@ namespace GonoGoTask_wpfVer
                 textblock_comState.Visibility = Visibility.Hidden;
             }
 
+            //Data binding the Color ComboBoxes
+            cbo_goColor.ItemsSource = typeof(Colors).GetProperties();
+            cbo_nogoColor.ItemsSource = typeof(Colors).GetProperties();
+            cbo_BKWaitTrialColor.ItemsSource = typeof(Colors).GetProperties();
+            cbo_BKTrialColor.ItemsSource = typeof(Colors).GetProperties();
+            cbo_CorrFillColor.ItemsSource = typeof(Colors).GetProperties();
+            cbo_CorrOutlineColor.ItemsSource = typeof(Colors).GetProperties();
+            cbo_ErrorFillColor.ItemsSource = typeof(Colors).GetProperties();
+            cbo_ErrorOutlineColor.ItemsSource = typeof(Colors).GetProperties();
+
             // Load Default Config File
             LoadConfigFile("");
 
             if (textBox_NHPName.Text != "" && serialPortIO8_name != null)
             {
                 btn_start.IsEnabled = true;
+                btn_stop.IsEnabled = false;
+            }
+            else
+            {
+                btn_start.IsEnabled = false;
+                btn_stop.IsEnabled = false;
             }
         }
 
@@ -160,28 +177,6 @@ namespace GonoGoTask_wpfVer
 
         }
 
-        private void btnStart_Click(object sender, RoutedEventArgs e)
-        {
-            saveInputParameters();
-
-            //WindowState = WindowState.Minimized;
-            btn_start.IsEnabled = false;
-
-            // Get the touch Screen
-            swf.Screen touchScreen = Utility.Detect_TouchScreen();
-
-            // Show the taskpresent Window on the Touch Screen
-            taskPresentWindow = new presentation(this);
-            sd.Rectangle Rect_touchScreen = touchScreen.WorkingArea;
-            taskPresentWindow.Top = Rect_touchScreen.Top;
-            taskPresentWindow.Left = Rect_touchScreen.Left;
-
-            taskPresentWindow.Show();
-            taskPresentWindow.StartExp();
-        }
-
-
-
         private void TextBox_NHPName_TextChanged(object sender, TextChangedEventArgs e)
         {
             if(textBox_NHPName.Text != "" && serialPortIO8_name != null)
@@ -237,18 +232,20 @@ namespace GonoGoTask_wpfVer
         private void btnShowAllTargets_Click(object sender, RoutedEventArgs e)
         {
 
-            // Get the touch Screen
-            swf.Screen touchScreen = Utility.Detect_TouchScreen();
+            // Get the touch Screen, Should Set Touch Screen as the PrimaryScreen
+            swf.Screen primaryScreen = swf.Screen.PrimaryScreen;
 
             //Show the Win_allTargets on the Touch Screen
             Window Win_allTargets = new Window();
-            sd.Rectangle Rect_touchScreen = touchScreen.WorkingArea;
-            Win_allTargets.Top = Rect_touchScreen.Top;
-            Win_allTargets.Left = Rect_touchScreen.Left;
+            sd.Rectangle Rect_primaryScreen = primaryScreen.WorkingArea;
+            Win_allTargets.Top = Rect_primaryScreen.Top;
+            Win_allTargets.Left = Rect_primaryScreen.Left;
 
-            Win_allTargets.Background = new SolidColorBrush(Colors.Black);
+            Color selectedColor = (Color)(cbo_BKTrialColor.SelectedItem as PropertyInfo).GetValue(null, null);
+            Win_allTargets.Background = new SolidColorBrush(selectedColor);
             Win_allTargets.Show();
             Win_allTargets.WindowState = WindowState.Maximized;
+            Win_allTargets.Name = "childWin_ShowAllTargets";
 
             // Add a Grid
             Grid wholeGrid = new Grid();
@@ -258,12 +255,12 @@ namespace GonoGoTask_wpfVer
             wholeGrid.UpdateLayout();
 
 
-            int Diameter = Convert2Pixal.in2pixal(float.Parse(textBox_objdiameter.Text));
+            int Diameter = Utility.in2pixal(float.Parse(textBox_objdiameter.Text));
             List<int[]> optPostions_List = new List<int[]>();
 
             int screenCenter_X = (int)wholeGrid.ActualWidth / 2;
             int screenCenter_Y = (int)wholeGrid.ActualHeight / 2;
-            int disFromCenter = Convert2Pixal.in2pixal(float.Parse(textBox_disfromcenter.Text));
+            int disFromCenter = Utility.in2pixal(float.Parse(textBox_disfromcenter.Text));
             int disXFromCenter = disFromCenter;
             int disYFromCenter = disFromCenter;
 
@@ -271,13 +268,16 @@ namespace GonoGoTask_wpfVer
             optPostions_List.Add(new int[] { screenCenter_X, screenCenter_Y - disYFromCenter }); // top position
             optPostions_List.Add(new int[] { screenCenter_X + disXFromCenter, screenCenter_Y }); // right position
 
-
+            Color goCircleColor = (Color)(cbo_goColor.SelectedItem as PropertyInfo).GetValue(null, null);
             foreach (int[] centerPoint_Pos in optPostions_List)
             {
                 Ellipse circleGo = Create_GoCircle((double)Diameter, centerPoint_Pos);
+                circleGo.Fill = new SolidColorBrush(goCircleColor);
                 wholeGrid.Children.Add(circleGo);
             }
             wholeGrid.UpdateLayout();
+
+            Win_allTargets.Owner = this;
         }
 
         private Ellipse Create_GoCircle(double Diameter, int[] centerPoint_Pos)
@@ -353,8 +353,14 @@ namespace GonoGoTask_wpfVer
             textBox_tNogoShow_min.Text = config["Nogo Show Range Time"][0];
             textBox_tNogoShow_max.Text = config["Nogo Show Range Time"][1];
 
-            cbo_goColor.Text = config["Go Color"];
-            cbo_nogoColor.Text = config["noGo Color"];
+            cbo_goColor.SelectedItem = typeof(Colors).GetProperty((string)config["Colors"]["Go Fill Color"]);
+            cbo_nogoColor.SelectedItem = typeof(Colors).GetProperty((string)config["Colors"]["noGo Fill Color"]);
+            cbo_BKWaitTrialColor.SelectedItem = typeof(Colors).GetProperty((string)config["Colors"]["Wait Trial Start Background"]);
+            cbo_BKTrialColor.SelectedItem = typeof(Colors).GetProperty((string)config["Colors"]["Trial Background"]);
+            cbo_CorrFillColor.SelectedItem = typeof(Colors).GetProperty((string)config["Colors"]["Correct Fill"]);
+            cbo_CorrOutlineColor.SelectedItem = typeof(Colors).GetProperty((string)config["Colors"]["Correct Outline"]);
+            cbo_ErrorFillColor.SelectedItem = typeof(Colors).GetProperty((string)config["Colors"]["Error Fill"]);
+            cbo_ErrorOutlineColor.SelectedItem = typeof(Colors).GetProperty((string)config["Colors"]["Error Outline"]);
 
             audioFile_Correct = config["audioFile_Correct"];
             audioFile_Error = config["audioFile_Error"];
@@ -380,39 +386,81 @@ namespace GonoGoTask_wpfVer
                 LoadConfigFile(configFile);
             }
         }
-        
+
+        private void btnStart_Click(object sender, RoutedEventArgs e)
+        {
+            saveInputParameters();
+
+            // btn_Start and btn_stop
+            btn_start.IsEnabled = false;
+            btn_stop.IsEnabled = true;
+
+            // Get the touch Screen
+            swf.Screen PrimaryScreen = swf.Screen.PrimaryScreen;
+
+            // Show the taskpresent Window on the Touch Screen
+            taskPresentWin = new presentation(this);
+            sd.Rectangle Rect_touchScreen = PrimaryScreen.WorkingArea;
+            taskPresentWin.Top = Rect_touchScreen.Top;
+            taskPresentWin.Left = Rect_touchScreen.Left;
+            taskPresentWin.Name = "childWin_Task";
+            taskPresentWin.Owner = this;
+
+            taskPresentWin.Show();
+            taskPresentWin.Present_Start();
+        }
+
+        private void Btn_stop_Click(object sender, RoutedEventArgs e)
+        {
+            if (taskPresentWin != null)
+            {
+                taskPresentWin.Present_Stop();
+                taskPresentWin.Close();
+            }
+
+            // btn_Start and btn_stop
+            btn_start.IsEnabled = true;
+            btn_stop.IsEnabled = false;
+        }
+
+        private void MenuItem_showCloseCircle(object sender, RoutedEventArgs e)
+        {
+            showCloseCircle = true;
+        }
+
+        private void MenuItem_noShowCloseCircle(object sender, RoutedEventArgs e)
+        {
+            showCloseCircle = false;
+        }
+
+        private void btnTest_Click(object sender, RoutedEventArgs e)
+        {
+         
+        }
+
+        private void MenuItem_SetupColors(object sender, RoutedEventArgs e)
+        {
+            SetupColorsWin Win_SetupColors = new SetupColorsWin();
+           
+
+            // Get the first not Primary Screen 
+            swf.Screen showMainScreen = Utility.Detect_oneNonPrimaryScreen();
+            // Show the  MainWindow on the Touch Screen
+            sd.Rectangle Rect_showMainScreen = showMainScreen.WorkingArea;
+            Win_SetupColors.Top = Rect_showMainScreen.Top;
+            Win_SetupColors.Left = Rect_showMainScreen.Left;
+
+            Win_SetupColors.Show();
+
+
+        }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            int i = 0;
-
-            WindowCollection windowCollection = App.Current.Windows;
-            foreach (Window win in windowCollection)
+            if (taskPresentWin != null)
             {
-
-                i++;
-            }
-
-            if (taskPresentWindow != null)
-            {
-                taskPresentWindow.Window_Closing(sender, e);
+                taskPresentWin.Present_Stop();
             }
         }
-
-
-
     }
-
-
-
-    public class Item
-    {
-        public string NHPName;
-        public string audioFeedback_folder;
-        public string audioFilename_Correct;
-        public string audioFilename_Error;
-        public string saved_folder;
-    }
-
-
 }
