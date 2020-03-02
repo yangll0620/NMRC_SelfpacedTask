@@ -107,14 +107,16 @@ namespace GonoGoTask_wpfVer
 
         // objects of Go cirle, nogo Rectangle, lines of the crossing, and two white points
         Ellipse circleGo, circleGoClose;
-        SolidColorBrush brush_goCircle;
         Rectangle rectNogo;
-        SolidColorBrush brush_nogoRect;
         Line vertLine, horiLine;
         Ellipse point1, point2;
 
-        // Colors for Correct and Error
-        SolidColorBrush brush_ErrorFill, brush_ErrorStroke, brush_CorrectFill, brush_CloseFill;
+        // ColorBrushes 
+        private SolidColorBrush brush_goCircle, brush_nogoRect;
+        private SolidColorBrush brush_BKWaitTrialStart, brush_BKTrial;
+        private SolidColorBrush brush_CorrectFill, brush_CorrOutline, brush_ErrorFill, brush_ErrorOutline;
+        private SolidColorBrush brush_CloseFill;
+        private SolidColorBrush brush_BDWaitTrialStart;
 
         Point circleGo_centerPoint; // the center of circleGo 
         double circleGo_radius; // the radius of circleGO
@@ -123,9 +125,6 @@ namespace GonoGoTask_wpfVer
         // audio feedback
         private string audioFile_Correct, audioFile_Error;
         System.Media.SoundPlayer player_Correct, player_Error;
-
-        // background of ready and trial
-        SolidColorBrush brush_BKWaitTrialStart, brush_BDWaitTrialStart, brush_BKTrial;
 
 
         // name of all the objects
@@ -145,11 +144,10 @@ namespace GonoGoTask_wpfVer
 
 
 
-        // wait (range) for each event
-        float[] waittrange_ready, waittrange_cue, waittrange_noGoShow;
-        // Max Reaction and Reach Time
-        float tMax_ReactionTime, tMax_ReachTime;
-        Int32 t_FeedbackShow;
+        // Wait Time Range for Each Event, and Max Reaction and Reach Time
+        float[] tRange_ReadyTime, tRange_CueTime, tRange_NogoShowTime;
+        float tMax_ReactionTime, tMax_ReachTime; 
+        Int32 t_VisfeedbackShow; // Visual Feedback Show Time (ms)
 
         bool PresentTrial;
 
@@ -332,9 +330,9 @@ namespace GonoGoTask_wpfVer
                 otherPosInds_List.Add(otherPosInds);
 
                 // generate a random t_Ready and t_Cue, and and them into t_Ready_List and t_Cue_List individually
-                t_Cue_List.Add(TransferTo((float)r.NextDouble(), waittrange_cue[0], waittrange_cue[1]));
-                t_Ready_List.Add(TransferTo((float)r.NextDouble(), waittrange_ready[0], waittrange_ready[1]));
-                t_noGoShow_List.Add(TransferTo((float)r.NextDouble(), waittrange_noGoShow[0], waittrange_noGoShow[1]));
+                t_Cue_List.Add(TransferTo((float)r.NextDouble(), tRange_CueTime[0], tRange_CueTime[1]));
+                t_Ready_List.Add(TransferTo((float)r.NextDouble(), tRange_ReadyTime[0], tRange_ReadyTime[1]));
+                t_noGoShow_List.Add(TransferTo((float)r.NextDouble(), tRange_NogoShowTime[0], tRange_NogoShowTime[1]));
 
                 //remove this value
                 tmporder_gonogo.RemoveAt(randomIndex);
@@ -346,45 +344,56 @@ namespace GonoGoTask_wpfVer
         {/* get the setup from the parent interface */
 
             // object size and distance parameters
-            objdiameter = Utility.in2pixal(float.Parse(parent.textBox_objdiameter.Text));
-            disFromCenter = Utility.in2pixal(float.Parse(parent.textBox_disfromcenter.Text));
-            closediameter = (int)(objdiameter * (1 + float.Parse(parent.textBox_closeMargin.Text) / 100));
+            objdiameter = Utility.in2pixal(parent.targetDiameterInch);
+            disFromCenter = Utility.in2pixal(parent.targetDisFromCenterInch);
+            closediameter = (int)(objdiameter * (1 + parent.closeMarginPercentage / 100));
 
             // interfaces time related parameters
-            waittrange_ready = new float[] { float.Parse(parent.textBox_tReady_min.Text), float.Parse(parent.textBox_tReady_max.Text) };
-            waittrange_cue = new float[] { float.Parse(parent.textBox_tCue_min.Text), float.Parse(parent.textBox_tCue_max.Text) };
-            waittrange_noGoShow = new float[] { float.Parse(parent.textBox_tNogoShow_min.Text), float.Parse(parent.textBox_tNogoShow_max.Text) };
-            tMax_ReactionTime = float.Parse(parent.textBox_MaxReactionTime.Text);
-            tMax_ReachTime = float.Parse(parent.textBox_MaxReachTime.Text);
-            t_FeedbackShow = (Int32)(float.Parse(parent.textBox_tVisFeedback.Text) * 1000);
+            tRange_ReadyTime = parent.tRange_ReadyTime;
+            tRange_CueTime = parent.tRange_CueTime;
+            tRange_NogoShowTime = parent.tRange_NogoShowTime;
+            tMax_ReactionTime = parent.tMax_ReactionTime;
+            tMax_ReachTime = parent.tMax_ReachTime;
+            t_VisfeedbackShow = (Int32)(parent.t_VisfeedbackShow * 1000);
 
 
             /* ---- Get all the Set Colors ----- */
             Color selectedColor;
             // goCircle Color
-            selectedColor = (Color)(parent.cbo_goColor.SelectedItem as PropertyInfo).GetValue(null, null);
+            selectedColor = (Color)(typeof(Colors).GetProperty(parent.goColorStr) as PropertyInfo).GetValue(null, null);
             brush_goCircle = new SolidColorBrush(selectedColor);
+
             // nogoRect Color
-            selectedColor = (Color)(parent.cbo_nogoColor.SelectedItem as PropertyInfo).GetValue(null, null);
+            selectedColor = (Color)(typeof(Colors).GetProperty(parent.nogoColorStr) as PropertyInfo).GetValue(null, null);
             brush_nogoRect = new SolidColorBrush(selectedColor);
 
 
             // Wait Background 
-            selectedColor = (Color)(parent.cbo_BKWaitTrialColor.SelectedItem as PropertyInfo).GetValue(null, null);
+            selectedColor = (Color)(typeof(Colors).GetProperty(parent.BKWaitTrialColorStr) as PropertyInfo).GetValue(null, null);
             brush_BKWaitTrialStart = new SolidColorBrush(selectedColor);
             // Wait Boarder
             brush_BDWaitTrialStart = brush_BKWaitTrialStart;
 
             // Trial Background
-            selectedColor = (Color)(parent.cbo_BKTrialColor.SelectedItem as PropertyInfo).GetValue(null, null);
+            selectedColor = (Color)(typeof(Colors).GetProperty(parent.BKTrialColorStr) as PropertyInfo).GetValue(null, null);
             brush_BKTrial = new SolidColorBrush(selectedColor);
 
-            // Error Fill Color
-            selectedColor = (Color)(parent.cbo_ErrorFillColor.SelectedItem as PropertyInfo).GetValue(null, null);
-            brush_ErrorFill = new SolidColorBrush(selectedColor);
             // Correct Fill Color
-            selectedColor = (Color)(parent.cbo_CorrFillColor.SelectedItem as PropertyInfo).GetValue(null, null);
+            selectedColor = (Color)(typeof(Colors).GetProperty(parent.CorrFillColorStr) as PropertyInfo).GetValue(null, null);
             brush_CorrectFill = new SolidColorBrush(selectedColor);
+
+            // Correct Outline Color
+            selectedColor = (Color)(typeof(Colors).GetProperty(parent.CorrOutlineColorStr) as PropertyInfo).GetValue(null, null);
+            brush_CorrOutline = new SolidColorBrush(selectedColor);
+
+            // Error Fill Color
+            selectedColor = (Color)(typeof(Colors).GetProperty(parent.ErrorFillColorStr) as PropertyInfo).GetValue(null, null);
+            brush_ErrorFill = new SolidColorBrush(selectedColor);
+
+            // Error Outline Color
+            selectedColor = (Color)(typeof(Colors).GetProperty(parent.ErrorOutlineColorStr) as PropertyInfo).GetValue(null, null);
+            brush_ErrorOutline = new SolidColorBrush(selectedColor);
+
             // Close Fill Color
             brush_CloseFill = brush_CorrectFill;
 
@@ -1197,12 +1206,12 @@ namespace GonoGoTask_wpfVer
                     Interface_GoERROR_Miss();
                 }
                 
-                await Task.Delay(t_FeedbackShow);
+                await Task.Delay(t_VisfeedbackShow);
             }
             catch(TaskCanceledException)
             {
                 Interface_GoERROR_LongReactionReach();
-                await Task.Delay(t_FeedbackShow);
+                await Task.Delay(t_VisfeedbackShow);
                 throw new TaskCanceledException("Not Reaction Within the Max Reaction Time.");
             }
             
@@ -1233,12 +1242,12 @@ namespace GonoGoTask_wpfVer
                 startpadHoldstate = StartPadHoldState.HoldTooShort;
                 await Wait_EnoughTouch(t_noGoShow);
                 Feedback_noGoCorrect();
-                await Task.Delay(t_FeedbackShow);
+                await Task.Delay(t_VisfeedbackShow);
             }
             catch (TaskCanceledException)
             {
                 Feedback_noGoError();
-                await Task.Delay(t_FeedbackShow);
+                await Task.Delay(t_VisfeedbackShow);
                 throw new TaskCanceledException("Startpad Touched off within t_nogoshow");
             }
 
@@ -1250,8 +1259,8 @@ namespace GonoGoTask_wpfVer
             // Visual Feedback
             myGridBorder.BorderBrush = brush_ErrorFill;
             circleGo.Fill = brush_ErrorFill;
-            circleGo.Stroke = brush_ErrorStroke;
-            circleGoClose.Stroke = brush_ErrorStroke;
+            circleGo.Stroke = brush_ErrorOutline;
+            circleGoClose.Stroke = brush_ErrorOutline;
             myGrid.UpdateLayout();
 
 
@@ -1309,7 +1318,7 @@ namespace GonoGoTask_wpfVer
             // Visual Feedback
             myGridBorder.BorderBrush = brush_ErrorFill;
             rectNogo.Fill = brush_ErrorFill;
-            rectNogo.Stroke = brush_ErrorStroke;
+            rectNogo.Stroke = brush_ErrorOutline;
             myGrid.UpdateLayout();
 
 

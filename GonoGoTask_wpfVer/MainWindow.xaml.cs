@@ -30,6 +30,18 @@ namespace GonoGoTask_wpfVer
         private List<Window> openedWins = new List<Window>();
         presentation taskPresentWin;
 
+        // Strings stoing the Colors
+        public string goColorStr, nogoColorStr;
+        public string BKWaitTrialColorStr, BKTrialColorStr;
+        public string CorrFillColorStr, CorrOutlineColorStr, ErrorFillColorStr, ErrorOutlineColorStr;
+
+        // Time Related Variables
+        public float[] tRange_ReadyTime, tRange_CueTime, tRange_NogoShowTime;
+        public float tMax_ReactionTime, tMax_ReachTime, t_VisfeedbackShow;
+
+        // Target Related Variables
+        public float targetDiameterInch, targetDisFromCenterInch, closeMarginPercentage;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -65,16 +77,6 @@ namespace GonoGoTask_wpfVer
                 btn_comReconnect.IsEnabled = false;
                 textblock_comState.Visibility = Visibility.Hidden;
             }
-
-            //Data binding the Color ComboBoxes
-            cbo_goColor.ItemsSource = typeof(Colors).GetProperties();
-            cbo_nogoColor.ItemsSource = typeof(Colors).GetProperties();
-            cbo_BKWaitTrialColor.ItemsSource = typeof(Colors).GetProperties();
-            cbo_BKTrialColor.ItemsSource = typeof(Colors).GetProperties();
-            cbo_CorrFillColor.ItemsSource = typeof(Colors).GetProperties();
-            cbo_CorrOutlineColor.ItemsSource = typeof(Colors).GetProperties();
-            cbo_ErrorFillColor.ItemsSource = typeof(Colors).GetProperties();
-            cbo_ErrorOutlineColor.ItemsSource = typeof(Colors).GetProperties();
 
             // Load Default Config File
             LoadConfigFile("");
@@ -204,30 +206,85 @@ namespace GonoGoTask_wpfVer
 
                 file.WriteLine("Input Parameters:");
 
-                file.WriteLine(String.Format("{0, -40}:  {1}", "Close Margin (%)", textBox_closeMargin.Text));
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Close Margin (%)", closeMarginPercentage.ToString()));
 
                 file.WriteLine(String.Format("{0, -40}:  {1}", "Total Number of Go Trials", textBox_goTrialNum.Text));
                 file.WriteLine(String.Format("{0, -40}:  {1}", "Total Number of Nogo Trials", textBox_nogoTrialNum.Text));
 
-                file.WriteLine(String.Format("{0, -40}:  {1}", "Go Target Color", cbo_goColor.Text));
-                file.WriteLine(String.Format("{0, -40}:  {1}", "Nogo Target Color", cbo_nogoColor.Text));
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Go Target Color", goColorStr));
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Nogo Target Color", nogoColorStr));
 
-                file.WriteLine(String.Format("{0, -40}:  {1}", "Target Diameter (inch)", textBox_objdiameter.Text));
-                file.WriteLine(String.Format("{0, -40}:  {1}", "Target Distance from the Center (inch)", textBox_disfromcenter.Text));
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Target Diameter (inch)", targetDiameterInch.ToString()));
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Target Distance from the Center (inch)", targetDisFromCenterInch.ToString()));
 
 
-                file.WriteLine(String.Format("{0, -40}:  [{1} {2}]", "Ready Interface Show Time Range (s)", textBox_tReady_min.Text, textBox_tReady_max.Text));
-                file.WriteLine(String.Format("{0, -40}:  [{1} {2}]", "Cue Interface Show Time Range (s)", textBox_tCue_min.Text, textBox_tCue_max.Text));
-                file.WriteLine(String.Format("{0, -40}:  [{1} {2}]", "Nogo Interface Show Range Time (s)", textBox_tNogoShow_min.Text, textBox_tNogoShow_max.Text));
-                file.WriteLine(String.Format("{0, -40}:  {1}", "Reward Interface Show Time (s)", textBox_tVisFeedback.Text));
+                file.WriteLine(String.Format("{0, -40}:  [{1} {2}]", "Ready Interface Show Time Range (s)", tRange_ReadyTime[0].ToString(), tRange_ReadyTime[1].ToString()));
+                file.WriteLine(String.Format("{0, -40}:  [{1} {2}]", "Cue Interface Show Time Range (s)", tRange_CueTime[0].ToString(), tRange_CueTime[1].ToString()));
+                file.WriteLine(String.Format("{0, -40}:  [{1} {2}]", "Nogo Interface Show Range Time (s)", tRange_NogoShowTime[0].ToString(), tRange_NogoShowTime[1].ToString()));
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Reward Interface Show Time (s)", t_VisfeedbackShow.ToString()));
 
-                file.WriteLine(String.Format("{0, -40}:  {1}", "Max Reach Time (s)", textBox_MaxReachTime.Text));
-                file.WriteLine(String.Format("{0, -40}:  {1}", "Max Reaction Time (s)", textBox_MaxReactionTime.Text));
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Max Reach Time (s)", tMax_ReachTime.ToString()));
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Max Reaction Time (s)", tMax_ReactionTime.ToString()));
 
             }
         }
 
 
+        private void MenuItem_SetupTime(object sender, RoutedEventArgs e)
+        {
+            SetupTimeWin Win_SetupTime = new SetupTimeWin(this);
+
+
+            // Get the first not Primary Screen 
+            swf.Screen showMainScreen = Utility.Detect_oneNonPrimaryScreen();
+            // Show the  MainWindow on the Touch Screen
+            sd.Rectangle Rect_showMainScreen = showMainScreen.WorkingArea;
+            Win_SetupTime.Top = Rect_showMainScreen.Top;
+            Win_SetupTime.Left = Rect_showMainScreen.Left;
+
+            // Set Owner
+            Win_SetupTime.Owner = this;
+
+            Win_SetupTime.Show();
+        }
+
+        private void MenuItem_SetupColors(object sender, RoutedEventArgs e)
+        {
+            SetupColorsWin Win_SetupColors = new SetupColorsWin(this);
+
+
+            // Get the first not Primary Screen 
+            swf.Screen showMainScreen = Utility.Detect_oneNonPrimaryScreen();
+            // Show the  MainWindow on the Touch Screen
+            sd.Rectangle Rect_showMainScreen = showMainScreen.WorkingArea;
+            Win_SetupColors.Top = Rect_showMainScreen.Top;
+            Win_SetupColors.Left = Rect_showMainScreen.Left;
+
+            // Set Owner
+            Win_SetupColors.Owner = this;
+
+            Win_SetupColors.Show();
+
+
+        }
+
+        private void MenuItem_SetupTarget(object sender, RoutedEventArgs e)
+        {
+            SetupTargetsWin Win_SetupTarget = new SetupTargetsWin(this);
+
+
+            // Get the first not Primary Screen 
+            swf.Screen showMainScreen = Utility.Detect_oneNonPrimaryScreen();
+            // Show the  MainWindow on the Touch Screen
+            sd.Rectangle Rect_showMainScreen = showMainScreen.WorkingArea;
+            Win_SetupTarget.Top = Rect_showMainScreen.Top;
+            Win_SetupTarget.Left = Rect_showMainScreen.Left;
+
+            // Set Owner
+            Win_SetupTarget.Owner = this;
+
+            Win_SetupTarget.Show();
+        }
 
         private void btnShowAllTargets_Click(object sender, RoutedEventArgs e)
         {
@@ -241,7 +298,7 @@ namespace GonoGoTask_wpfVer
             Win_allTargets.Top = Rect_primaryScreen.Top;
             Win_allTargets.Left = Rect_primaryScreen.Left;
 
-            Color selectedColor = (Color)(cbo_BKTrialColor.SelectedItem as PropertyInfo).GetValue(null, null);
+            Color selectedColor = (Color)(typeof(Colors).GetProperty(BKTrialColorStr) as PropertyInfo).GetValue(null, null);
             Win_allTargets.Background = new SolidColorBrush(selectedColor);
             Win_allTargets.Show();
             Win_allTargets.WindowState = WindowState.Maximized;
@@ -255,12 +312,12 @@ namespace GonoGoTask_wpfVer
             wholeGrid.UpdateLayout();
 
 
-            int Diameter = Utility.in2pixal(float.Parse(textBox_objdiameter.Text));
+            int Diameter = Utility.in2pixal(targetDiameterInch);
             List<int[]> optPostions_List = new List<int[]>();
 
             int screenCenter_X = (int)wholeGrid.ActualWidth / 2;
             int screenCenter_Y = (int)wholeGrid.ActualHeight / 2;
-            int disFromCenter = Utility.in2pixal(float.Parse(textBox_disfromcenter.Text));
+            int disFromCenter = Utility.in2pixal(targetDisFromCenterInch);
             int disXFromCenter = disFromCenter;
             int disYFromCenter = disFromCenter;
 
@@ -268,7 +325,7 @@ namespace GonoGoTask_wpfVer
             optPostions_List.Add(new int[] { screenCenter_X, screenCenter_Y - disYFromCenter }); // top position
             optPostions_List.Add(new int[] { screenCenter_X + disXFromCenter, screenCenter_Y }); // right position
 
-            Color goCircleColor = (Color)(cbo_goColor.SelectedItem as PropertyInfo).GetValue(null, null);
+            Color goCircleColor = (Color)(typeof(Colors).GetProperty(goColorStr) as PropertyInfo).GetValue(null, null); ;
             foreach (int[] centerPoint_Pos in optPostions_List)
             {
                 Ellipse circleGo = Create_GoCircle((double)Diameter, centerPoint_Pos);
@@ -334,33 +391,42 @@ namespace GonoGoTask_wpfVer
             }
                       
             dynamic array = JsonConvert.DeserializeObject(jsonStr);
-            // Config into the Interface
+            
+            /* ---- Config into the Interface ---- */
             var config = array[0];
             textBox_NHPName.Text = config["NHP Name"];
             textBox_goTrialNum.Text = config["Go Trials Num"];
             textBox_nogoTrialNum.Text = config["noGo Trials Num"];
-            textBox_closeMargin.Text = config["Close Margin Percentage"];
-            textBox_objdiameter.Text = config["Target Diameter"];
-            textBox_disfromcenter.Text = config["Target Distance from the Center"];
-            textBox_tVisFeedback.Text = config["Visual Feedback Show Time"];
-            textBox_MaxReachTime.Text = config["Max Reach Time"];
-            textBox_MaxReactionTime.Text = config["Max Reaction Time"];
 
-            textBox_tReady_min.Text = config["Ready Show Time Range"][0];
-            textBox_tReady_max.Text = config["Ready Show Time Range"][1];
-            textBox_tCue_min.Text = config["Cue Show Time Range"][0];
-            textBox_tCue_max.Text = config["Cue Show Time Range"][1];
-            textBox_tNogoShow_min.Text = config["Nogo Show Range Time"][0];
-            textBox_tNogoShow_max.Text = config["Nogo Show Range Time"][1];
 
-            cbo_goColor.SelectedItem = typeof(Colors).GetProperty((string)config["Colors"]["Go Fill Color"]);
-            cbo_nogoColor.SelectedItem = typeof(Colors).GetProperty((string)config["Colors"]["noGo Fill Color"]);
-            cbo_BKWaitTrialColor.SelectedItem = typeof(Colors).GetProperty((string)config["Colors"]["Wait Trial Start Background"]);
-            cbo_BKTrialColor.SelectedItem = typeof(Colors).GetProperty((string)config["Colors"]["Trial Background"]);
-            cbo_CorrFillColor.SelectedItem = typeof(Colors).GetProperty((string)config["Colors"]["Correct Fill"]);
-            cbo_CorrOutlineColor.SelectedItem = typeof(Colors).GetProperty((string)config["Colors"]["Correct Outline"]);
-            cbo_ErrorFillColor.SelectedItem = typeof(Colors).GetProperty((string)config["Colors"]["Error Fill"]);
-            cbo_ErrorOutlineColor.SelectedItem = typeof(Colors).GetProperty((string)config["Colors"]["Error Outline"]);
+
+            // Times Sections
+            var configTime = config["Times"];
+            tRange_ReadyTime = new float[] {float.Parse((string)configTime["Ready Show Time Range"][0]), float.Parse((string)configTime["Ready Show Time Range"][1])};
+            tRange_CueTime = new float[] {float.Parse((string)configTime["Cue Show Time Range"][0]), float.Parse((string)configTime["Cue Show Time Range"][1])};
+            tRange_NogoShowTime = new float[] { float.Parse((string)configTime["Nogo Show Range Time"][0]), float.Parse((string)configTime["Nogo Show Range Time"][1]) };
+            tMax_ReactionTime = float.Parse((string)configTime["Max Reach Time"]);
+            tMax_ReachTime = float.Parse((string)configTime["Max Reaction Time"]);
+            t_VisfeedbackShow = float.Parse((string)configTime["Visual Feedback Show Time"]);
+
+            // Color Sections
+            var configColors = config["Colors"];
+            goColorStr = configColors["Go Fill Color"];
+            nogoColorStr = configColors["noGo Fill Color"];
+            BKWaitTrialColorStr = configColors["Wait Trial Start Background"];
+            BKTrialColorStr = configColors["Trial Background"];
+            CorrFillColorStr = configColors["Correct Fill"];
+            CorrOutlineColorStr = configColors["Correct Outline"];
+            ErrorFillColorStr = configColors["Error Fill"];
+            ErrorOutlineColorStr = configColors["Error Outline"];
+
+
+            // Target Sections
+            var configTarget = config["Target"];
+            closeMarginPercentage = float.Parse((string)configTarget["Target Diameter"]);
+            targetDiameterInch = float.Parse((string)configTarget["Close Margin Percentage"]);
+            targetDisFromCenterInch = float.Parse((string)configTarget["Target Distance from Center"]);
+            
 
             audioFile_Correct = config["audioFile_Correct"];
             audioFile_Error = config["audioFile_Error"];
@@ -438,22 +504,6 @@ namespace GonoGoTask_wpfVer
          
         }
 
-        private void MenuItem_SetupColors(object sender, RoutedEventArgs e)
-        {
-            SetupColorsWin Win_SetupColors = new SetupColorsWin();
-           
-
-            // Get the first not Primary Screen 
-            swf.Screen showMainScreen = Utility.Detect_oneNonPrimaryScreen();
-            // Show the  MainWindow on the Touch Screen
-            sd.Rectangle Rect_showMainScreen = showMainScreen.WorkingArea;
-            Win_SetupColors.Top = Rect_showMainScreen.Top;
-            Win_SetupColors.Left = Rect_showMainScreen.Left;
-
-            Win_SetupColors.Show();
-
-
-        }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {

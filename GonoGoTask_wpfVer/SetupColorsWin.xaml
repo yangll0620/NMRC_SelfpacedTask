@@ -5,9 +5,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GonoGoTask_wpfVer"
         mc:Ignorable="d"
-        Title="SetupColorsWin" Height="300" Width="360">
-    <Grid>
+        Title="Color Setting" Height="300" Width="400">
+    <Grid Margin="10,10,10,10">
         <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="*"/>
@@ -175,5 +176,19 @@
                 </DataTemplate>
             </ComboBox.ItemTemplate>
         </ComboBox>
+
+
+        <Button x:Name="btn_OK"
+            Content="OK" HorizontalAlignment="Right" VerticalAlignment="Top" Grid.Row="4" Grid.Column="0"
+                Margin="0,15,0,0"  Width="60" Height="30" 
+                FontWeight="Bold" FontFamily="Microsoft Sans Serif" FontSize="14" Click="Btn_OK_Click" RenderTransformOrigin="0.65,0.429" />
+
+        <Button x:Name="btn_Cancle"
+            Content="Cancle" HorizontalAlignment="Right" VerticalAlignment="Top" Grid.Row="4" Grid.Column="1"
+                Margin="0,15,0,0"  Width="60" Height="30" 
+                FontWeight="Bold" FontFamily="Microsoft Sans Serif" FontSize="14" Click="Btn_Cancle_Click" RenderTransformOrigin="0.65,0.429" />
+
+
+
     </Grid>
 </Window>

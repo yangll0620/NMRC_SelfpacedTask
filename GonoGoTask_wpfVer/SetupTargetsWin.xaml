@@ -1,0 +1,71 @@
+﻿<Window x:Class="GonoGoTask_wpfVer.SetupTargetsWin"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:GonoGoTask_wpfVer"
+        mc:Ignorable="d"
+        Title="Target Settings" Height="300" Width="200">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="4*"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!--Diameter and Distance of Target -->
+            <TextBlock  TextWrapping="WrapWithOverflow"  Grid.Row="0" 
+                                   HorizontalAlignment="Right" VerticalAlignment="top" 
+                                    Margin="0,10,90,0"  FontWeight="Normal" FontSize="11"
+                                    TextAlignment="Center" Padding="5,1,0,0">
+                            Diameter of Target (inch)</TextBlock>
+            <TextBox x:Name="textBox_targetDiameter" Grid.Row="0" 
+                                     HorizontalAlignment="Right" VerticalAlignment="Top" 
+                                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                     Height="25" Width ="60" Margin="0,10,15,0" 
+                                     TextWrapping="Wrap"   FontWeight="Normal"/>
+
+            <TextBlock  TextWrapping="WrapWithOverflow"  Grid.Row="1"  
+                                   HorizontalAlignment="Right" VerticalAlignment="top" 
+                                    Margin="0,10,90,0"  FontWeight="Normal" FontSize="11" >Distance from Center (inch)</TextBlock>
+            <TextBox x:Name="textBox_targetDisfromCenter"  Grid.Row="1"  
+                                     HorizontalAlignment="Right" VerticalAlignment="Top" 
+                                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                     Height="25" Width ="60" Margin="0,10,15,0" 
+                                     TextWrapping="Wrap"   FontWeight="Normal" FontSize="11" />
+
+
+            <!--Error Margin Percentage -->
+            <TextBlock  TextWrapping="WrapWithOverflow"  Grid.Row="2"  
+                                   HorizontalAlignment="Right" VerticalAlignment="top" 
+                                    Margin="0,10,90,0"  FontWeight="Normal" FontSize="11" >Error Margin Percentage (%)</TextBlock>
+
+            <TextBox x:Name="textBox_closeMargin"  Grid.Row="2" 
+                    HorizontalAlignment="Right" VerticalAlignment="Top" 
+                    HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                    Height="25" Width ="60" Margin="0,10,15,0" 
+                    TextWrapping="Wrap"   FontWeight="Normal" />
+        </Grid>
+
+
+        <Grid Grid.Row="1">
+            <Button x:Name="btn_OK"
+            Content="OK" HorizontalAlignment="Right" VerticalAlignment="Top" 
+                Margin="0,10,120,0"  Width="60" Height="25" 
+                FontWeight="Bold" FontFamily="Microsoft Sans Serif" FontSize="12" Click="Btn_OK_Click"  />
+
+            <Button x:Name="btn_Cancle"
+            Content="Cancle" HorizontalAlignment="Right" VerticalAlignment="Top" 
+                Margin="0,10,10,0"  Width="60" Height="25" 
+                FontWeight="Bold" FontFamily="Microsoft Sans Serif" FontSize="12" Click="Btn_Cancle_Click" />
+        </Grid>
+
+       
+    </Grid>
+</Window>

@@ -1,0 +1,159 @@
+﻿<Window x:Class="GonoGoTask_wpfVer.SetupTimeWin"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:GonoGoTask_wpfVer"
+        mc:Ignorable="d"
+        Title="Time Settings" Height="340" Width="400">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="6*"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <GroupBox Header="Time Setup (s)" Grid.Row="0" 
+                          HorizontalAlignment="Left" VerticalAlignment="Top" 
+                          Margin="10,10,10,10"  FontFamily="Microsoft Sans Serif" FontWeight="Bold" Height="240" Width="370">
+            <Grid HorizontalAlignment="Left" VerticalAlignment="Top" Height="220"  Width="360" Margin="0,0,0,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="2*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="1" Margin="0, 0, 0, 0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+
+
+
+                    <TextBlock Grid.Row="1" Grid.Column="0"
+                                HorizontalAlignment="Right" VerticalAlignment="Center" 
+                                       TextAlignment="Right" Padding="3"
+                                   Height="23" Margin="0,12,65,0"  FontWeight="Normal"  >
+                            t_VisualFeedback</TextBlock>
+                    <TextBox x:Name="textBox_tVisFeedback" Grid.Row="1" Grid.Column="0"
+                                     HorizontalAlignment="Right" VerticalAlignment="Center" 
+                                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                     Height="23" Width="50" Margin="0,10,10,0" 
+                                     TextWrapping="Wrap"   FontWeight="Normal" />
+
+                    <TextBlock Grid.Row="0" Grid.Column="1"
+                                HorizontalAlignment="Right" VerticalAlignment="Center" 
+                                       TextAlignment="Right" Padding="3"
+                                   Height="23" Margin="0,12,65,0"  FontWeight="Normal"  >
+                            Max Reach Time</TextBlock>
+                    <TextBox x:Name="textBox_MaxReachTime"  Grid.Column="1"
+                                     HorizontalAlignment="Right" VerticalAlignment="Center" 
+                                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                     Height="23" Width="50" Margin="0,10,10,0" 
+                                     TextWrapping="Wrap"  FontWeight="Normal" />
+
+
+
+                    <TextBlock Grid.Row="0" Grid.Column="0"
+                                HorizontalAlignment="Right" VerticalAlignment="Center" 
+                                       TextAlignment="Right" Padding="3"
+                                   Height="23" Margin="0,12,65,0"  FontWeight="Normal"  >
+                            Max Reaction Time</TextBlock>
+                    <TextBox x:Name="textBox_MaxReactionTime" Grid.Column="0"
+                                     HorizontalAlignment="Right" VerticalAlignment="Center" 
+                                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                     Height="23" Width="50" Margin="0,10,10,0" 
+                                     TextWrapping="Wrap"  FontWeight="Normal" />
+
+                </Grid>
+
+                <Grid Grid.Row="0" Margin="0,0,100,10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Label Content="t_min (s)" Grid.Row="0" Grid.Column="1"  
+                                   HorizontalAlignment="Center" VerticalAlignment="Bottom" 
+                                   HorizontalContentAlignment="Right" VerticalContentAlignment="Center"
+                                   Height="23" Margin="0,10,0,0"  FontWeight="Normal"/>
+                    <Label Content="t_max (s)" Grid.Row="0" Grid.Column="2"  
+                                   HorizontalAlignment="Center" VerticalAlignment="Bottom" 
+                                   HorizontalContentAlignment="Right" VerticalContentAlignment="Center"
+                                   Height="23" Margin="0,10,0,0"  FontWeight="Normal"/>
+
+
+                    <TextBlock Grid.Row="1" Grid.Column="0"  
+                                   HorizontalAlignment="Right" VerticalAlignment="Center"
+                                   Margin="0,10,0,0"  FontWeight="Normal" TextAlignment="Right" >
+                            t_Ready</TextBlock>
+                    <TextBox x:Name="textBox_tReady_min" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Center" 
+                                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Width="50" Margin="18,10,18,1" 
+                                     TextWrapping="Wrap"  FontWeight="Normal" />
+                    <TextBox x:Name="textBox_tReady_max" Grid.Row="1" Grid.Column="2"  
+                                     HorizontalAlignment="Center" VerticalAlignment="Top" 
+                                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                     Height="23" Width ="50" Margin="0,10,0,0" 
+                                     TextWrapping="Wrap"  FontWeight="Normal" />
+
+                    <TextBlock Grid.Row="2" Grid.Column="0"  
+                                   HorizontalAlignment="Right" 
+                                   Margin="0,10,0,0"  FontWeight="Normal" TextAlignment="Right" VerticalAlignment="Center">
+                            t_Cue</TextBlock>
+                    <TextBox x:Name="textBox_tCue_min" Grid.Row="2" Grid.Column="1"  
+                                     HorizontalAlignment="Center" VerticalAlignment="Top" 
+                                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                     Height="23" Width ="50" Margin="0,10,0,0" 
+                                     TextWrapping="Wrap"  FontWeight="Normal" />
+                    <TextBox x:Name="textBox_tCue_max" Grid.Row="2" Grid.Column="2"  
+                                     HorizontalAlignment="Center" VerticalAlignment="Top" 
+                                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                     Height="23" Width ="50" Margin="0,10,0,0" 
+                                     TextWrapping="Wrap"   FontWeight="Normal" />
+
+
+                    <TextBlock Grid.Row="3" Grid.Column="0"  
+                                   HorizontalAlignment="Right" 
+                                   Margin="0,10,0,0"  FontWeight="Normal" TextAlignment="Right" VerticalAlignment="Center">
+                            t_noGoShow</TextBlock>
+
+                    <TextBox x:Name="textBox_tNogoShow_min" Grid.Row="3" Grid.Column="1"  
+                                     HorizontalAlignment="Center" VerticalAlignment="Top" 
+                                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                     Height="23" Width ="50" Margin="0,10,0,0" 
+                                     TextWrapping="Wrap"  FontWeight="Normal" />
+                    <TextBox x:Name="textBox_tNogoShow_max" Grid.Row="3" Grid.Column="2"  
+                                     HorizontalAlignment="Center" VerticalAlignment="Top" 
+                                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                     Height="23" Width ="50" Margin="0,10,0,0" 
+                                     TextWrapping="Wrap"  FontWeight="Normal" />
+
+
+                </Grid>
+            </Grid>
+        </GroupBox>
+
+        <Button x:Name="btn_OK"
+            Content="OK" HorizontalAlignment="Right" VerticalAlignment="Top" Grid.Row="1" 
+                Margin="0,10,120,0"  Width="60" Height="25" 
+                FontWeight="Bold" FontFamily="Microsoft Sans Serif" FontSize="12" Click="Btn_OK_Click"  />
+
+        <Button x:Name="btn_Cancle"
+            Content="Cancle" HorizontalAlignment="Right" VerticalAlignment="Top" Grid.Row="1" 
+                Margin="0,10,10,0"  Width="60" Height="25" 
+                FontWeight="Bold" FontFamily="Microsoft Sans Serif" FontSize="12" Click="Btn_Cancle_Click" />
+
+
+    </Grid>
+</Window>
