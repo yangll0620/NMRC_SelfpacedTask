@@ -892,9 +892,7 @@ namespace GonoGoTask_wpfVer
 
             PresentTrial = false;
             if (serialPort_IO8.IsOpen)
-                serialPort_IO8.Close();
-
-            
+                serialPort_IO8.Close();  
         }
 
 
@@ -904,9 +902,9 @@ namespace GonoGoTask_wpfVer
             string codeHigh_JuicerPin = "3", codeLow_JuicerPin = "E";
             serialPort_IO8.WriteLine(codeLow_JuicerPin);
             Stopwatch startpadReadWatch = new Stopwatch();
-            startpadReadWatch.Start();
             long startpadReadInterval = 30;
 
+            startpadReadWatch.Start();
             while (serialPort_IO8.IsOpen)
             {
                 // ----- Juicer Control

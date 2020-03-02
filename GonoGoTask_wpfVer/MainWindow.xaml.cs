@@ -422,11 +422,11 @@ namespace GonoGoTask_wpfVer
 
 
             // Target Sections
-            var configTarget = config["Target"];
-            closeMarginPercentage = float.Parse((string)configTarget["Target Diameter"]);
-            targetDiameterInch = float.Parse((string)configTarget["Close Margin Percentage"]);
+            var configTarget = config["Target"];      
+            targetDiameterInch = float.Parse((string)configTarget["Target Diameter"]);
             targetDisFromCenterInch = float.Parse((string)configTarget["Target Distance from Center"]);
-            
+            closeMarginPercentage = float.Parse((string)configTarget["Close Margin Percentage"]);
+
 
             audioFile_Correct = config["audioFile_Correct"];
             audioFile_Error = config["audioFile_Error"];
@@ -482,6 +482,7 @@ namespace GonoGoTask_wpfVer
             {
                 taskPresentWin.Present_Stop();
                 taskPresentWin.Close();
+                taskPresentWin = null;
             }
 
             // btn_Start and btn_stop
