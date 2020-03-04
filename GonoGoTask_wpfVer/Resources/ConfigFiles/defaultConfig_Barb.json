@@ -22,13 +22,13 @@
     {
         "Go Fill Color": "Green",
         "noGo Fill Color": "Yellow",
-        "Cue Crossing Color": "Black",
         "Wait Trial Start Background": "Black",
         "Trial Background": "WhiteSmoke",
         "Correct Fill": "Magenta",
         "Correct Outline": "Magenta",
         "Error Fill":"WhiteSmoke",
-        "Error Outline": "Red"     
+        "Error Outline": "Red",
+        "Cue Crossing Color": "Black"
     },
     "JuicerGivenTime":
     {
@@ -38,6 +38,6 @@
 
     "audioFile_Correct": "default",
     "audioFile_Error": "default",
-    "saved_folder": "default"
+    "saved_folder": "F:\\yang7003@umn\\NMRC_umn\\Projects\\GoNogoTaskDev\\Savefolder\\"
   }
 ]

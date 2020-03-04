@@ -52,6 +52,7 @@ namespace GonoGoTask_wpfVer
             //Data binding the Color ComboBoxes
             cbo_goColor.ItemsSource = typeof(Colors).GetProperties();
             cbo_nogoColor.ItemsSource = typeof(Colors).GetProperties();
+            cbo_cueColor.ItemsSource = typeof(Colors).GetProperties();
             cbo_BKWaitTrialColor.ItemsSource = typeof(Colors).GetProperties();
             cbo_BKTrialColor.ItemsSource = typeof(Colors).GetProperties();
             cbo_CorrFillColor.ItemsSource = typeof(Colors).GetProperties();
@@ -63,6 +64,7 @@ namespace GonoGoTask_wpfVer
             // Set Default Selected Item
             cbo_goColor.SelectedItem = typeof(Colors).GetProperty(parent.goColorStr);
             cbo_nogoColor.SelectedItem = typeof(Colors).GetProperty(parent.nogoColorStr);
+            cbo_cueColor.SelectedItem = typeof(Colors).GetProperty(parent.cueColorStr);
             cbo_BKWaitTrialColor.SelectedItem = typeof(Colors).GetProperty(parent.BKWaitTrialColorStr);
             cbo_BKTrialColor.SelectedItem = typeof(Colors).GetProperty(parent.BKTrialColorStr);
             cbo_CorrFillColor.SelectedItem = typeof(Colors).GetProperty(parent.CorrFillColorStr);

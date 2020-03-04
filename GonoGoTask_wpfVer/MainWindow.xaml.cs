@@ -31,7 +31,7 @@ namespace GonoGoTask_wpfVer
         presentation taskPresentWin;
 
         // Strings stoing the Colors
-        public string goColorStr, nogoColorStr;
+        public string goColorStr, nogoColorStr, cueColorStr;
         public string BKWaitTrialColorStr, BKTrialColorStr;
         public string CorrFillColorStr, CorrOutlineColorStr, ErrorFillColorStr, ErrorOutlineColorStr;
 
@@ -413,6 +413,7 @@ namespace GonoGoTask_wpfVer
             var configColors = config["Colors"];
             goColorStr = configColors["Go Fill Color"];
             nogoColorStr = configColors["noGo Fill Color"];
+            cueColorStr = configColors["Cue Crossing Color"];
             BKWaitTrialColorStr = configColors["Wait Trial Start Background"];
             BKTrialColorStr = configColors["Trial Background"];
             CorrFillColorStr = configColors["Correct Fill"];

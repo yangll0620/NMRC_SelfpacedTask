@@ -117,6 +117,7 @@ namespace GonoGoTask_wpfVer
         private SolidColorBrush brush_CorrectFill, brush_CorrOutline, brush_ErrorFill, brush_ErrorOutline;
         private SolidColorBrush brush_CloseFill;
         private SolidColorBrush brush_BDWaitTrialStart;
+        private SolidColorBrush brush_CueCrossing;
 
         Point circleGo_centerPoint; // the center of circleGo 
         double circleGo_radius; // the radius of circleGO
@@ -191,7 +192,7 @@ namespace GonoGoTask_wpfVer
         /*Juicer Parameters*/
         GiveJuicerState giveJuicerState;
         // juiver given duration(ms)
-        int t_JuicerFullGiven = 1500, t_JuicerPercentageGiven = 700;
+        int t_JuicerFullGiven = 800, t_JuicerPercentageGiven = 500;
 
 
         // Global stopwatch
@@ -366,6 +367,10 @@ namespace GonoGoTask_wpfVer
             // nogoRect Color
             selectedColor = (Color)(typeof(Colors).GetProperty(parent.nogoColorStr) as PropertyInfo).GetValue(null, null);
             brush_nogoRect = new SolidColorBrush(selectedColor);
+
+            // Cue Crossing Color
+            selectedColor = (Color)(typeof(Colors).GetProperty(parent.cueColorStr) as PropertyInfo).GetValue(null, null);
+            brush_CueCrossing = new SolidColorBrush(selectedColor);
 
 
             // Wait Background 
@@ -677,8 +682,7 @@ namespace GonoGoTask_wpfVer
             int linethickness = 2;
 
             // Create a while Brush    
-            SolidColorBrush whiteBrush = new SolidColorBrush();
-            whiteBrush.Color = Colors.White;
+
 
             // Create the horizontal line
             horiLine = new Line();
@@ -692,7 +696,7 @@ namespace GonoGoTask_wpfVer
             horiLine.VerticalAlignment = VerticalAlignment.Top;
             
             // horizontal line color
-            horiLine.Stroke = whiteBrush;
+            horiLine.Stroke = brush_CueCrossing;
             // horizontal line stroke thickness
             horiLine.StrokeThickness = linethickness;
             // name
@@ -714,7 +718,7 @@ namespace GonoGoTask_wpfVer
             vertLine.VerticalAlignment = VerticalAlignment.Top;
             
             // vertical line color
-            vertLine.Stroke = whiteBrush;
+            vertLine.Stroke = brush_CueCrossing;
             // vertical line stroke thickness
             vertLine.StrokeThickness = linethickness;
             //name

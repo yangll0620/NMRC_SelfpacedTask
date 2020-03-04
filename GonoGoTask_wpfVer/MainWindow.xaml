@@ -128,6 +128,12 @@
                         Click="Btn_stop_Click"/>
 
 
+                <Button x:Name="btn_Pause" IsEnabled="False"
+                        Content="Pause" HorizontalAlignment="Right" VerticalAlignment="Bottom" 
+                        Margin="0,0,350,15"  Width="100" Height="35" 
+                        FontWeight="Bold" FontFamily="Microsoft Sans Serif" FontSize="14"
+                        Click=""/>
+
 
                 <Button x:Name="btn_Test" Content="Test" 
                         HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,500,15"  
