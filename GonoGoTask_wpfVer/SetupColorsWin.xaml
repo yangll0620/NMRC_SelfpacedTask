@@ -5,7 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GonoGoTask_wpfVer"
         mc:Ignorable="d"
-        Title="Color Setting" Height="400" Width="500">
+        Title="Color Setting" Height="400" Width="500"
+        Closing="Window_Closing">
     <Grid Margin="10,10,10,10">
         <Grid.RowDefinitions>
             <RowDefinition Height="5*"/>

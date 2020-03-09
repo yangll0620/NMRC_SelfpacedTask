@@ -1,16 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
+﻿using System.Windows;
 
 namespace GonoGoTask_wpfVer
 {
@@ -60,8 +48,8 @@ namespace GonoGoTask_wpfVer
             textBox_tNogoShow_max.Text = parent.tRange_NogoShowTime[1].ToString();
 
 
-            textBox_MaxReachTime.Text = parent.tMax_ReachTime.ToString();
-            textBox_MaxReactionTime.Text = parent.tMax_ReactionTime.ToString();
+            textBox_MaxReachTime.Text = parent.tMax_ReachTimeS.ToString();
+            textBox_MaxReactionTime.Text = parent.tMax_ReactionTimeS.ToString();
 
             textBox_tVisFeedback.Text = parent.t_VisfeedbackShow.ToString(); 
         }
@@ -78,8 +66,8 @@ namespace GonoGoTask_wpfVer
             parent.tRange_NogoShowTime[1] = float.Parse(textBox_tNogoShow_max.Text);
 
 
-            parent.tMax_ReachTime = float.Parse(textBox_MaxReachTime.Text);
-            parent.tMax_ReactionTime = float.Parse(textBox_MaxReactionTime.Text);
+            parent.tMax_ReachTimeS = float.Parse(textBox_MaxReachTime.Text);
+            parent.tMax_ReactionTimeS = float.Parse(textBox_MaxReactionTime.Text);
 
             parent.t_VisfeedbackShow = float.Parse(textBox_tVisFeedback.Text);
         }
@@ -91,13 +79,13 @@ namespace GonoGoTask_wpfVer
             this.Close();
         }
 
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            ResumeBtnStartStop();
+        }
+
         private void Btn_OK_Click(object sender, RoutedEventArgs e)
         {
-
-            
-
-
-
             ResumeBtnStartStop();
             this.Close();
         }

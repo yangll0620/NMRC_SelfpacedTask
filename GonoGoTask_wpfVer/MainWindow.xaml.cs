@@ -37,7 +37,8 @@ namespace GonoGoTask_wpfVer
 
         // Time Related Variables
         public float[] tRange_ReadyTime, tRange_CueTime, tRange_NogoShowTime;
-        public float tMax_ReactionTime, tMax_ReachTime, t_VisfeedbackShow;
+        public float tMax_ReactionTimeS, tMax_ReachTimeS, t_VisfeedbackShow;
+        public float t_JuicerFullGivenS, t_JuicerCloseGivenS;
 
         // Target Related Variables
         public float targetDiameterInch, targetDisFromCenterInch, closeMarginPercentage;
@@ -197,7 +198,9 @@ namespace GonoGoTask_wpfVer
                 System.IO.Directory.CreateDirectory(saved_folder);
             }
 
-            file_saved = saved_folder + textBox_NHPName.Text + time_now.ToString("-yyyyMMdd-HHmmss") + ".txt";
+            string filename_saved = textBox_NHPName.Text + time_now.ToString("-yyyyMMdd-HHmmss") + ".txt";
+            file_saved = System.IO.Path.Combine(saved_folder, filename_saved);
+
             using (StreamWriter file = new StreamWriter(file_saved))
             {
                 file.WriteLine("Date: " + time_now.ToString("MM/dd/yyyy HH:mm:ss") + "\t\tNHP Name: " + textBox_NHPName.Text);
@@ -223,8 +226,8 @@ namespace GonoGoTask_wpfVer
                 file.WriteLine(String.Format("{0, -40}:  [{1} {2}]", "Nogo Interface Show Range Time (s)", tRange_NogoShowTime[0].ToString(), tRange_NogoShowTime[1].ToString()));
                 file.WriteLine(String.Format("{0, -40}:  {1}", "Reward Interface Show Time (s)", t_VisfeedbackShow.ToString()));
 
-                file.WriteLine(String.Format("{0, -40}:  {1}", "Max Reach Time (s)", tMax_ReachTime.ToString()));
-                file.WriteLine(String.Format("{0, -40}:  {1}", "Max Reaction Time (s)", tMax_ReactionTime.ToString()));
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Max Reach Time (s)", tMax_ReachTimeS.ToString()));
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Max Reaction Time (s)", tMax_ReactionTimeS.ToString()));
 
             }
         }
@@ -399,14 +402,19 @@ namespace GonoGoTask_wpfVer
             textBox_nogoTrialNum.Text = config["noGo Trials Num"];
 
 
+            // Juicer Given Time
+            var configJuicer = config["JuicerGivenTime"];
+            t_JuicerFullGivenS = float.Parse((string)configJuicer["Correct"]);
+            t_JuicerCloseGivenS = float.Parse((string)configJuicer["Close"]);
+
 
             // Times Sections
             var configTime = config["Times"];
             tRange_ReadyTime = new float[] {float.Parse((string)configTime["Ready Show Time Range"][0]), float.Parse((string)configTime["Ready Show Time Range"][1])};
             tRange_CueTime = new float[] {float.Parse((string)configTime["Cue Show Time Range"][0]), float.Parse((string)configTime["Cue Show Time Range"][1])};
             tRange_NogoShowTime = new float[] { float.Parse((string)configTime["Nogo Show Range Time"][0]), float.Parse((string)configTime["Nogo Show Range Time"][1]) };
-            tMax_ReactionTime = float.Parse((string)configTime["Max Reach Time"]);
-            tMax_ReachTime = float.Parse((string)configTime["Max Reaction Time"]);
+            tMax_ReactionTimeS = float.Parse((string)configTime["Max Reach Time"]);
+            tMax_ReachTimeS = float.Parse((string)configTime["Max Reaction Time"]);
             t_VisfeedbackShow = float.Parse((string)configTime["Visual Feedback Show Time"]);
 
             // Color Sections
@@ -432,6 +440,10 @@ namespace GonoGoTask_wpfVer
             audioFile_Correct = config["audioFile_Correct"];
             audioFile_Error = config["audioFile_Error"];
             saved_folder = config["saved_folder"];
+            if (String.Compare(saved_folder, "default", true) == 0)
+            {
+                saved_folder = @"C:\\GonoGoSave";
+            }
         }
 
         private void btnLoadConf_Click(object sender, RoutedEventArgs e)
@@ -485,7 +497,6 @@ namespace GonoGoTask_wpfVer
                 taskPresentWin.Close();
                 taskPresentWin = null;
             }
-
             // btn_Start and btn_stop
             btn_start.IsEnabled = true;
             btn_stop.IsEnabled = false;
