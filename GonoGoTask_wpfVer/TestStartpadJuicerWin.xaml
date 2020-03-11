@@ -1,0 +1,53 @@
+﻿<Window x:Class="GonoGoTask_wpfVer.TestStartpadJuicerWin"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:GonoGoTask_wpfVer"
+        mc:Ignorable="d"
+        Title="Test Startpad or Juicer Device" Height="300" Width="600">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="1.5*"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0">
+            <Label Content="Port" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
+            <ComboBox x:Name="cboPort" HorizontalAlignment="Left" VerticalAlignment="Top"
+                       Margin="150,10,0,0"  Width="120" SelectedItem="X" />
+        </Grid>
+
+        <Grid Grid.Row="1">
+            <Label Content="Startpad Voltage" Grid.Row="0"
+                       HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0" />
+            <TextBox x:Name="txt_StartpadVol" Grid.Row="0" VerticalAlignment="Top" HorizontalAlignment="Left"
+                         Height="25"  Width="120" Margin="150,10,0,0"/>
+
+            <Label Content="Startpad Digital Input" Grid.Row="0"
+                       HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,70,0,0" />
+            <TextBox x:Name="txt_StartpadDigital" Grid.Row="0" VerticalAlignment="Top" HorizontalAlignment="Left"
+                         Height="25"  Width="120" Margin="150,70,0,0"/>
+
+            <Button x:Name="btn_OpenStartpad" Content="Open Startpad"  Grid.Row="1"
+                        HorizontalAlignment="Left"  VerticalAlignment="Top"
+                        Margin="320,50,0,0" Width="100" Click="BtnOpenStartpad_Click"/>
+            <Button x:Name="btn_CloseStartpad" Content="Close Startpad" 
+                        HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Row="1"
+                        Margin="470,50,0,0"  Width="100" Click="BtnCloseStartpad_Click"/>
+        </Grid>
+
+        <Grid Grid.Row="2">
+            <Label Content="Juicer State" 
+                       HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0" />
+            <TextBox x:Name="txt_JuicerState"  VerticalAlignment="Top" HorizontalAlignment="Left"
+                         Height="25"  Width="120" Margin="150,10,0,0"/>
+            
+            <Button x:Name="btn_StartJuicer" Content="Open Juicer" HorizontalAlignment="Left"  VerticalAlignment="Top"
+                    Margin="320,10,0,0" Width="100" Click="BtnOpenJuicer_Click"/>
+            <Button x:Name="btn_CloseJuicer" Content="Close Juicer" HorizontalAlignment="Left" VerticalAlignment="Top"
+                    Margin="470,10,0,0"  Width="100" Click="BtnCloseJuicer_Click"/>
+        </Grid>
+    </Grid>
+</Window>

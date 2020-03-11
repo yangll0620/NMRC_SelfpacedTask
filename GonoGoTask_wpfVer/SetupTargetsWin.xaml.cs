@@ -54,7 +54,6 @@ namespace GonoGoTask_wpfVer
         private void Btn_OK_Click(object sender, RoutedEventArgs e)
         {
             SaveTargetData();
-
             ResumeBtnStartStop();
             this.Close();
         }

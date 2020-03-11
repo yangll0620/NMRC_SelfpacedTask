@@ -57,8 +57,8 @@ namespace GonoGoTask_wpfVer
 
 
             // locate serial Port Name
-            locate_serialPortIO8();
-            if (serialPortIO8_name == null)
+            serialPortIO8_name = SerialPortIO8.Locate_serialPortIO8();
+            if (String.Equals(serialPortIO8_name,""))
             {
                 btn_start.IsEnabled = false;
                 btn_comReconnect.Visibility = Visibility.Visible;
@@ -94,64 +94,10 @@ namespace GonoGoTask_wpfVer
             }
         }
 
-        private bool locate_serialPortIO8()
-        { /* 
-            Locate the correct COM port used for communicating with the DLP-IO8 
-
-            Outputs:
-                update serialPortIO8_name if located
-
-            Returns:
-                true, if located; otherwise, false
-            
-             */
-
-            string[] portNames = SerialPort.GetPortNames();
-            foreach (string portName in portNames)
-            {
-                SerialPort serialPort = new SerialPort();
-                try
-                {
-                    serialPort.PortName = portName;
-                    serialPort.BaudRate = 115200;
-                    serialPort.Open();
-
-                    for (int i = 0; i < 5; i++)
-                    {
-                        // channel 1 Ping command of the DLP-IO8
-                        serialPort.WriteLine("Z");
-                        // Read exist Analog in from serialPort
-                        string str_Read = serialPort.ReadExisting();
-
-                        if (str_Read.Contains("V"))
-                        {// e.g str_Read = "5.00V"
-                            serialPortIO8_name = portName;
-                            serialPort.Close();
-                            return true;
-                        }
-                        Thread.Sleep(30);
-                    }
-
-                    serialPort.Close();
-                }
-                catch (Exception ex)
-                {
-                    if (serialPort.IsOpen)
-                        serialPort.Close();
-                    MessageBox.Show(ex.Message, "Error Message", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-
-                
-            }
-            return false;
-        }
-           
-
         private void Btn_comReconnect_Click(object sender, RoutedEventArgs e)
         {
-
-            locate_serialPortIO8();
-            if (serialPortIO8_name == null)
+            serialPortIO8_name = SerialPortIO8.Locate_serialPortIO8();
+            if (String.Equals(serialPortIO8_name, ""))
             {
                 run_comState.Text = "Can't Find the COM Port for DLP-IO8!";
                 run_comState.Background = new SolidColorBrush(Colors.Orange);
@@ -172,7 +118,6 @@ namespace GonoGoTask_wpfVer
                 run_instruction.Foreground = new SolidColorBrush(Colors.Green);
             }
 
-
             if (textBox_NHPName.Text != "" && serialPortIO8_name != null)
             {
                 btn_start.IsEnabled = true;
@@ -186,6 +131,23 @@ namespace GonoGoTask_wpfVer
             {
                 btn_start.IsEnabled = true;
             }
+        }
+
+        private void btnTestTouchpadJuicer_Click(object sender, RoutedEventArgs e)
+        {
+            TestStartpadJuicerWin Win_TestStartpadJuicer = new TestStartpadJuicerWin(this);
+
+            // Set Owner
+            Win_TestStartpadJuicer.Owner = this;
+
+            // Get the first not Primary Screen 
+            swf.Screen showMainScreen = Utility.Detect_oneNonPrimaryScreen();
+            // Show the  MainWindow on the Touch Screen
+            sd.Rectangle Rect_showMainScreen = showMainScreen.WorkingArea;
+            Win_TestStartpadJuicer.Top = Rect_showMainScreen.Top;
+            Win_TestStartpadJuicer.Left = Rect_showMainScreen.Left;
+
+            Win_TestStartpadJuicer.Show();
         }
 
         private void saveInputParameters()
@@ -236,7 +198,6 @@ namespace GonoGoTask_wpfVer
         private void MenuItem_SetupTime(object sender, RoutedEventArgs e)
         {
             SetupTimeWin Win_SetupTime = new SetupTimeWin(this);
-
 
             // Get the first not Primary Screen 
             swf.Screen showMainScreen = Utility.Detect_oneNonPrimaryScreen();
@@ -514,7 +475,8 @@ namespace GonoGoTask_wpfVer
 
         private void btnTest_Click(object sender, RoutedEventArgs e)
         {
-         
+            string serialPortIO8_Name = SerialPortIO8.Locate_serialPortIO8();
+            textBox_NHPName.Text = serialPortIO8_Name;
         }
 
 

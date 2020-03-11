@@ -91,6 +91,7 @@ namespace GonoGoTask_wpfVer
 
         // diameter for crossing, circle, square and white points
         int objdiameter, closediameter;
+        int crossingLineThickness = 3;
         int disFromCenter, disXFromCenter, disYFromCenter;
 
         TargetType targetType;
@@ -171,6 +172,10 @@ namespace GonoGoTask_wpfVer
 
         String calcTouchStateString;
 
+        // Executed Trial Information
+        public int totalGoTrialNum, successGoTrialNum;
+        public int missGoTrialNum, noreactionGoTrialNum, noreachGoTrialNum;
+        public int totalNogoTrialNum, successNogoTrialNum;
 
         ScreenTouchState screenTouchstate;
 
@@ -184,6 +189,7 @@ namespace GonoGoTask_wpfVer
         SerialPort serialPort_IO8;
         int baudRate = 115200;
         Thread thread_ReadWrite_IO8;
+        int volTouch = 4;
 
         /* startpad parameters */
         PressedStartpad pressedStartpad;
@@ -264,7 +270,10 @@ namespace GonoGoTask_wpfVer
             // init a global stopwatch
             globalWatch = new Stopwatch();
             tpoints1TouchWatch = new Stopwatch();
-        }
+
+            // Init Trial Information
+            Update_FeedbackTrialsInformation();
+    }
 
 
         public async void Present_Start()
@@ -302,11 +311,7 @@ namespace GonoGoTask_wpfVer
                     file.WriteLine(String.Format("{0, -20}: {1}", "TargetPositionIndex", targetPosInd.ToString()));
                     file.WriteLine(String.Format("{0, -20}: {1}", "Ready Interface Time", t_Ready.ToString()));
                     file.WriteLine(String.Format("{0, -20}: {1}", "Cue Interface Time", t_Cue.ToString()));
-                }
-
-
-                triali++;
-
+                }      
 
                 /*----- WaitStartTrial Interface ------*/
                 pressedStartpad = PressedStartpad.No;
@@ -330,6 +335,12 @@ namespace GonoGoTask_wpfVer
                     {
                         await Interface_Go(pos_Taget);
 
+                        if (gotargetTouchstate == GoTargetTouchState.goHit || gotargetTouchstate == GoTargetTouchState.goClose)
+                        {
+                            triali++;
+                        }
+
+
                         using (StreamWriter file = File.AppendText(file_saved))
                         {
                             for (int i = 0; i < downPoints_PosTime.Count; i++)
@@ -339,24 +350,47 @@ namespace GonoGoTask_wpfVer
                                 file.WriteLine(String.Format("{0}{1, -20}: {2}", "Touch Point", i.ToString(), downPointstr));
                             }
                             file.WriteLine(String.Format("{0, -20}: {1}", "calc TouchState Points:", calcTouchStateString));
-
-
                         }
                     }
                     else
                     {
                         await Interface_noGo(t_noGoShow, pos_Taget);
+                        triali++;
                     }
 
-
+                    Update_FeedbackTrialsInformation();
+                    Remove_All();
                 }
                 catch (TaskCanceledException)
                 {
+                    Update_FeedbackTrialsInformation();
                     Remove_All();
                     continue;
-                }
-                Remove_All();
+                }             
             }
+
+
+            if(triali == targetType_List.Count)
+            {// Present all Trials
+                myGridBorder.BorderBrush = brush_CorrectFill;
+            }
+        }
+
+
+        public void Update_FeedbackTrialsInformation()
+        {/* Update the Feedback Trial Information in the Mainwindow */
+
+            // Go trials
+            parent.textBox_totalGoTrialNum.Text = totalGoTrialNum.ToString();
+            parent.textBox_successGoTrialNum.Text = successGoTrialNum.ToString();
+            parent.textBox_missGoTrialNum.Text = missGoTrialNum.ToString();
+            parent.textBox_noreactionGoTrialNum.Text = noreactionGoTrialNum.ToString();
+            parent.textBox_noreachGoTrialNum.Text = noreachGoTrialNum.ToString();
+
+
+            // Nogo Trials
+            parent.textBox_successNogoTrialNum.Text = successNogoTrialNum.ToString();
+            parent.textBox_totalNogoTrialNum.Text = totalNogoTrialNum.ToString();
         }
 
         public void Present_Stop()
@@ -814,7 +848,6 @@ namespace GonoGoTask_wpfVer
 
             // the line length of the crossing
             int len = objdiameter;
-            int linethickness = 2;
 
             // Create a while Brush    
 
@@ -833,7 +866,7 @@ namespace GonoGoTask_wpfVer
             // horizontal line color
             horiLine.Stroke = brush_CueCrossing;
             // horizontal line stroke thickness
-            horiLine.StrokeThickness = linethickness;
+            horiLine.StrokeThickness = crossingLineThickness;
             // name
             horiLine.Name = name_hLine;
             horiLine.Visibility = Visibility.Hidden;
@@ -855,7 +888,7 @@ namespace GonoGoTask_wpfVer
             // vertical line color
             vertLine.Stroke = brush_CueCrossing;
             // vertical line stroke thickness
-            vertLine.StrokeThickness = linethickness;
+            vertLine.StrokeThickness = crossingLineThickness;
             //name
             vertLine.Name = name_vLine;
 
@@ -957,7 +990,7 @@ namespace GonoGoTask_wpfVer
                     {
                         float voltage = float.Parse(str_vol[0]);
 
-                        if (voltage < 1 && pressedStartpad == PressedStartpad.No)
+                        if (voltage < volTouch && pressedStartpad == PressedStartpad.No)
                         {/* time point from notouched state to touched state */
 
                             // the time point for startpad on
@@ -965,7 +998,7 @@ namespace GonoGoTask_wpfVer
 
                             pressedStartpad = PressedStartpad.Yes;
                         }
-                        else if (voltage > 1 && pressedStartpad == PressedStartpad.Yes)
+                        else if (voltage > volTouch && pressedStartpad == PressedStartpad.Yes)
                         {/* time point from touched state to notouched state */
 
                             startpadOn_TimePoint = globalWatch.ElapsedMilliseconds;
@@ -1111,6 +1144,8 @@ namespace GonoGoTask_wpfVer
             catch (TaskCanceledException)
             { 
                 Task task = null;
+                // Audio Feedback
+                player_Error.Play();
                 throw new TaskCanceledException(task);
             }
             
@@ -1130,6 +1165,7 @@ namespace GonoGoTask_wpfVer
                     if (waitWatch.ElapsedMilliseconds >= tMax_ReactionTimeMS)
                     {/* No release Startpad within tMax_ReactionTime */
                         waitWatch.Stop();
+                        noreactionGoTrialNum++;
                         throw new TaskCanceledException("No Reaction within the Max Reaction Time");
                     }
                 }
@@ -1149,6 +1185,7 @@ namespace GonoGoTask_wpfVer
                     if (waitWatch.ElapsedMilliseconds >= tMax_ReachTimeMS)
                     {/*No Screen Touched within tMax_ReachTime*/
                         waitWatch.Stop();
+                        noreachGoTrialNum++;
                         throw new TaskCanceledException("No Reach within the Max Reach Time");
                     }
                 }
@@ -1217,6 +1254,8 @@ namespace GonoGoTask_wpfVer
                 Remove_OneCrossing();
                 Add_GoCircle(pos_Target);
 
+                totalGoTrialNum++;
+
                 // Wait for Reaction within tMax_ReactionTime
                 pressedStartpad = PressedStartpad.Yes;
                 await Wait_Reaction();
@@ -1229,14 +1268,17 @@ namespace GonoGoTask_wpfVer
                 /*---- Go Target Touch States ----*/
                 if (gotargetTouchstate == GoTargetTouchState.goHit)
                 {/*Hit */
+                    successGoTrialNum++;
                     Interface_GoCorrect_Hit();
                 }
                 else if (gotargetTouchstate == GoTargetTouchState.goClose)
                 {/* touch close to the target*/
+                    successGoTrialNum++;
                     Feedback_GoCorrect_Close();
                 }
                 else if (gotargetTouchstate == GoTargetTouchState.goMissed)
                 {/* touch missed*/
+                    missGoTrialNum++;
                     Interface_GoERROR_Miss();
                 }
                 
@@ -1274,7 +1316,9 @@ namespace GonoGoTask_wpfVer
 
                 // Wait Startpad TouchedOn  for t_noGoShow
                 startpadHoldstate = StartPadHoldState.HoldTooShort;
+                totalNogoTrialNum++;
                 await Wait_EnoughTouch(t_noGoShow);
+                successNogoTrialNum++;
                 Feedback_noGoCorrect();
                 await Task.Delay(t_VisfeedbackShow);
             }
@@ -1308,7 +1352,6 @@ namespace GonoGoTask_wpfVer
         private void Interface_GoERROR_LongReactionReach()
         {
             Interface_GoERROR();
-
         }
 
         private void Interface_GoERROR_Miss()

@@ -74,7 +74,6 @@ namespace GonoGoTask_wpfVer
 
         private void Btn_Cancle_Click(object sender, RoutedEventArgs e)
         {
-            SaveTimeData();
             ResumeBtnStartStop();
             this.Close();
         }
@@ -86,6 +85,7 @@ namespace GonoGoTask_wpfVer
 
         private void Btn_OK_Click(object sender, RoutedEventArgs e)
         {
+            SaveTimeData();
             ResumeBtnStartStop();
             this.Close();
         }

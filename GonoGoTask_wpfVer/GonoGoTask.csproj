@@ -68,6 +68,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="SerialPortIO8.cs" />
     <Compile Include="SetupColorsWin.xaml.cs">
       <DependentUpon>SetupColorsWin.xaml</DependentUpon>
     </Compile>
@@ -76,6 +77,10 @@
     </Compile>
     <Compile Include="SetupTimeWin.xaml.cs">
       <DependentUpon>SetupTimeWin.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Startpad.cs" />
+    <Compile Include="TestStartpadJuicerWin.xaml.cs">
+      <DependentUpon>TestStartpadJuicerWin.xaml</DependentUpon>
     </Compile>
     <Compile Include="Utility.cs" />
     <Page Include="MainWindow.xaml">
@@ -103,6 +108,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="SetupTimeWin.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="TestStartpadJuicerWin.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

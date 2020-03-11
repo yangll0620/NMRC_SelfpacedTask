@@ -67,6 +67,7 @@ namespace GonoGoTask_wpfVer
 
             parent.goColorStr = (cbo_goColor.SelectedItem as PropertyInfo).Name;
             parent.nogoColorStr = (cbo_nogoColor.SelectedItem as PropertyInfo).Name;
+            parent.cueColorStr = (cbo_cueColor.SelectedItem as PropertyInfo).Name;
             parent.BKWaitTrialColorStr = (cbo_BKWaitTrialColor.SelectedItem as PropertyInfo).Name;
             parent.BKTrialColorStr = (cbo_BKTrialColor.SelectedItem as PropertyInfo).Name;
             parent.CorrFillColorStr = (cbo_CorrFillColor.SelectedItem as PropertyInfo).Name;
