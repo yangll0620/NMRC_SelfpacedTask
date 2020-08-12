@@ -10,6 +10,7 @@ namespace GonoGoTask_wpfVer
 {
     class Utility
     {
+        static public int ratioIn2Pixal = 96;
         public Utility()
         { }
 
@@ -56,11 +57,9 @@ namespace GonoGoTask_wpfVer
 
             return:
                 pixalen: converted length with unit pixal
-         */
+         */     
 
-            int ratio = 96;
-
-            int pixalen = (int)(inlen * ratio);
+            int pixalen = (int)(inlen * ratioIn2Pixal);
 
             return pixalen;
         }

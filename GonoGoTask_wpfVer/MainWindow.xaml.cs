@@ -43,6 +43,10 @@ namespace GonoGoTask_wpfVer
         // Target Related Variables
         public float targetDiameterInch, targetDisFromCenterInch, closeMarginPercentage;
 
+
+        // Touch Screen Rectangle
+        sd.Rectangle Rect_touchScreen;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -92,6 +96,11 @@ namespace GonoGoTask_wpfVer
                 btn_start.IsEnabled = false;
                 btn_stop.IsEnabled = false;
             }
+
+
+            // Get the touch Screen Rectangle
+            swf.Screen PrimaryScreen = swf.Screen.PrimaryScreen;
+            Rect_touchScreen = PrimaryScreen.WorkingArea;
         }
 
         private void Btn_comReconnect_Click(object sender, RoutedEventArgs e)
@@ -186,10 +195,15 @@ namespace GonoGoTask_wpfVer
                 file.WriteLine(String.Format("{0, -40}:  [{1} {2}]", "Ready Interface Show Time Range (s)", tRange_ReadyTime[0].ToString(), tRange_ReadyTime[1].ToString()));
                 file.WriteLine(String.Format("{0, -40}:  [{1} {2}]", "Cue Interface Show Time Range (s)", tRange_CueTime[0].ToString(), tRange_CueTime[1].ToString()));
                 file.WriteLine(String.Format("{0, -40}:  [{1} {2}]", "Nogo Interface Show Range Time (s)", tRange_NogoShowTime[0].ToString(), tRange_NogoShowTime[1].ToString()));
-                file.WriteLine(String.Format("{0, -40}:  {1}", "Reward Interface Show Time (s)", t_VisfeedbackShow.ToString()));
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Visual Feedback Time (s)", t_VisfeedbackShow.ToString()));
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Juicer Feedback Time (s)", t_JuicerCloseGivenS.ToString()));
 
                 file.WriteLine(String.Format("{0, -40}:  {1}", "Max Reach Time (s)", tMax_ReachTimeS.ToString()));
                 file.WriteLine(String.Format("{0, -40}:  {1}", "Max Reaction Time (s)", tMax_ReactionTimeS.ToString()));
+
+
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Screen Resolution(pixal)", Rect_touchScreen.Width.ToString() + "x" + Rect_touchScreen.Height.ToString()));
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Inch to Pixal Ratio", Utility.ratioIn2Pixal.ToString()));
 
             }
         }
@@ -429,23 +443,26 @@ namespace GonoGoTask_wpfVer
 
         private void btnStart_Click(object sender, RoutedEventArgs e)
         {
+            // save all the Input parameters
             saveInputParameters();
 
             // btn_Start and btn_stop
             btn_start.IsEnabled = false;
             btn_stop.IsEnabled = true;
 
-            // Get the touch Screen
-            swf.Screen PrimaryScreen = swf.Screen.PrimaryScreen;
 
             // Show the taskpresent Window on the Touch Screen
             taskPresentWin = new presentation(this);
-            sd.Rectangle Rect_touchScreen = PrimaryScreen.WorkingArea;
             taskPresentWin.Top = Rect_touchScreen.Top;
             taskPresentWin.Left = Rect_touchScreen.Left;
+
             taskPresentWin.Name = "childWin_Task";
             taskPresentWin.Owner = this;
 
+
+            
+
+            // Start the Task
             taskPresentWin.Show();
             taskPresentWin.Present_Start();
         }
@@ -475,8 +492,7 @@ namespace GonoGoTask_wpfVer
 
         private void btnTest_Click(object sender, RoutedEventArgs e)
         {
-            string serialPortIO8_Name = SerialPortIO8.Locate_serialPortIO8();
-            textBox_NHPName.Text = serialPortIO8_Name;
+            saveInputParameters();
         }
 
 

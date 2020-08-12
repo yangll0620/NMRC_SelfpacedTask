@@ -42,6 +42,19 @@ namespace GonoGoTask_wpfVer
             Reward,
         }
 
+        public enum TrialExeResult
+        {
+            readyWaitTooShort,
+            cueWaitTooShort,
+            goReactionTimeToolong,
+            goReachTimeToolong,
+            goHit,
+            goClose,
+            goMiss,
+            nogoMoved,
+            nogoSuccess
+        }
+
         public enum ScreenTouchState
         {
             Idle,
@@ -177,6 +190,9 @@ namespace GonoGoTask_wpfVer
         public int missGoTrialNum, noreactionGoTrialNum, noreachGoTrialNum;
         public int totalNogoTrialNum, successNogoTrialNum;
 
+        // executeresult of each trial
+        TrialExeResult trialExeResult;
+
         ScreenTouchState screenTouchstate;
 
 
@@ -206,6 +222,12 @@ namespace GonoGoTask_wpfVer
         // variables for recording the startpad touched on and off time point
         long startpadOn_TimePoint, startpadOff_TimePoint;
         long startpadOn_StartTrial_TimePoint;
+
+
+        // Variables for Various Time Points during trials
+        long timePoint_StartpadTouched, timePoint_StartpadLeft;
+        long timePoint_Interface_ReadyOnset, timePoint_Interface_CueOnset, timePoint_Interface_TargetOnset;
+
 
 
         /*****Methods*******/
@@ -279,7 +301,6 @@ namespace GonoGoTask_wpfVer
         public async void Present_Start()
         {                 
             float t_Cue, t_Ready, t_noGoShow;
-            int[] pos_WPoint1, pos_WPoint2;
             int[] pos_Taget;
             int targetPosInd;
 
@@ -287,75 +308,43 @@ namespace GonoGoTask_wpfVer
             globalWatch.Restart();
             thread_ReadWrite_IO8.Start();
             timestamp_0 = DateTime.Now.Ticks;
-            int triali = 0;
+            int totalTriali = 0;
             PresentTrial = true;
-            while (triali < targetType_List.Count && PresentTrial)
+            while (targetType_List.Count > 0 && PresentTrial)
             {
-                // Extract Parameters for this trial
-                targetType = targetType_List[triali];
-                pos_WPoint1 = optPostions_List[otherPosInds_List[triali][0]];
-                pos_WPoint2 = optPostions_List[otherPosInds_List[triali][1]];
-                targetPosInd = targetPosInd_List[triali];
+                // Extract trial parameters, always using the trial at index 0
+                targetType = targetType_List[0];
+                targetPosInd = targetPosInd_List[0];
                 pos_Taget = optPostions_List[targetPosInd];
-                t_Cue = t_Cue_List[triali];
-                t_Ready = t_Ready_List[triali];
-                t_noGoShow = t_noGoShow_List[triali];
+                t_Cue = t_Cue_List[0];
+                t_Ready = t_Ready_List[0];
+                t_noGoShow = t_noGoShow_List[0];
 
-                // Write trial related Information
-                using (StreamWriter file = File.AppendText(file_saved))
-                {
-                    file.WriteLine("\n");
 
-                    file.WriteLine(String.Format("{0, -20}: {1}", "TrialNum", (triali + 1).ToString()));
-                    file.WriteLine(String.Format("{0, -20}: {1}", "TargetType", targetType.ToString()));
-                    file.WriteLine(String.Format("{0, -20}: {1}", "TargetPositionIndex", targetPosInd.ToString()));
-                    file.WriteLine(String.Format("{0, -20}: {1}", "Ready Interface Time", t_Ready.ToString()));
-                    file.WriteLine(String.Format("{0, -20}: {1}", "Cue Interface Time", t_Cue.ToString()));
-                }      
+                totalTriali++;
+
 
                 /*----- WaitStartTrial Interface ------*/
                 pressedStartpad = PressedStartpad.No;
                 await Interface_WaitStartTrial();
-                startpadOn_StartTrial_TimePoint = startpadOn_TimePoint;
-                using (StreamWriter file = File.AppendText(file_saved))
-                {
-                    file.WriteLine(String.Format("{0, -20}: {1}", "Startpad Touched On Time", startpadOn_TimePoint.ToString()));
-                }
 
                 /*-------- Trial Interfaces -------*/
                 try
                 {
                     // Ready Interface
                     await Interface_Ready(t_Ready);
-                    // Cue Interface
-                    await Interface_Cue(t_Cue, pos_Taget, pos_WPoint1, pos_WPoint2);
 
-                    // Go or noGo Interface
+                    // Cue Interface
+                    await Interface_Cue(t_Cue, pos_Taget);
+
+                    // Go or noGo Target Interface
                     if (targetType == TargetType.Go)
                     {
                         await Interface_Go(pos_Taget);
-
-                        if (gotargetTouchstate == GoTargetTouchState.goHit || gotargetTouchstate == GoTargetTouchState.goClose)
-                        {
-                            triali++;
-                        }
-
-
-                        using (StreamWriter file = File.AppendText(file_saved))
-                        {
-                            for (int i = 0; i < downPoints_PosTime.Count; i++)
-                            {
-                                double[] downPoint = downPoints_PosTime[i];
-                                String downPointstr = downPoint[0].ToString() + " (" + downPoint[1].ToString() + ", " + downPoint[2].ToString() + ")";
-                                file.WriteLine(String.Format("{0}{1, -20}: {2}", "Touch Point", i.ToString(), downPointstr));
-                            }
-                            file.WriteLine(String.Format("{0, -20}: {1}", "calc TouchState Points:", calcTouchStateString));
-                        }
                     }
                     else
                     {
                         await Interface_noGo(t_noGoShow, pos_Taget);
-                        triali++;
                     }
 
                     Update_FeedbackTrialsInformation();
@@ -365,14 +354,166 @@ namespace GonoGoTask_wpfVer
                 {
                     Update_FeedbackTrialsInformation();
                     Remove_All();
-                    continue;
-                }             
-            }
+                }
 
 
-            if(triali == targetType_List.Count)
-            {// Present all Trials
-                myGridBorder.BorderBrush = brush_CorrectFill;
+                if (targetType_List.Count == 0)
+                {// Finished all Trials, show different Border Color 
+                    myGridBorder.BorderBrush = brush_CorrectFill;
+                }
+
+                if(trialExeResult == TrialExeResult.goClose | trialExeResult == TrialExeResult.goHit | trialExeResult == TrialExeResult.nogoSuccess)
+                {
+                    // Remove the trial setting only when success
+                    targetType_List.RemoveAt(0);
+                    targetPosInd_List.RemoveAt(0);
+                    t_Cue_List.RemoveAt(0);
+                    t_Ready_List.RemoveAt(0);
+                    t_noGoShow_List.RemoveAt(0);
+                }
+
+                /*-------- Write Trial Information ------*/
+                String strExeFail = "Failed";
+                String strExeSucccess = "Success";
+                using (StreamWriter file = File.AppendText(file_saved))
+                {
+                    file.WriteLine("\n");
+
+                    // Trial Num
+                    file.WriteLine(String.Format("{0, -40}: {1}", "TrialNum", totalTriali.ToString()));
+                    
+                    // the timepoint when touching the startpad to initial a new trial
+                    file.WriteLine(String.Format("{0, -40}: {1}", "Startpad Touched TimePoint(ms)", timePoint_StartpadTouched.ToString()));
+                    
+                    // Start Interface showed TimePoint
+                    file.WriteLine(String.Format("{0, -40}: {1}", "Ready Start TimePoint (ms)", timePoint_Interface_ReadyOnset.ToString()));
+                    
+                    // Ready Time
+                    file.WriteLine(String.Format("{0, -40}: {1}", "Ready Interface Time (s)", t_Ready.ToString()));
+
+                    
+                    // Case Written
+                    if (trialExeResult == TrialExeResult.readyWaitTooShort)
+                    {// case: ready WaitTooShort
+                        
+                        // Left startpad early during ready
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Startpad Left TimePoint(ms)", timePoint_StartpadLeft.ToString()));
+
+                        // trial exe result : success or fail
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Trial Result", "Left Startpad during Ready"));
+                    }
+                    else if (trialExeResult == TrialExeResult.cueWaitTooShort)
+                    {// case: Cue WaitTooShort
+
+                        // Cue Time and Left startpad early during Cue
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Cue Interface Time (s)", t_Cue.ToString()));
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Startpad Left TimePoint(ms)", timePoint_StartpadLeft.ToString()));
+
+                        // trial exe result : success or fail
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Trial Result", "Left Startpad during Cue"));
+                    }
+                    else if (trialExeResult == TrialExeResult.goReactionTimeToolong)
+                    {// case : goReactionTimeToolong 
+
+                        // Cue Time
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Cue Interface Time (s)", t_Cue.ToString()));
+
+                        // Target type: Go, and Target position index: 0 (1, 2)
+                        file.WriteLine(String.Format("{0, -20}: {1}", "TargetType", targetType.ToString()));
+                        file.WriteLine(String.Format("{0, -20}: {1}", "TargetPositionIndex", targetPosInd.ToString()));
+
+                        
+                        // trial exe result : success or fail
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Trial Result", "No React"));
+                    }
+                    else if (trialExeResult == TrialExeResult.goReachTimeToolong)
+                    {// case : goReachTimeToolong
+
+                        // Cue Time
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Cue Interface Time (s)", t_Cue.ToString()));
+
+
+                        // Target type: Go, and Target position index: 0 (1, 2)
+                        file.WriteLine(String.Format("{0, -40}: {1}", "TargetType", targetType.ToString()));
+                        file.WriteLine(String.Format("{0, -40}: {1}", "TargetPositionIndex", targetPosInd.ToString()));
+                        // Target interface:  Left Startpad Time Point
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Startpad Left TimePoint(ms)", timePoint_StartpadLeft.ToString()));
+
+
+                        // trial exe result : success or fail
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Trial Result", "Reach too Slow"));
+                    }
+                    else if (trialExeResult == TrialExeResult.goClose | trialExeResult == TrialExeResult.goHit | trialExeResult == TrialExeResult.goMiss)
+                    {// case: Go success (goClose or goHit) or goMiss
+
+                        // Cue Time
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Cue Interface Time (s)", t_Cue.ToString()));
+
+                        // Target type: Go, and Target position index: 0 (1, 2)
+                        file.WriteLine(String.Format("{0, -40}: {1}", "TargetType", targetType.ToString()));
+                        file.WriteLine(String.Format("{0, -40}: {1}", "TargetPositionIndex", targetPosInd.ToString()));
+
+                        // Target interface:  Left Startpad Time Point
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Startpad Left TimePoint(ms)", timePoint_StartpadLeft.ToString()));
+                        //  Target interface:  touch timepoint and (x, y position) of all touch points
+                        for (int pointi = 0; pointi < downPoints_PosTime.Count; pointi++)
+                        {
+                            double[] downPoint = downPoints_PosTime[pointi];
+                            String downPointstr = downPoint[0].ToString() + " (" + downPoint[1].ToString() + ", " + downPoint[2].ToString() + ")";
+                            file.WriteLine(String.Format("{0}{1, -40}: {2}", "Touch Point", pointi.ToString() + " TimePoint (X, Y Position)", downPointstr));
+                        }
+
+
+                        // trial exe result : success or fail
+                        if (trialExeResult == TrialExeResult.goMiss)
+                            file.WriteLine(String.Format("{0, -40}: {1}", "Trial Result", "Miss the Go Target"));
+                        else
+                            file.WriteLine(String.Format("{0, -40}: {1}", "Trial Result", "Hit the Go Target"));
+
+                    }
+                    else if (trialExeResult == TrialExeResult.nogoMoved)
+                    { // case: noGo moved 
+
+                        // Cue Time
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Cue Interface Time (s)", t_Cue.ToString()));
+
+
+
+                        // Target type: Go, and Target position index: 0 (1, 2)
+                        file.WriteLine(String.Format("{0, -40}: {1}", "TargetType", targetType.ToString()));
+                        file.WriteLine(String.Format("{0, -40}: {1}", "TargetPositionIndex", targetPosInd.ToString()));
+
+                        // Target nogo interface show time
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Nogo Interface Show Time(s)", t_noGoShow.ToString()));
+
+                        // Target interface:  Left Startpad Time Point
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Startpad Left TimePoint(ms)", timePoint_StartpadLeft.ToString()));
+
+
+
+
+                        // trial exe result : success or fail
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Trial Result", "Left Startpad duing Nogo Target Showing"));
+
+                    }
+                    else if (trialExeResult == TrialExeResult.nogoSuccess)
+                    { // case: noGo success 
+
+                        // Cue Time
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Cue Interface Time (s)", t_Cue.ToString()));
+
+                        // Target type: Go, and Target position index: 0 (1, 2)
+                        file.WriteLine(String.Format("{0, -40}: {1}", "TargetType", targetType.ToString()));
+                        file.WriteLine(String.Format("{0, -40}: {1}", "TargetPositionIndex", targetPosInd.ToString()));
+                        // Target nogo interface show time
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Nogo Interface Show Time(s)", t_noGoShow.ToString()));
+
+
+                        // trial exe result : success or fail
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Trial Result", "Success for Nogo Task"));
+                    }
+
+                }
             }
         }
 
@@ -585,24 +726,19 @@ namespace GonoGoTask_wpfVer
             // save
             using (StreamWriter file = File.AppendText(file_saved))
             {
+                
                 // Store all the optional positions
-                for(int i=0; i< optPostions_List.Count; i++)
+                file.WriteLine("\n");
+                for (int i=0; i< optPostions_List.Count; i++)
                 {
                     int[] position = optPostions_List[i];
                     file.WriteLine(String.Format("{0}{1, -10}:{2}, {3}", "Optional Postion ", i, position[0], position[1]));
                 }
 
 
-                file.WriteLine("\n");
+                file.WriteLine("\n\n\n");
 
                 file.WriteLine("Trial Information:");
-                file.WriteLine(String.Format("{0, -10}  {1, -20} {2, -10} {3, -20}  " +
-                    "{4, -20} {5, -20} {6, -20}  {7, -20} {8, -20} {9, -20}  {10, -20} {11, -20}",
-                    "TrialNumber", "TrialStartTime",
-                    "Go or Nogo", "Object Position",
-                    "Ready Interface Onset Time", "Cue Interface Onset Time", "Go/Nogo Interface Onset Time",
-                    "Startpad Onset Time", "Startpad Off Time", "Screen Touched Time",
-                    "Trial Result", "Touched Coordinates"));
             }
         }
 
@@ -993,15 +1129,16 @@ namespace GonoGoTask_wpfVer
                         if (voltage < volTouch && pressedStartpad == PressedStartpad.No)
                         {/* time point from notouched state to touched state */
 
-                            // the time point for startpad on
-                            startpadOn_TimePoint = globalWatch.ElapsedMilliseconds;
-
+                            // the time point for startpad touched
+                            timePoint_StartpadTouched = globalWatch.ElapsedMilliseconds;
+                            
                             pressedStartpad = PressedStartpad.Yes;
                         }
                         else if (voltage > volTouch && pressedStartpad == PressedStartpad.Yes)
                         {/* time point from touched state to notouched state */
 
-                            startpadOn_TimePoint = globalWatch.ElapsedMilliseconds;
+                            // the time point for leaving startpad
+                            timePoint_StartpadLeft = globalWatch.ElapsedMilliseconds;
                             pressedStartpad = PressedStartpad.No;
                         }
                     }
@@ -1028,25 +1165,7 @@ namespace GonoGoTask_wpfVer
             Task task_WaitStart = Task.Run(() =>
             {
                 while (PresentTrial && pressedStartpad == PressedStartpad.No) ;
-            });
 
-            return task_WaitStart;
-        }
-
-        private Task Interface_WaitStartTrial2()
-        {
-            /* task for WaitStart interface
-             * 
-             * Wait for Startpad touch to trigger a new Trial
-             */
-
-            Remove_All();
-            myGrid.Background = brush_BKWaitTrialStart;
-            myGridBorder.BorderBrush = brush_BDWaitTrialStart;
-
-            Task task_WaitStart = Task.Run(() =>
-            {
-                while (pressedStartpad == PressedStartpad.No) ;
             });
 
             return task_WaitStart;
@@ -1068,6 +1187,7 @@ namespace GonoGoTask_wpfVer
             {
                 Stopwatch touchedWatch = new Stopwatch();
                 touchedWatch.Restart();
+                
                 while (PresentTrial && pressedStartpad == PressedStartpad.Yes && startpadHoldstate != StartPadHoldState.HoldEnough)
                 {
                     if (touchedWatch.ElapsedMilliseconds >= t_EnoughTouch * 1000)
@@ -1097,7 +1217,8 @@ namespace GonoGoTask_wpfVer
             try
             {
                 myGrid.Background = brush_BKTrial;
-               
+                timePoint_Interface_ReadyOnset = globalWatch.ElapsedMilliseconds;
+
                 // Wait Startpad Hold Enough Time
                 startpadHoldstate = StartPadHoldState.HoldTooShort;
                 await Wait_EnoughTouch(t_Ready);
@@ -1105,13 +1226,15 @@ namespace GonoGoTask_wpfVer
             }
             catch (TaskCanceledException)
             {
+                // trial execute result: waitReadyTooShort 
+                trialExeResult = TrialExeResult.readyWaitTooShort;
                 Task task = null;
                 throw new TaskCanceledException(task);
             }
         }
 
  
-        public async Task Interface_Cue(float t_Cue, int[] onecrossingPos, int[] wpointpos1, int[] wpointpos2)
+        public async Task Interface_Cue(float t_Cue, int[] onecrossingPos)
         {/* task for Cue Interface 
             Show the Cue Interface while Listen to the state of the startpad. 
             
@@ -1133,8 +1256,8 @@ namespace GonoGoTask_wpfVer
 
                 // add one crossing on the right middle
                 Add_OneCrossing(onecrossingPos);
-                // two white points on left middle and top middle
-                //Add_TwoWhitePoints(wpointpos1, wpointpos2);
+
+                timePoint_Interface_CueOnset = globalWatch.ElapsedMilliseconds;
 
                 // wait target cue for several seconds
                 startpadHoldstate = StartPadHoldState.HoldTooShort;
@@ -1142,10 +1265,15 @@ namespace GonoGoTask_wpfVer
 
             }
             catch (TaskCanceledException)
-            { 
-                Task task = null;
+            {
+             
                 // Audio Feedback
                 player_Error.Play();
+
+                // trial execute result: waitReadyTooShort 
+                trialExeResult = TrialExeResult.cueWaitTooShort;
+
+                Task task = null;
                 throw new TaskCanceledException(task);
             }
             
@@ -1165,7 +1293,10 @@ namespace GonoGoTask_wpfVer
                     if (waitWatch.ElapsedMilliseconds >= tMax_ReactionTimeMS)
                     {/* No release Startpad within tMax_ReactionTime */
                         waitWatch.Stop();
+
                         noreactionGoTrialNum++;
+                        trialExeResult = TrialExeResult.goReactionTimeToolong;
+
                         throw new TaskCanceledException("No Reaction within the Max Reaction Time");
                     }
                 }
@@ -1185,7 +1316,9 @@ namespace GonoGoTask_wpfVer
                     if (waitWatch.ElapsedMilliseconds >= tMax_ReachTimeMS)
                     {/*No Screen Touched within tMax_ReachTime*/
                         waitWatch.Stop();
+
                         noreachGoTrialNum++;
+                        trialExeResult = TrialExeResult.goReachTimeToolong;
                         throw new TaskCanceledException("No Reach within the Max Reach Time");
                     }
                 }
@@ -1206,16 +1339,15 @@ namespace GonoGoTask_wpfVer
 
             double distance; 
             gotargetTouchstate = GoTargetTouchState.goMissed;
-            calcTouchStateString = "r = " + circleGo_radius.ToString(); 
             while (downPoints_Pos.Count > 0)
             {
+                // always deal with the point at 0
                 Point touchp = new Point(downPoints_Pos[0][0], downPoints_Pos[0][1]);
 
                 // distance between the touchpoint and the center of the circleGo
                 distance = Point.Subtract(circleGo_centerPoint, touchp).Length;
 
-                calcTouchStateString = calcTouchStateString + "\n dis = " + distance.ToString() + 
-                    ", (" + downPoints_Pos[0][0].ToString() + "," + downPoints_Pos[0][1].ToString() + ")";
+
                 if (distance <= circleGo_radius)
                 {// Hit 
                     gotargetTouchstate = GoTargetTouchState.goHit;
@@ -1227,12 +1359,12 @@ namespace GonoGoTask_wpfVer
                     gotargetTouchstate = GoTargetTouchState.goClose;
                 }
 
+                // remove the downPoint at 0
                 downPoints_Pos.RemoveAt(0);
             }
             downPoints_Pos.Clear();
-            calcTouchStateString = calcTouchStateString + "\n " + gotargetTouchstate.ToString();
         }
-
+          
 
         private async Task Interface_Go(int[] pos_Target)
         {/* task for Go Interface: Show the Go Interface while Listen to the state of the startpad.
@@ -1254,6 +1386,9 @@ namespace GonoGoTask_wpfVer
                 Remove_OneCrossing();
                 Add_GoCircle(pos_Target);
 
+                // go target Onset Time Point
+                timePoint_Interface_TargetOnset = globalWatch.ElapsedMilliseconds;
+
                 totalGoTrialNum++;
 
                 // Wait for Reaction within tMax_ReactionTime
@@ -1268,18 +1403,34 @@ namespace GonoGoTask_wpfVer
                 /*---- Go Target Touch States ----*/
                 if (gotargetTouchstate == GoTargetTouchState.goHit)
                 {/*Hit */
+
+                    Feedback_GoCorrect_Hit();
+
                     successGoTrialNum++;
-                    Interface_GoCorrect_Hit();
+
+                    // trial execute result: goHit 
+                    trialExeResult = TrialExeResult.goHit;
+                    
                 }
                 else if (gotargetTouchstate == GoTargetTouchState.goClose)
                 {/* touch close to the target*/
-                    successGoTrialNum++;
+                    
                     Feedback_GoCorrect_Close();
+
+                    successGoTrialNum++;
+
+                    // trial execute result: goClose 
+                    trialExeResult = TrialExeResult.goClose;
                 }
                 else if (gotargetTouchstate == GoTargetTouchState.goMissed)
                 {/* touch missed*/
+                    
+                    Feedback_GoERROR_Miss();
+
                     missGoTrialNum++;
-                    Interface_GoERROR_Miss();
+
+                    // trial execute result: goMiss 
+                    trialExeResult = TrialExeResult.goMiss;
                 }
                 
                 await Task.Delay(t_VisfeedbackShow);
@@ -1314,17 +1465,29 @@ namespace GonoGoTask_wpfVer
                 Remove_OneCrossing();
                 Add_NogoRect(pos_Target);
 
+                // noGo target Onset Time Point
+                timePoint_Interface_TargetOnset = globalWatch.ElapsedMilliseconds;
+
+                totalNogoTrialNum++;
+
                 // Wait Startpad TouchedOn  for t_noGoShow
                 startpadHoldstate = StartPadHoldState.HoldTooShort;
-                totalNogoTrialNum++;
                 await Wait_EnoughTouch(t_noGoShow);
-                successNogoTrialNum++;
+
+                // noGo trial success when running here
                 Feedback_noGoCorrect();
+
+                successNogoTrialNum++;
+                trialExeResult = TrialExeResult.nogoSuccess;
+
                 await Task.Delay(t_VisfeedbackShow);
             }
             catch (TaskCanceledException)
             {
                 Feedback_noGoError();
+
+                trialExeResult = TrialExeResult.nogoMoved;
+
                 await Task.Delay(t_VisfeedbackShow);
                 throw new TaskCanceledException("Startpad Touched off within t_nogoshow");
             }
@@ -1332,7 +1495,7 @@ namespace GonoGoTask_wpfVer
         }
 
 
-        private void Interface_GoERROR()
+        private void Feedback_GoERROR()
         {
             // Visual Feedback
             //myGridBorder.BorderBrush = brush_ErrorFill;
@@ -1351,15 +1514,15 @@ namespace GonoGoTask_wpfVer
         }
         private void Interface_GoERROR_LongReactionReach()
         {
-            Interface_GoERROR();
+            Feedback_GoERROR();
         }
 
-        private void Interface_GoERROR_Miss()
+        private void Feedback_GoERROR_Miss()
         {
-            Interface_GoERROR();
+            Feedback_GoERROR();
         }
 
-        private void Interface_GoCorrect_Hit()
+        private void Feedback_GoCorrect_Hit()
         {
             // Visual Feedback
             //myGridBorder.BorderBrush = brush_CorrectFill;
@@ -1422,93 +1585,11 @@ namespace GonoGoTask_wpfVer
         }
 
 
-        private void UpdateBackground(string message)
-        {
-            myGrid.Background = brush_BKTrial;
-        }
-
-
-
-
         public void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             Present_Stop();
             parent.btn_start.IsEnabled = true;
             parent.btn_stop.IsEnabled = false;
-        }
-
-
-
-        private Ellipse AddCircle(double diameter, Color color)
-        {
-            // Create an Ellipse  
-            Ellipse circleAdd = new Ellipse();
-
-            // Create a Brush    
-            SolidColorBrush brush = new SolidColorBrush();
-            brush.Color = color;
-
-
-            circleAdd.Fill = brush;
-
-            // set the size, position of circleGo
-            circleAdd.Height = diameter;
-            circleAdd.Width = diameter;
-            circleAdd.VerticalAlignment = VerticalAlignment.Top;
-            circleAdd.HorizontalAlignment = HorizontalAlignment.Left;
-
-
-            return circleAdd;
-        }
-
-        private Rectangle AddRect(double diameter, Color color)
-        {
-            // Create an Rectangle  
-            Rectangle rect = new Rectangle();
-
-            // Create a Brush    
-            SolidColorBrush brush = new SolidColorBrush();
-            brush.Color = color;
-
-
-            rect.Fill = brush;
-
-            // set the size, position of circleGo
-            rect.Height = diameter;
-            rect.Width = diameter;
-            rect.VerticalAlignment = VerticalAlignment.Top;
-            rect.HorizontalAlignment = HorizontalAlignment.Left;
-
-
-            return rect;
-        }
-
-        private Line AddLine(Point P1, Point P2)
-        {
-            int linethickness = 2;
-
-            Line line = new Line();
-
-            line.X1 = P1.X;
-            line.Y1 = P1.Y;
-            line.X2 = P2.X;
-            line.Y2 = P2.Y;
-
-            line.HorizontalAlignment = HorizontalAlignment.Left;
-            line.VerticalAlignment = VerticalAlignment.Top;
-
-
-            // line color
-            SolidColorBrush whiteBrush = new SolidColorBrush();
-            whiteBrush.Color = Colors.Black;
-            line.Stroke = whiteBrush;
-
-            // horizontal line stroke thickness
-            line.StrokeThickness = linethickness;
-
-            //Line[] Crossing = new Line[] { vertLine, horiLine };
-
-            return line;
         }
 
 
