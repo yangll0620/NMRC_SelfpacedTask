@@ -219,9 +219,6 @@ namespace GonoGoTask_wpfVer
 
         // Global stopwatch
         Stopwatch globalWatch;
-        // variables for recording the startpad touched on and off time point
-        long startpadOn_TimePoint, startpadOff_TimePoint;
-        long startpadOn_StartTrial_TimePoint;
 
 
         // Variables for Various Time Points during trials
@@ -304,6 +301,9 @@ namespace GonoGoTask_wpfVer
             int[] pos_Taget;
             int targetPosInd;
 
+            Random r = new Random();
+            int randomIndex;
+
             // Present Each Trial
             globalWatch.Restart();
             thread_ReadWrite_IO8.Start();
@@ -312,13 +312,16 @@ namespace GonoGoTask_wpfVer
             PresentTrial = true;
             while (targetType_List.Count > 0 && PresentTrial)
             {
+                // choose a random index in list targetType_List
+                randomIndex = r.Next(0, targetType_List.Count);
+
                 // Extract trial parameters, always using the trial at index 0
-                targetType = targetType_List[0];
-                targetPosInd = targetPosInd_List[0];
+                targetType = targetType_List[randomIndex];
+                targetPosInd = targetPosInd_List[randomIndex];
                 pos_Taget = optPostions_List[targetPosInd];
-                t_Cue = t_Cue_List[0];
-                t_Ready = t_Ready_List[0];
-                t_noGoShow = t_noGoShow_List[0];
+                t_Cue = t_Cue_List[randomIndex];
+                t_Ready = t_Ready_List[randomIndex];
+                t_noGoShow = t_noGoShow_List[randomIndex];
 
 
                 totalTriali++;
@@ -327,6 +330,7 @@ namespace GonoGoTask_wpfVer
                 /*----- WaitStartTrial Interface ------*/
                 pressedStartpad = PressedStartpad.No;
                 await Interface_WaitStartTrial();
+
 
                 /*-------- Trial Interfaces -------*/
                 try
@@ -357,26 +361,40 @@ namespace GonoGoTask_wpfVer
                 }
 
 
-                if (targetType_List.Count == 0)
-                {// Finished all Trials, show different Border Color 
-                    myGridBorder.BorderBrush = brush_CorrectFill;
-                }
-
                 if(trialExeResult == TrialExeResult.goClose | trialExeResult == TrialExeResult.goHit | trialExeResult == TrialExeResult.nogoSuccess)
                 {
                     // Remove the trial setting only when success
-                    targetType_List.RemoveAt(0);
-                    targetPosInd_List.RemoveAt(0);
-                    t_Cue_List.RemoveAt(0);
-                    t_Ready_List.RemoveAt(0);
-                    t_noGoShow_List.RemoveAt(0);
+                    targetType_List.RemoveAt(randomIndex);
+                    targetPosInd_List.RemoveAt(randomIndex);
+                    t_Cue_List.RemoveAt(randomIndex);
+                    t_Ready_List.RemoveAt(randomIndex);
+                    t_noGoShow_List.RemoveAt(randomIndex);
                 }
 
                 /*-------- Write Trial Information ------*/
+                List<String> strExeSubResult = new List<String>();
+                strExeSubResult.Add("readyWaitTooShort");
+                strExeSubResult.Add("cueWaitTooShort");
+                strExeSubResult.Add("goReactionTimeToolong");
+                strExeSubResult.Add("goReachTimeToolong");
+                strExeSubResult.Add("goMiss");
+                strExeSubResult.Add("goSuccess");
+                strExeSubResult.Add("nogoMoved");
+                strExeSubResult.Add("nogoSuccess");
                 String strExeFail = "Failed";
-                String strExeSucccess = "Success";
+                String strExeSuccess = "Success";
                 using (StreamWriter file = File.AppendText(file_saved))
                 {
+
+                    if (totalTriali > 1)
+                    { // Startpad touched in trial i+1 treated as the return point as in trial i        
+
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Returned to Startpad TimePoint(ms)", timePoint_StartpadTouched.ToString()));
+                    }
+
+
+                    /* Current Trial Written Inf*/
+
                     file.WriteLine("\n");
 
                     // Trial Num
@@ -392,7 +410,7 @@ namespace GonoGoTask_wpfVer
                     file.WriteLine(String.Format("{0, -40}: {1}", "Ready Interface Time (s)", t_Ready.ToString()));
 
                     
-                    // Case Written
+                    // Various Cases
                     if (trialExeResult == TrialExeResult.readyWaitTooShort)
                     {// case: ready WaitTooShort
                         
@@ -400,40 +418,44 @@ namespace GonoGoTask_wpfVer
                         file.WriteLine(String.Format("{0, -40}: {1}", "Startpad Left TimePoint(ms)", timePoint_StartpadLeft.ToString()));
 
                         // trial exe result : success or fail
-                        file.WriteLine(String.Format("{0, -40}: {1}", "Trial Result", "Left Startpad during Ready"));
+                        file.WriteLine(String.Format("{0, -40}: {1}, {2}", "Trial Result", strExeFail, strExeSubResult[0]));
                     }
                     else if (trialExeResult == TrialExeResult.cueWaitTooShort)
                     {// case: Cue WaitTooShort
 
-                        // Cue Time and Left startpad early during Cue
+                        // Cue Interface Timepoint, Cue Time and Left startpad early during Cue
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Cue Start TimePoint (ms)", timePoint_Interface_CueOnset.ToString()));
                         file.WriteLine(String.Format("{0, -40}: {1}", "Cue Interface Time (s)", t_Cue.ToString()));
                         file.WriteLine(String.Format("{0, -40}: {1}", "Startpad Left TimePoint(ms)", timePoint_StartpadLeft.ToString()));
 
                         // trial exe result : success or fail
-                        file.WriteLine(String.Format("{0, -40}: {1}", "Trial Result", "Left Startpad during Cue"));
+                        file.WriteLine(String.Format("{0, -40}: {1}, {2}", "Trial Result", strExeFail, strExeSubResult[1]));
                     }
                     else if (trialExeResult == TrialExeResult.goReactionTimeToolong)
                     {// case : goReactionTimeToolong 
 
-                        // Cue Time
+                        // Cue Interface Timepoint and Cue Time
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Cue Start TimePoint (ms)", timePoint_Interface_CueOnset.ToString()));
                         file.WriteLine(String.Format("{0, -40}: {1}", "Cue Interface Time (s)", t_Cue.ToString()));
 
-                        // Target type: Go, and Target position index: 0 (1, 2)
-                        file.WriteLine(String.Format("{0, -20}: {1}", "TargetType", targetType.ToString()));
-                        file.WriteLine(String.Format("{0, -20}: {1}", "TargetPositionIndex", targetPosInd.ToString()));
+                        // Cue Interface Timepoint, Target type: Go, and Target position index: 0 (1, 2)
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Target Start TimePoint (ms)", timePoint_Interface_TargetOnset.ToString()));
+                        file.WriteLine(String.Format("{0, -40}: {1}", "TargetType", targetType.ToString()));
+                        file.WriteLine(String.Format("{0, -40}: {1}", "TargetPositionIndex", targetPosInd.ToString()));
 
-                        
+
                         // trial exe result : success or fail
-                        file.WriteLine(String.Format("{0, -40}: {1}", "Trial Result", "No React"));
+                        file.WriteLine(String.Format("{0, -40}: {1}, {2}", "Trial Result", strExeFail, strExeSubResult[2]));
                     }
                     else if (trialExeResult == TrialExeResult.goReachTimeToolong)
                     {// case : goReachTimeToolong
 
-                        // Cue Time
+                        // Cue Interface Timepoint and Cue Time
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Cue Start TimePoint (ms)", timePoint_Interface_CueOnset.ToString()));
                         file.WriteLine(String.Format("{0, -40}: {1}", "Cue Interface Time (s)", t_Cue.ToString()));
 
-
-                        // Target type: Go, and Target position index: 0 (1, 2)
+                        // Cue Interface Timepoint, Target type: Go, and Target position index: 0 (1, 2)
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Target Start TimePoint (ms)", timePoint_Interface_TargetOnset.ToString()));
                         file.WriteLine(String.Format("{0, -40}: {1}", "TargetType", targetType.ToString()));
                         file.WriteLine(String.Format("{0, -40}: {1}", "TargetPositionIndex", targetPosInd.ToString()));
                         // Target interface:  Left Startpad Time Point
@@ -441,15 +463,17 @@ namespace GonoGoTask_wpfVer
 
 
                         // trial exe result : success or fail
-                        file.WriteLine(String.Format("{0, -40}: {1}", "Trial Result", "Reach too Slow"));
+                        file.WriteLine(String.Format("{0, -40}: {1}, {2}", "Trial Result", strExeFail, strExeSubResult[3]));
                     }
                     else if (trialExeResult == TrialExeResult.goClose | trialExeResult == TrialExeResult.goHit | trialExeResult == TrialExeResult.goMiss)
                     {// case: Go success (goClose or goHit) or goMiss
 
-                        // Cue Time
+                        // Cue Interface Timepoint and Cue Time
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Cue Start TimePoint (ms)", timePoint_Interface_CueOnset.ToString()));
                         file.WriteLine(String.Format("{0, -40}: {1}", "Cue Interface Time (s)", t_Cue.ToString()));
 
-                        // Target type: Go, and Target position index: 0 (1, 2)
+                        // Cue Interface Timepoint, Target type: Go, and Target position index: 0 (1, 2)
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Target Start TimePoint (ms)", timePoint_Interface_TargetOnset.ToString()));
                         file.WriteLine(String.Format("{0, -40}: {1}", "TargetType", targetType.ToString()));
                         file.WriteLine(String.Format("{0, -40}: {1}", "TargetPositionIndex", targetPosInd.ToString()));
 
@@ -466,20 +490,20 @@ namespace GonoGoTask_wpfVer
 
                         // trial exe result : success or fail
                         if (trialExeResult == TrialExeResult.goMiss)
-                            file.WriteLine(String.Format("{0, -40}: {1}", "Trial Result", "Miss the Go Target"));
+                            file.WriteLine(String.Format("{0, -40}: {1}, {2}", "Trial Result", strExeFail, strExeSubResult[4]));
                         else
-                            file.WriteLine(String.Format("{0, -40}: {1}", "Trial Result", "Hit the Go Target"));
+                            file.WriteLine(String.Format("{0, -40}: {1}, {2}", "Trial Result", strExeSuccess, strExeSubResult[5]));
 
                     }
                     else if (trialExeResult == TrialExeResult.nogoMoved)
                     { // case: noGo moved 
 
-                        // Cue Time
+                        // Cue Interface Timepoint and Cue Time
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Cue Start TimePoint (ms)", timePoint_Interface_CueOnset.ToString()));
                         file.WriteLine(String.Format("{0, -40}: {1}", "Cue Interface Time (s)", t_Cue.ToString()));
 
-
-
-                        // Target type: Go, and Target position index: 0 (1, 2)
+                        // Cue Interface Timepoint, Target type: Go, and Target position index: 0 (1, 2)
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Target Start TimePoint (ms)", timePoint_Interface_TargetOnset.ToString()));
                         file.WriteLine(String.Format("{0, -40}: {1}", "TargetType", targetType.ToString()));
                         file.WriteLine(String.Format("{0, -40}: {1}", "TargetPositionIndex", targetPosInd.ToString()));
 
@@ -491,18 +515,19 @@ namespace GonoGoTask_wpfVer
 
 
 
-
                         // trial exe result : success or fail
-                        file.WriteLine(String.Format("{0, -40}: {1}", "Trial Result", "Left Startpad duing Nogo Target Showing"));
+                        file.WriteLine(String.Format("{0, -40}: {1}, {2}", "Trial Result", strExeFail, strExeSubResult[6]));
 
                     }
                     else if (trialExeResult == TrialExeResult.nogoSuccess)
                     { // case: noGo success 
 
-                        // Cue Time
+                        // Cue Interface Timepoint and Cue Time
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Cue Start TimePoint (ms)", timePoint_Interface_CueOnset.ToString()));
                         file.WriteLine(String.Format("{0, -40}: {1}", "Cue Interface Time (s)", t_Cue.ToString()));
 
-                        // Target type: Go, and Target position index: 0 (1, 2)
+                        // Cue Interface Timepoint, Target type: Go, and Target position index: 0 (1, 2)
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Target Start TimePoint (ms)", timePoint_Interface_TargetOnset.ToString()));
                         file.WriteLine(String.Format("{0, -40}: {1}", "TargetType", targetType.ToString()));
                         file.WriteLine(String.Format("{0, -40}: {1}", "TargetPositionIndex", targetPosInd.ToString()));
                         // Target nogo interface show time
@@ -510,9 +535,30 @@ namespace GonoGoTask_wpfVer
 
 
                         // trial exe result : success or fail
-                        file.WriteLine(String.Format("{0, -40}: {1}", "Trial Result", "Success for Nogo Task"));
+                        file.WriteLine(String.Format("{0, -40}: {1}, {2}", "Trial Result", strExeSuccess, strExeSubResult[7]));
                     }
 
+                }
+            }
+
+            if (targetType_List.Count == 0)
+            {// Finished all Trials
+
+                // show different Border Color demonstrating the endof exp
+                myGridBorder.BorderBrush = brush_CorrectFill;
+
+                // Detect the return to startpad timepoint for the last trial
+                pressedStartpad = PressedStartpad.No;
+                try
+                {
+                    await Wait_Return2StartPad(1);
+                }
+                catch (TaskCanceledException)
+                {
+                    using (StreamWriter file = File.AppendText(file_saved))
+                    {
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Returned to Startpad TimePoint(ms)", timePoint_StartpadTouched.ToString()));
+                    }
                 }
             }
         }
@@ -958,17 +1004,6 @@ namespace GonoGoTask_wpfVer
 
         }
 
-        private void Add_TwoWhitePoints(int[] pos1, int[] pos2)
-        {// show Two White Points at pos1 and pos2 separately rectangle to myGrid
-
-            point1.Margin = new Thickness(pos1[0], pos1[1], 0, 0);
-            point2.Margin = new Thickness(pos2[0], pos2[1], 0, 0);
-
-            point1.Visibility = Visibility.Visible;
-            point2.Visibility = Visibility.Visible;
-
-            myGrid.UpdateLayout();
-        }
 
         private void Remove_TwoWhitePoints()
         {// add nogo rectangle to myGrid
@@ -1170,6 +1205,42 @@ namespace GonoGoTask_wpfVer
 
             return task_WaitStart;
         }
+
+
+        private Task Wait_Return2StartPad(float t_maxWait)
+        {
+            /* 
+             * Wait for Returning Back to Startpad 
+             * 
+             * Input: 
+             *    t_maxWait: the maximum wait time for returning back (s)  
+             */
+
+
+            return Task.Run(() =>
+            {
+                Stopwatch waitWatch = new Stopwatch();
+                waitWatch.Restart();
+                bool waitEnoughTag = false;
+                while (pressedStartpad == PressedStartpad.No && !waitEnoughTag)
+                {
+                    if (waitWatch.ElapsedMilliseconds >= t_maxWait * 1000)
+                    {// Wait for t_maxWait
+                        waitEnoughTag  = true;
+                    }
+                }
+
+                waitWatch.Stop();
+
+
+                if (pressedStartpad == PressedStartpad.Yes)
+                {
+                    throw new TaskCanceledException("A return touched occurred");
+                }
+
+            });
+        }
+
 
         private Task Wait_EnoughTouch(float t_EnoughTouch)
         {
