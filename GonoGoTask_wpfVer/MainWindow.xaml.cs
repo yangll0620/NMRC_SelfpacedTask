@@ -174,7 +174,8 @@ namespace GonoGoTask_wpfVer
 
             using (StreamWriter file = new StreamWriter(file_saved))
             {
-                file.WriteLine("Date: " + time_now.ToString("MM/dd/yyyy HH:mm:ss") + "\t\tNHP Name: " + textBox_NHPName.Text);
+                file.WriteLine("Date: " + time_now.ToString("MM/dd/yyyy hh:mm:ss tt"));
+                file.WriteLine("NHP Name: " + textBox_NHPName.Text);
                 file.WriteLine("\n");
 
 
@@ -200,6 +201,10 @@ namespace GonoGoTask_wpfVer
 
                 file.WriteLine(String.Format("{0, -40}:  {1}", "Max Reach Time (s)", tMax_ReachTimeS.ToString()));
                 file.WriteLine(String.Format("{0, -40}:  {1}", "Max Reaction Time (s)", tMax_ReactionTimeS.ToString()));
+
+                file.WriteLine("\n");
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Unit of X Y Position", "Pixal"));
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Unit of TimePoint/Time", "s"));
 
 
                 file.WriteLine(String.Format("{0, -40}:  {1}", "Screen Resolution(pixal)", Rect_touchScreen.Width.ToString() + "x" + Rect_touchScreen.Height.ToString()));

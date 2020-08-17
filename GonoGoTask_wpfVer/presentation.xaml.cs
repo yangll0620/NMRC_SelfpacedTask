@@ -175,8 +175,11 @@ namespace GonoGoTask_wpfVer
 
         // list storing the position/Timepoint of the touch points when touched down
         List<double[]> downPoints_Pos = new List<double[]>();
-        // list storing the position/Timepoint of the touch points when touched down
-        List<double[]> downPoints_PosTime = new List<double[]>();
+
+        // list storing the position, touched and left Timepoints of the touch points
+        // one element: [point_id, touched_timepoint, touched_x, touched_y, left_timepoint, left_x, left_y]
+        List<double[]> touchPoints_PosTime = new List<double[]>(); 
+
         // Stop Watch for recording the time interval between the first touchpoint and the last touchpoint within One Touch
         Stopwatch tpoints1TouchWatch;
         // the Max Duration for One Touch (ms)
@@ -269,8 +272,8 @@ namespace GonoGoTask_wpfVer
 
         private void PrepBef_Present()
         {
-            // Write Head Inf 
-            WriteHeaderInf();
+            // save Head Inf for trials
+            saveHeaderInf();
 
             // create a serial Port IO8 instance, and open it
             serialPort_IO8 = new SerialPort();
@@ -385,11 +388,16 @@ namespace GonoGoTask_wpfVer
                 String strExeSuccess = "Success";
                 using (StreamWriter file = File.AppendText(file_saved))
                 {
+                    decimal ms2sRatio = 1000;
 
                     if (totalTriali > 1)
                     { // Startpad touched in trial i+1 treated as the return point as in trial i        
 
-                        file.WriteLine(String.Format("{0, -40}: {1}", "Returned to Startpad TimePoint(ms)", timePoint_StartpadTouched.ToString()));
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Returned to Startpad TimePoint", (timePoint_StartpadTouched/ms2sRatio).ToString()));
+                    }
+                    else
+                    {
+                        file.WriteLine("Trial Information:");
                     }
 
 
@@ -401,13 +409,13 @@ namespace GonoGoTask_wpfVer
                     file.WriteLine(String.Format("{0, -40}: {1}", "TrialNum", totalTriali.ToString()));
                     
                     // the timepoint when touching the startpad to initial a new trial
-                    file.WriteLine(String.Format("{0, -40}: {1}", "Startpad Touched TimePoint(ms)", timePoint_StartpadTouched.ToString()));
+                    file.WriteLine(String.Format("{0, -40}: {1}", "Startpad Touched TimePoint", (timePoint_StartpadTouched / ms2sRatio).ToString()));
                     
                     // Start Interface showed TimePoint
-                    file.WriteLine(String.Format("{0, -40}: {1}", "Ready Start TimePoint (ms)", timePoint_Interface_ReadyOnset.ToString()));
+                    file.WriteLine(String.Format("{0, -40}: {1}", "Ready Start TimePoint", (timePoint_Interface_ReadyOnset / ms2sRatio).ToString()));
                     
                     // Ready Time
-                    file.WriteLine(String.Format("{0, -40}: {1}", "Ready Interface Time (s)", t_Ready.ToString()));
+                    file.WriteLine(String.Format("{0, -40}: {1}", "Ready Interface Time", t_Ready.ToString()));
 
                     
                     // Various Cases
@@ -415,7 +423,7 @@ namespace GonoGoTask_wpfVer
                     {// case: ready WaitTooShort
                         
                         // Left startpad early during ready
-                        file.WriteLine(String.Format("{0, -40}: {1}", "Startpad Left TimePoint(ms)", timePoint_StartpadLeft.ToString()));
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Startpad Left TimePoint", (timePoint_StartpadLeft / ms2sRatio).ToString()));
 
                         // trial exe result : success or fail
                         file.WriteLine(String.Format("{0, -40}: {1}, {2}", "Trial Result", strExeFail, strExeSubResult[0]));
@@ -424,9 +432,9 @@ namespace GonoGoTask_wpfVer
                     {// case: Cue WaitTooShort
 
                         // Cue Interface Timepoint, Cue Time and Left startpad early during Cue
-                        file.WriteLine(String.Format("{0, -40}: {1}", "Cue Start TimePoint (ms)", timePoint_Interface_CueOnset.ToString()));
-                        file.WriteLine(String.Format("{0, -40}: {1}", "Cue Interface Time (s)", t_Cue.ToString()));
-                        file.WriteLine(String.Format("{0, -40}: {1}", "Startpad Left TimePoint(ms)", timePoint_StartpadLeft.ToString()));
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Cue Start TimePoint", (timePoint_Interface_CueOnset / ms2sRatio).ToString()));
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Cue Interface Time", t_Cue.ToString()));
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Startpad Left TimePoint", (timePoint_StartpadLeft / ms2sRatio).ToString()));
 
                         // trial exe result : success or fail
                         file.WriteLine(String.Format("{0, -40}: {1}, {2}", "Trial Result", strExeFail, strExeSubResult[1]));
@@ -435,11 +443,11 @@ namespace GonoGoTask_wpfVer
                     {// case : goReactionTimeToolong 
 
                         // Cue Interface Timepoint and Cue Time
-                        file.WriteLine(String.Format("{0, -40}: {1}", "Cue Start TimePoint (ms)", timePoint_Interface_CueOnset.ToString()));
-                        file.WriteLine(String.Format("{0, -40}: {1}", "Cue Interface Time (s)", t_Cue.ToString()));
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Cue Start TimePoint", (timePoint_Interface_CueOnset / ms2sRatio).ToString()));
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Cue Interface Time", t_Cue.ToString()));
 
                         // Cue Interface Timepoint, Target type: Go, and Target position index: 0 (1, 2)
-                        file.WriteLine(String.Format("{0, -40}: {1}", "Target Start TimePoint (ms)", timePoint_Interface_TargetOnset.ToString()));
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Target Start TimePoint", (timePoint_Interface_TargetOnset / ms2sRatio).ToString()));
                         file.WriteLine(String.Format("{0, -40}: {1}", "TargetType", targetType.ToString()));
                         file.WriteLine(String.Format("{0, -40}: {1}", "TargetPositionIndex", targetPosInd.ToString()));
 
@@ -451,15 +459,15 @@ namespace GonoGoTask_wpfVer
                     {// case : goReachTimeToolong
 
                         // Cue Interface Timepoint and Cue Time
-                        file.WriteLine(String.Format("{0, -40}: {1}", "Cue Start TimePoint (ms)", timePoint_Interface_CueOnset.ToString()));
-                        file.WriteLine(String.Format("{0, -40}: {1}", "Cue Interface Time (s)", t_Cue.ToString()));
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Cue Start TimePoint", (timePoint_Interface_CueOnset / ms2sRatio).ToString()));
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Cue Interface Time", t_Cue.ToString()));
 
                         // Cue Interface Timepoint, Target type: Go, and Target position index: 0 (1, 2)
-                        file.WriteLine(String.Format("{0, -40}: {1}", "Target Start TimePoint (ms)", timePoint_Interface_TargetOnset.ToString()));
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Target Start TimePoint", (timePoint_Interface_TargetOnset / ms2sRatio).ToString()));
                         file.WriteLine(String.Format("{0, -40}: {1}", "TargetType", targetType.ToString()));
                         file.WriteLine(String.Format("{0, -40}: {1}", "TargetPositionIndex", targetPosInd.ToString()));
                         // Target interface:  Left Startpad Time Point
-                        file.WriteLine(String.Format("{0, -40}: {1}", "Startpad Left TimePoint(ms)", timePoint_StartpadLeft.ToString()));
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Startpad Left TimePoint", (timePoint_StartpadLeft / ms2sRatio).ToString()));
 
 
                         // trial exe result : success or fail
@@ -469,22 +477,40 @@ namespace GonoGoTask_wpfVer
                     {// case: Go success (goClose or goHit) or goMiss
 
                         // Cue Interface Timepoint and Cue Time
-                        file.WriteLine(String.Format("{0, -40}: {1}", "Cue Start TimePoint (ms)", timePoint_Interface_CueOnset.ToString()));
-                        file.WriteLine(String.Format("{0, -40}: {1}", "Cue Interface Time (s)", t_Cue.ToString()));
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Cue Start TimePoint", (timePoint_Interface_CueOnset / ms2sRatio).ToString()));
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Cue Interface Time", t_Cue.ToString()));
 
                         // Cue Interface Timepoint, Target type: Go, and Target position index: 0 (1, 2)
-                        file.WriteLine(String.Format("{0, -40}: {1}", "Target Start TimePoint (ms)", timePoint_Interface_TargetOnset.ToString()));
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Target Start TimePoint", (timePoint_Interface_TargetOnset / ms2sRatio).ToString()));
                         file.WriteLine(String.Format("{0, -40}: {1}", "TargetType", targetType.ToString()));
                         file.WriteLine(String.Format("{0, -40}: {1}", "TargetPositionIndex", targetPosInd.ToString()));
 
                         // Target interface:  Left Startpad Time Point
-                        file.WriteLine(String.Format("{0, -40}: {1}", "Startpad Left TimePoint(ms)", timePoint_StartpadLeft.ToString()));
-                        //  Target interface:  touch timepoint and (x, y position) of all touch points
-                        for (int pointi = 0; pointi < downPoints_PosTime.Count; pointi++)
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Startpad Left TimePoint", (timePoint_StartpadLeft / ms2sRatio).ToString()));
+                        
+                        //  Target interface:  touched  timepoint and (x, y position) of all touch points
+                        for (int pointi = 0; pointi < touchPoints_PosTime.Count; pointi++)
                         {
-                            double[] downPoint = downPoints_PosTime[pointi];
-                            String downPointstr = downPoint[0].ToString() + " (" + downPoint[1].ToString() + ", " + downPoint[2].ToString() + ")";
-                            file.WriteLine(String.Format("{0}{1, -40}: {2}", "Touch Point", pointi.ToString() + " TimePoint (X, Y Position)", downPointstr));
+                            double[] downPoint = touchPoints_PosTime[pointi];
+
+                            // touched pointi touchpoint
+                            file.WriteLine(String.Format("{0, -40}: {1, -40}", "Touch Point " + pointi.ToString() + " TimePoint", ((decimal)downPoint[1]/ms2sRatio).ToString()));
+
+                            // touched pointi position
+                            file.WriteLine(String.Format("{0, -40}: {1}", "Touch Point " + pointi.ToString() + " XY Position", downPoint[2].ToString() + ", " + downPoint[3].ToString()));
+                                                        
+                        }
+
+                        //  Target interface:  left timepoint and (x, y position) of all touch points
+                        for (int pointi = 0; pointi < touchPoints_PosTime.Count; pointi++)
+                        {
+                            double[] downPoint = touchPoints_PosTime[pointi];
+
+                            // left pointi touchpoint
+                            file.WriteLine(String.Format("{0, -40}: {1, -40}", "Left Point " + pointi.ToString() + " TimePoint", ((decimal)downPoint[4] / ms2sRatio).ToString()));
+
+                            // left pointi position
+                            file.WriteLine(String.Format("{0, -40}: {1}", "Left Point " + pointi.ToString() + " XY Position", downPoint[5].ToString() + ", " + downPoint[6].ToString()));
                         }
 
 
@@ -499,19 +525,19 @@ namespace GonoGoTask_wpfVer
                     { // case: noGo moved 
 
                         // Cue Interface Timepoint and Cue Time
-                        file.WriteLine(String.Format("{0, -40}: {1}", "Cue Start TimePoint (ms)", timePoint_Interface_CueOnset.ToString()));
-                        file.WriteLine(String.Format("{0, -40}: {1}", "Cue Interface Time (s)", t_Cue.ToString()));
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Cue Start TimePoint", (timePoint_Interface_CueOnset / ms2sRatio).ToString()));
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Cue Interface Time", t_Cue.ToString()));
 
                         // Cue Interface Timepoint, Target type: Go, and Target position index: 0 (1, 2)
-                        file.WriteLine(String.Format("{0, -40}: {1}", "Target Start TimePoint (ms)", timePoint_Interface_TargetOnset.ToString()));
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Target Start TimePoint", (timePoint_Interface_TargetOnset / ms2sRatio).ToString()));
                         file.WriteLine(String.Format("{0, -40}: {1}", "TargetType", targetType.ToString()));
                         file.WriteLine(String.Format("{0, -40}: {1}", "TargetPositionIndex", targetPosInd.ToString()));
 
                         // Target nogo interface show time
-                        file.WriteLine(String.Format("{0, -40}: {1}", "Nogo Interface Show Time(s)", t_noGoShow.ToString()));
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Nogo Interface Show Time", t_noGoShow.ToString()));
 
                         // Target interface:  Left Startpad Time Point
-                        file.WriteLine(String.Format("{0, -40}: {1}", "Startpad Left TimePoint(ms)", timePoint_StartpadLeft.ToString()));
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Startpad Left TimePoint", (timePoint_StartpadLeft / ms2sRatio).ToString()));
 
 
 
@@ -523,15 +549,15 @@ namespace GonoGoTask_wpfVer
                     { // case: noGo success 
 
                         // Cue Interface Timepoint and Cue Time
-                        file.WriteLine(String.Format("{0, -40}: {1}", "Cue Start TimePoint (ms)", timePoint_Interface_CueOnset.ToString()));
-                        file.WriteLine(String.Format("{0, -40}: {1}", "Cue Interface Time (s)", t_Cue.ToString()));
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Cue Start TimePoint", (timePoint_Interface_CueOnset / ms2sRatio).ToString()));
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Cue Interface Time", t_Cue.ToString()));
 
                         // Cue Interface Timepoint, Target type: Go, and Target position index: 0 (1, 2)
-                        file.WriteLine(String.Format("{0, -40}: {1}", "Target Start TimePoint (ms)", timePoint_Interface_TargetOnset.ToString()));
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Target Start TimePoint", (timePoint_Interface_TargetOnset / ms2sRatio).ToString()));
                         file.WriteLine(String.Format("{0, -40}: {1}", "TargetType", targetType.ToString()));
                         file.WriteLine(String.Format("{0, -40}: {1}", "TargetPositionIndex", targetPosInd.ToString()));
                         // Target nogo interface show time
-                        file.WriteLine(String.Format("{0, -40}: {1}", "Nogo Interface Show Time(s)", t_noGoShow.ToString()));
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Nogo Interface Show Time", t_noGoShow.ToString()));
 
 
                         // trial exe result : success or fail
@@ -546,21 +572,50 @@ namespace GonoGoTask_wpfVer
 
                 // show different Border Color demonstrating the endof exp
                 myGridBorder.BorderBrush = brush_CorrectFill;
+            }
 
-                // Detect the return to startpad timepoint for the last trial
-                pressedStartpad = PressedStartpad.No;
-                try
+
+            // Detect the return to startpad timepoint for the last trial
+            pressedStartpad = PressedStartpad.No;
+            try
+            {
+                await Wait_Return2StartPad(1);
+            }
+            catch (TaskCanceledException)
+            {
+                using (StreamWriter file = File.AppendText(file_saved))
                 {
-                    await Wait_Return2StartPad(1);
-                }
-                catch (TaskCanceledException)
-                {
-                    using (StreamWriter file = File.AppendText(file_saved))
-                    {
-                        file.WriteLine(String.Format("{0, -40}: {1}", "Returned to Startpad TimePoint(ms)", timePoint_StartpadTouched.ToString()));
-                    }
+                    file.WriteLine(String.Format("{0, -40}: {1}", "Returned to Startpad TimePoint", timePoint_StartpadTouched.ToString()));
                 }
             }
+
+            // save the summary of exp
+            SaveSummaryofExp();
+        }
+
+
+        private void SaveSummaryofExp()
+        {
+            /*Save the summary information of the exp*/
+
+            using (StreamWriter file = File.AppendText(file_saved))
+            {
+                file.WriteLine("\n\n");
+
+                file.WriteLine(String.Format("{0}", "Summary of the Go Trials"));
+                file.WriteLine(String.Format("{0, -40}: {1}", "Total Go Trials", totalGoTrialNum.ToString()));
+                file.WriteLine(String.Format("{0, -40}: {1}", "Success Go Trials", successGoTrialNum.ToString()));
+                file.WriteLine(String.Format("{0, -40}: {1}", "Miss Go Trials", missGoTrialNum.ToString()));
+                file.WriteLine(String.Format("{0, -40}: {1}", "No Reaction Go Trials", noreactionGoTrialNum.ToString()));
+                file.WriteLine(String.Format("{0, -40}: {1}", "No Reach Go Trials", noreachGoTrialNum.ToString()));
+
+
+                file.WriteLine("\n");
+                file.WriteLine(String.Format("{0}", "Summary of the noGo Trials"));
+                file.WriteLine(String.Format("{0, -40}: {1}", "Total noGo Trials", totalNogoTrialNum.ToString()));
+                file.WriteLine(String.Format("{0, -40}: {1}", "Success noGo Trials", successNogoTrialNum.ToString()));
+            }
+
         }
 
 
@@ -767,7 +822,7 @@ namespace GonoGoTask_wpfVer
         }
 
 
-        private void WriteHeaderInf()
+        private void saveHeaderInf()
         {
             // save
             using (StreamWriter file = File.AppendText(file_saved))
@@ -778,13 +833,11 @@ namespace GonoGoTask_wpfVer
                 for (int i=0; i< optPostions_List.Count; i++)
                 {
                     int[] position = optPostions_List[i];
-                    file.WriteLine(String.Format("{0}{1, -10}:{2}, {3}", "Optional Postion ", i, position[0], position[1]));
+                    file.WriteLine(String.Format("{0, -40}:{1}, {2}", "Optional Postion " + i.ToString(), position[0], position[1]));
                 }
 
 
                 file.WriteLine("\n\n\n");
-
-                file.WriteLine("Trial Information:");
             }
         }
 
@@ -1163,9 +1216,6 @@ namespace GonoGoTask_wpfVer
 
                         if (voltage < volTouch && pressedStartpad == PressedStartpad.No)
                         {/* time point from notouched state to touched state */
-
-                            // the time point for startpad touched
-                            timePoint_StartpadTouched = globalWatch.ElapsedMilliseconds;
                             
                             pressedStartpad = PressedStartpad.Yes;
                         }
@@ -1200,6 +1250,13 @@ namespace GonoGoTask_wpfVer
             Task task_WaitStart = Task.Run(() =>
             {
                 while (PresentTrial && pressedStartpad == PressedStartpad.No) ;
+
+
+                if (pressedStartpad == PressedStartpad.Yes)
+                {
+                    // the time point for startpad touched
+                    timePoint_StartpadTouched = globalWatch.ElapsedMilliseconds;
+                }
 
             });
 
@@ -1394,7 +1451,7 @@ namespace GonoGoTask_wpfVer
                     }
                 }
                 downPoints_Pos.Clear();
-                downPoints_PosTime.Clear();
+                touchPoints_PosTime.Clear();
                 waitWatch.Restart();
                 while (waitWatch.ElapsedMilliseconds <= tMax_1Touch) ;
                 waitWatch.Stop();
@@ -1697,9 +1754,9 @@ namespace GonoGoTask_wpfVer
                         }
 
                         // store the pos and time of the point with down action, used for file writing
-                        lock (downPoints_PosTime)
+                        lock (touchPoints_PosTime)
                         {
-                            downPoints_PosTime.Add(new double[3] { timestamp_now, _touchPoint.Position.X, _touchPoint.Position.Y });
+                            touchPoints_PosTime.Add(new double[7] { _touchPoint.TouchDevice.Id, timestamp_now, _touchPoint.Position.X, _touchPoint.Position.Y, 0, 0, 0 });
                         }
                     }
                 }
@@ -1709,6 +1766,20 @@ namespace GonoGoTask_wpfVer
                     lock (touchPoints_Id)
                     {
                         touchPoints_Id.Remove(_touchPoint.TouchDevice.Id);
+                    }
+
+                    // add the left points timepoint, and x,y positions of the current _touchPoint.TouchDevice.Id
+                    lock (touchPoints_PosTime)
+                    {
+                        for (int pointi = 0; pointi < touchPoints_PosTime.Count; pointi++)
+                        {
+                            if (touchPoints_PosTime[pointi][0] == _touchPoint.TouchDevice.Id)
+                            {
+                                touchPoints_PosTime[pointi][4] = timestamp_now;
+                                touchPoints_PosTime[pointi][5] = _touchPoint.Position.X;
+                                touchPoints_PosTime[pointi][6] = _touchPoint.Position.Y;
+                            }
+                        }
                     }
                 }
             }
