@@ -210,6 +210,17 @@ namespace GonoGoTask_wpfVer
         Thread thread_ReadWrite_IO8;
         int volTouch = 4;
 
+        // commands for setting dig out high/low for channels
+        static string cmdHigh5 = "5";
+        static string cmdLow5 = "T";
+        static string cmdHigh6 = "6";
+        static string cmdLow6 = "Y";
+        static string cmdHigh7 = "7";
+        static string cmdLow7 = "U";
+        static string cmdHigh8 = "8";
+        static string cmdLow8 = "I";
+
+
         /* startpad parameters */
         PressedStartpad pressedStartpad;
         public delegate void UpdateTextCallback(string message);
@@ -1240,7 +1251,7 @@ namespace GonoGoTask_wpfVer
         {
             /* task for WaitStart interface
              * 
-             * Wait for Startpad touch to trigger a new Trial
+             * Wait for Touching Startpad to trigger a new Trial
              */
 
             Remove_All();
@@ -1255,6 +1266,7 @@ namespace GonoGoTask_wpfVer
                 if (pressedStartpad == PressedStartpad.Yes)
                 {
                     // the time point for startpad touched
+                    serialPort_IO8.WriteLine(cmdLow5 + cmdLow6 + cmdLow7 + cmdHigh8);
                     timePoint_StartpadTouched = globalWatch.ElapsedMilliseconds;
                 }
 
@@ -1345,6 +1357,7 @@ namespace GonoGoTask_wpfVer
             try
             {
                 myGrid.Background = brush_BKTrial;
+                serialPort_IO8.WriteLine(cmdLow5 + cmdLow6 + cmdHigh7 + cmdLow8);
                 timePoint_Interface_ReadyOnset = globalWatch.ElapsedMilliseconds;
 
                 // Wait Startpad Hold Enough Time
@@ -1355,7 +1368,9 @@ namespace GonoGoTask_wpfVer
             catch (TaskCanceledException)
             {
                 // trial execute result: waitReadyTooShort 
+                serialPort_IO8.WriteLine(cmdLow5 + cmdLow6 + cmdHigh7 + cmdHigh8);
                 trialExeResult = TrialExeResult.readyWaitTooShort;
+                
                 Task task = null;
                 throw new TaskCanceledException(task);
             }
@@ -1385,7 +1400,9 @@ namespace GonoGoTask_wpfVer
                 // add one crossing on the right middle
                 Add_OneCrossing(onecrossingPos);
 
+                serialPort_IO8.WriteLine(cmdLow5 + cmdHigh6 + cmdLow7 + cmdLow8);
                 timePoint_Interface_CueOnset = globalWatch.ElapsedMilliseconds;
+                
 
                 // wait target cue for several seconds
                 startpadHoldstate = StartPadHoldState.HoldTooShort;
@@ -1399,7 +1416,9 @@ namespace GonoGoTask_wpfVer
                 player_Error.Play();
 
                 // trial execute result: waitReadyTooShort 
+                serialPort_IO8.WriteLine(cmdLow5 + cmdHigh6 + cmdLow7 + cmdHigh8);
                 trialExeResult = TrialExeResult.cueWaitTooShort;
+                
 
                 Task task = null;
                 throw new TaskCanceledException(task);
@@ -1423,7 +1442,10 @@ namespace GonoGoTask_wpfVer
                         waitWatch.Stop();
 
                         noreactionGoTrialNum++;
+
+                        serialPort_IO8.WriteLine(cmdHigh5 + cmdLow6 + cmdHigh7 + cmdLow8);
                         trialExeResult = TrialExeResult.goReactionTimeToolong;
+                        
 
                         throw new TaskCanceledException("No Reaction within the Max Reaction Time");
                     }
@@ -1446,7 +1468,11 @@ namespace GonoGoTask_wpfVer
                         waitWatch.Stop();
 
                         noreachGoTrialNum++;
+
+                        serialPort_IO8.WriteLine(cmdHigh5 + cmdLow6 + cmdHigh7 + cmdHigh8);
                         trialExeResult = TrialExeResult.goReachTimeToolong;
+                        
+
                         throw new TaskCanceledException("No Reach within the Max Reach Time");
                     }
                 }
@@ -1478,7 +1504,10 @@ namespace GonoGoTask_wpfVer
 
                 if (distance <= circleGo_radius)
                 {// Hit 
+
+                    serialPort_IO8.WriteLine(cmdHigh5 + cmdHigh6 + cmdLow7 + cmdHigh8);
                     gotargetTouchstate = GoTargetTouchState.goHit;
+                    
                     downPoints_Pos.Clear();
                     break;
                 }
@@ -1486,9 +1515,16 @@ namespace GonoGoTask_wpfVer
                 {
                     gotargetTouchstate = GoTargetTouchState.goClose;
                 }
-
                 // remove the downPoint at 0
                 downPoints_Pos.RemoveAt(0);
+            }
+            if(gotargetTouchstate == GoTargetTouchState.goClose)
+            {
+                serialPort_IO8.WriteLine(cmdHigh5 + cmdHigh6 + cmdHigh7 + cmdLow8);
+            }
+            else if (gotargetTouchstate == GoTargetTouchState.goMissed)
+            {
+                serialPort_IO8.WriteLine(cmdHigh5 + cmdHigh6 + cmdHigh7 + cmdHigh8);
             }
             downPoints_Pos.Clear();
         }
@@ -1516,6 +1552,7 @@ namespace GonoGoTask_wpfVer
 
                 // go target Onset Time Point
                 timePoint_Interface_TargetOnset = globalWatch.ElapsedMilliseconds;
+                serialPort_IO8.WriteLine(cmdHigh5 + cmdLow6 + cmdLow7 + cmdHigh8);
 
                 totalGoTrialNum++;
 
@@ -1594,6 +1631,7 @@ namespace GonoGoTask_wpfVer
                 Add_NogoRect(pos_Target);
 
                 // noGo target Onset Time Point
+                serialPort_IO8.WriteLine(cmdLow5 + cmdHigh6 + cmdHigh7 + cmdLow8);
                 timePoint_Interface_TargetOnset = globalWatch.ElapsedMilliseconds;
 
                 totalNogoTrialNum++;
@@ -1601,6 +1639,7 @@ namespace GonoGoTask_wpfVer
                 // Wait Startpad TouchedOn  for t_noGoShow
                 startpadHoldstate = StartPadHoldState.HoldTooShort;
                 await Wait_EnoughTouch(t_noGoShow);
+                serialPort_IO8.WriteLine(cmdLow5 + cmdHigh6 + cmdHigh7 + cmdHigh8);
 
                 // noGo trial success when running here
                 Feedback_noGoCorrect();
@@ -1612,6 +1651,7 @@ namespace GonoGoTask_wpfVer
             }
             catch (TaskCanceledException)
             {
+                serialPort_IO8.WriteLine(cmdHigh5 + cmdLow6 + cmdLow7 + cmdLow8);
                 Feedback_noGoError();
 
                 trialExeResult = TrialExeResult.nogoMoved;
@@ -1738,6 +1778,7 @@ namespace GonoGoTask_wpfVer
                     if (touchPoints_Id.Count == 0)
                     {// the first touch point for one touch
                         tpoints1TouchWatch.Restart();
+                        serialPort_IO8.WriteLine(cmdHigh5 + cmdHigh6 + cmdLow7 + cmdLow8);
                     }
                     lock (touchPoints_Id)
                     {
