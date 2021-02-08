@@ -1,11 +1,11 @@
-﻿<Window x:Class="GonoGoTask_wpfVer.MainWindow"
+﻿<Window x:Class="COTTask_wpf.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:GonoGoTask_wpfVer"
+        xmlns:local="clr-namespace:COTTask_wpf"
         mc:Ignorable="d"
-        Title="GonoGoTask" Height="600" Width="850"
+        Title="COTTask" Height="600" Width="850"
         Closing="Window_Closing" Icon="GonoGo2.ico">
 
     <Canvas x:Name="canvas1"
@@ -219,14 +219,14 @@
                         Click="Btn_stop_Click"/>
 
 
-                <Button x:Name="btn_Pause" IsEnabled="False"
+                <Button x:Name="btn_Pause" IsEnabled="False" Visibility="Hidden"
                         Content="Pause" HorizontalAlignment="Right" VerticalAlignment="Bottom" 
                         Margin="0,0,350,15"  Width="100" Height="35" 
                         FontWeight="Bold" FontFamily="Microsoft Sans Serif" FontSize="14"
                         />
 
 
-                <Button x:Name="btn_Test" Content="Test" 
+                <Button x:Name="btn_Test" Content="Test" IsEnabled="False" Visibility="Hidden"
                         HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,500,15"  
                         Width="100" Height="35" FontWeight="Bold" FontFamily="Microsoft Sans Serif" FontSize="14" 
                         Click="btnTest_Click" />

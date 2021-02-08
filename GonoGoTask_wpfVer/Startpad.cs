@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GonoGoTask_wpfVer
+namespace COTTask_wpf
 {
     public enum PressedStartpad
     {

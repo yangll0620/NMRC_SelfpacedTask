@@ -3,7 +3,7 @@
 "VSVersion" = "3:800"
 "ProjectType" = "8:{978C614F-708E-4E1A-B201-565925725DBA}"
 "IsWebType" = "8:FALSE"
-"ProjectName" = "8:GonoGoSetup"
+"ProjectName" = "8:COTSetup"
 "LanguageId" = "3:1033"
 "CodePage" = "3:1252"
 "UILanguageId" = "3:1033"
@@ -15,7 +15,7 @@
     {
         "Entry"
         {
-        "MsmKey" = "8:_381DED2149E2C9C40BEBECE62D088A94"
+        "MsmKey" = "8:_3DA5006C05832F2DEDF54519E8237781"
         "OwnerKey" = "8:_8376E2A977384F4E9D72F1B4523A254D"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -46,7 +46,7 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_381DED2149E2C9C40BEBECE62D088A94"
+        "OwnerKey" = "8:_3DA5006C05832F2DEDF54519E8237781"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -150,14 +150,14 @@
         }
         "File"
         {
-            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_381DED2149E2C9C40BEBECE62D088A94"
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_3DA5006C05832F2DEDF54519E8237781"
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
             "AssemblyAsmDisplayName" = "8:Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_381DED2149E2C9C40BEBECE62D088A94"
+                    "_3DA5006C05832F2DEDF54519E8237781"
                     {
                     "Name" = "8:Newtonsoft.Json.dll"
                     "Attributes" = "3:512"

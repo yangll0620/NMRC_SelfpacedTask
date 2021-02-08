@@ -12,7 +12,7 @@ using System.IO.Ports;
 using System.IO;
 using System.Reflection;
 
-namespace GonoGoTask_wpfVer
+namespace COTTask_wpf
 {
     /// <summary>
     /// Interaction logic for presentation.xaml

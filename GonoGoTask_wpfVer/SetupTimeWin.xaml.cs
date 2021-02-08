@@ -1,6 +1,6 @@
 ﻿using System.Windows;
 
-namespace GonoGoTask_wpfVer
+namespace COTTask_wpf
 {
     /// <summary>
     /// Interaction logic for SetupTimeWin.xaml

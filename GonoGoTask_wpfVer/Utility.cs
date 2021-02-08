@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using swf = System.Windows.Forms;
 using sd = System.Drawing;
 using System.Windows.Media;
-namespace GonoGoTask_wpfVer
+namespace COTTask_wpf
 {
     class Utility
     {

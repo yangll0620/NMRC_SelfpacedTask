@@ -7,7 +7,7 @@ using System.Windows;
 using System.IO.Ports;
 using System.Diagnostics;
 
-namespace GonoGoTask_wpfVer
+namespace COTTask_wpf
 {
     /// <summary>
     /// Interaction logic for TestStartpadJuicerWin.xaml

@@ -3,7 +3,7 @@ using System.Windows;
 using System.IO.Ports;
 using System.Threading;
 
-namespace GonoGoTask_wpfVer
+namespace COTTask_wpf
 {
     class SerialPortIO8
     {

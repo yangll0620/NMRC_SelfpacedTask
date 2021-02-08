@@ -2,7 +2,7 @@
 using System.Windows;
 using System.Windows.Media;
 
-namespace GonoGoTask_wpfVer
+namespace COTTask_wpf
 {
     /// <summary>
     /// Interaction logic for SetupColorsWin.xaml

@@ -12,7 +12,7 @@ using sd = System.Drawing;
 using Newtonsoft.Json;
 using System.Reflection;
 
-namespace GonoGoTask_wpfVer
+namespace COTTask_wpf
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -354,7 +354,7 @@ namespace GonoGoTask_wpfVer
             if (String.IsNullOrEmpty(configFile))
             {
                 var assembly = Assembly.GetExecutingAssembly();
-                var defaultConfigFile = "GonoGoTask_wpfVer.Resources.ConfigFiles.defaultConfig.json";
+                var defaultConfigFile = "COTTask_wpf.Resources.ConfigFiles.defaultConfig.json";
 
                 using (Stream stream = assembly.GetManifestResourceStream(defaultConfigFile))
                 {
@@ -497,7 +497,6 @@ namespace GonoGoTask_wpfVer
 
         private void btnTest_Click(object sender, RoutedEventArgs e)
         {
-            saveInputParameters();
         }
 
 
