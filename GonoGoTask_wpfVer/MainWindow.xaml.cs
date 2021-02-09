@@ -183,8 +183,7 @@ namespace COTTask_wpf
 
                 file.WriteLine(String.Format("{0, -40}:  {1}", "Close Margin (%)", closeMarginPercentage.ToString()));
 
-                file.WriteLine(String.Format("{0, -40}:  {1}", "Total Number of Go Trials", textBox_goTrialNum.Text));
-                file.WriteLine(String.Format("{0, -40}:  {1}", "Total Number of Nogo Trials", textBox_nogoTrialNum.Text));
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Required Number of Blocks", textBox_requiredBlocks.Text));
 
                 file.WriteLine(String.Format("{0, -40}:  {1}", "Go Target Color", goColorStr));
                 file.WriteLine(String.Format("{0, -40}:  {1}", "Nogo Target Color", nogoColorStr));
@@ -378,8 +377,7 @@ namespace COTTask_wpf
             /* ---- Config into the Interface ---- */
             var config = array[0];
             textBox_NHPName.Text = config["NHP Name"];
-            textBox_goTrialNum.Text = config["Go Trials Num"];
-            textBox_nogoTrialNum.Text = config["noGo Trials Num"];
+            textBox_requiredBlocks.Text = config["Required Blocks"];
 
 
             // Juicer Given Time

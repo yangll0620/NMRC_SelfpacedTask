@@ -1,8 +1,8 @@
 [
   {
     "NHP Name": "Barb",
-    "Go Trials Num": 20,
-    "noGo Trials Num": 5,
+    "Required Blocks": 20,
+
     "Times":
     {
         "Ready Show Time Range": [ 1, 3 ],

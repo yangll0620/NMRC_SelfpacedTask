@@ -29,17 +29,7 @@ namespace COTTask_wpf
         /***********enumerate *****************/
         public enum TargetType
         {
-            Nogo,
             Go,
-        }
-
-        public enum InterfaceState
-        {
-            beforeStart,
-            Ready,
-            TargetCue,
-            GoNogo,
-            Reward,
         }
 
         public enum TrialExeResult
@@ -50,9 +40,7 @@ namespace COTTask_wpf
             goReachTimeToolong,
             goHit,
             goClose,
-            goMiss,
-            nogoMoved,
-            nogoSuccess
+            goMiss
         }
 
         public enum ScreenTouchState
@@ -115,18 +103,16 @@ namespace COTTask_wpf
         List<float> t_Ready_List = new List<float>();
         // randomized t_Cue list
         List<float> t_Cue_List = new List<float>();
-        // randomized t_Cue list
-        List<float> t_noGoShow_List = new List<float>();
+
 
 
         // objects of Go cirle, nogo Rectangle, lines of the crossing, and two white points
         Ellipse circleGo, circleGoClose;
-        Rectangle rectNogo;
         Line vertLine, horiLine;
         Ellipse point1, point2;
 
         // ColorBrushes 
-        private SolidColorBrush brush_goCircle, brush_nogoRect;
+        private SolidColorBrush brush_goCircle;
         private SolidColorBrush brush_BKWaitTrialStart, brush_BKTrial;
         private SolidColorBrush brush_CorrectFill, brush_CorrOutline, brush_ErrorFill, brush_ErrorOutline;
         private SolidColorBrush brush_CloseFill;
@@ -145,7 +131,6 @@ namespace COTTask_wpf
         // name of all the objects
         string name_circleGo = "circleGo";
         string name_circleGoClose = "circleGoClose";
-        string name_rectNogo = "rectNogo";
         string name_vLine = "vLine", name_hLine = "hLine";
         string name_point1 = "wpoint1", name_point2 = "wpoint2";
 
@@ -160,7 +145,7 @@ namespace COTTask_wpf
 
 
         // Wait Time Range for Each Event, and Max Reaction and Reach Time
-        float[] tRange_ReadyTime, tRange_CueTime, tRange_NogoShowTime;
+        float[] tRange_ReadyTime, tRange_CueTime;
         float tMax_ReactionTimeMS, tMax_ReachTimeMS; 
         Int32 t_VisfeedbackShow; // Visual Feedback Show Time (ms)
 
@@ -191,7 +176,7 @@ namespace COTTask_wpf
         // Executed Trial Information
         public int totalGoTrialNum, successGoTrialNum;
         public int missGoTrialNum, noreactionGoTrialNum, noreachGoTrialNum;
-        public int totalNogoTrialNum, successNogoTrialNum;
+
 
         // executeresult of each trial
         TrialExeResult trialExeResult;
@@ -265,13 +250,12 @@ namespace COTTask_wpf
 
 
             //shuffle go and nogo trials
-            Shuffle_GonogoTrials(Int32.Parse(parent.textBox_goTrialNum.Text), Int32.Parse(parent.textBox_nogoTrialNum.Text));
+            //Shuffle_GonogoTrials(Int32.Parse(parent.textBox_goTrialNum.Text), Int32.Parse(parent.textBox_nogoTrialNum.Text));
 
 
 
-            // Create necessary elements: go circle, nogo rect, two white points and one crossing
+            // Create necessary elements: go circle,  two white points and one crossing
             Create_GoCircle();
-            Create_NogoRect();
             Create_TwoWhitePoints();
             Create_OneCrossing();
 
@@ -311,7 +295,7 @@ namespace COTTask_wpf
 
         public async void Present_Start()
         {                 
-            float t_Cue, t_Ready, t_noGoShow;
+            float t_Cue, t_Ready;
             int[] pos_Taget;
             int targetPosInd;
 
@@ -335,7 +319,6 @@ namespace COTTask_wpf
                 pos_Taget = optPostions_List[targetPosInd];
                 t_Cue = t_Cue_List[randomIndex];
                 t_Ready = t_Ready_List[randomIndex];
-                t_noGoShow = t_noGoShow_List[randomIndex];
 
 
                 totalTriali++;
@@ -360,10 +343,6 @@ namespace COTTask_wpf
                     {
                         await Interface_Go(pos_Taget);
                     }
-                    else
-                    {
-                        await Interface_noGo(t_noGoShow, pos_Taget);
-                    }
 
                     Update_FeedbackTrialsInformation();
                     Remove_All();
@@ -375,14 +354,13 @@ namespace COTTask_wpf
                 }
 
 
-                if(trialExeResult == TrialExeResult.goClose | trialExeResult == TrialExeResult.goHit | trialExeResult == TrialExeResult.nogoSuccess)
+                if(trialExeResult == TrialExeResult.goClose | trialExeResult == TrialExeResult.goHit)
                 {
                     // Remove the trial setting only when success
                     targetType_List.RemoveAt(randomIndex);
                     targetPosInd_List.RemoveAt(randomIndex);
                     t_Cue_List.RemoveAt(randomIndex);
                     t_Ready_List.RemoveAt(randomIndex);
-                    t_noGoShow_List.RemoveAt(randomIndex);
                 }
 
                 /*-------- Write Trial Information ------*/
@@ -393,8 +371,6 @@ namespace COTTask_wpf
                 strExeSubResult.Add("goReachTimeToolong");
                 strExeSubResult.Add("goMiss");
                 strExeSubResult.Add("goSuccess");
-                strExeSubResult.Add("nogoMoved");
-                strExeSubResult.Add("nogoSuccess");
                 String strExeFail = "Failed";
                 String strExeSuccess = "Success";
                 using (StreamWriter file = File.AppendText(file_saved))
@@ -532,48 +508,6 @@ namespace COTTask_wpf
                             file.WriteLine(String.Format("{0, -40}: {1}, {2}", "Trial Result", strExeSuccess, strExeSubResult[5]));
 
                     }
-                    else if (trialExeResult == TrialExeResult.nogoMoved)
-                    { // case: noGo moved 
-
-                        // Cue Interface Timepoint and Cue Time
-                        file.WriteLine(String.Format("{0, -40}: {1}", "Cue Start TimePoint", (timePoint_Interface_CueOnset / ms2sRatio).ToString()));
-                        file.WriteLine(String.Format("{0, -40}: {1}", "Cue Interface Time", t_Cue.ToString()));
-
-                        // Cue Interface Timepoint, Target type: Go, and Target position index: 0 (1, 2)
-                        file.WriteLine(String.Format("{0, -40}: {1}", "Target Start TimePoint", (timePoint_Interface_TargetOnset / ms2sRatio).ToString()));
-                        file.WriteLine(String.Format("{0, -40}: {1}", "TargetType", targetType.ToString()));
-                        file.WriteLine(String.Format("{0, -40}: {1}", "TargetPositionIndex", targetPosInd.ToString()));
-
-                        // Target nogo interface show time
-                        file.WriteLine(String.Format("{0, -40}: {1}", "Nogo Interface Show Time", t_noGoShow.ToString()));
-
-                        // Target interface:  Left Startpad Time Point
-                        file.WriteLine(String.Format("{0, -40}: {1}", "Startpad Left TimePoint", (timePoint_StartpadLeft / ms2sRatio).ToString()));
-
-
-
-                        // trial exe result : success or fail
-                        file.WriteLine(String.Format("{0, -40}: {1}, {2}", "Trial Result", strExeFail, strExeSubResult[6]));
-
-                    }
-                    else if (trialExeResult == TrialExeResult.nogoSuccess)
-                    { // case: noGo success 
-
-                        // Cue Interface Timepoint and Cue Time
-                        file.WriteLine(String.Format("{0, -40}: {1}", "Cue Start TimePoint", (timePoint_Interface_CueOnset / ms2sRatio).ToString()));
-                        file.WriteLine(String.Format("{0, -40}: {1}", "Cue Interface Time", t_Cue.ToString()));
-
-                        // Cue Interface Timepoint, Target type: Go, and Target position index: 0 (1, 2)
-                        file.WriteLine(String.Format("{0, -40}: {1}", "Target Start TimePoint", (timePoint_Interface_TargetOnset / ms2sRatio).ToString()));
-                        file.WriteLine(String.Format("{0, -40}: {1}", "TargetType", targetType.ToString()));
-                        file.WriteLine(String.Format("{0, -40}: {1}", "TargetPositionIndex", targetPosInd.ToString()));
-                        // Target nogo interface show time
-                        file.WriteLine(String.Format("{0, -40}: {1}", "Nogo Interface Show Time", t_noGoShow.ToString()));
-
-
-                        // trial exe result : success or fail
-                        file.WriteLine(String.Format("{0, -40}: {1}, {2}", "Trial Result", strExeSuccess, strExeSubResult[7]));
-                    }
 
                 }
             }
@@ -619,12 +553,6 @@ namespace COTTask_wpf
                 file.WriteLine(String.Format("{0, -40}: {1}", "Miss Go Trials", missGoTrialNum.ToString()));
                 file.WriteLine(String.Format("{0, -40}: {1}", "No Reaction Go Trials", noreactionGoTrialNum.ToString()));
                 file.WriteLine(String.Format("{0, -40}: {1}", "No Reach Go Trials", noreachGoTrialNum.ToString()));
-
-
-                file.WriteLine("\n");
-                file.WriteLine(String.Format("{0}", "Summary of the noGo Trials"));
-                file.WriteLine(String.Format("{0, -40}: {1}", "Total noGo Trials", totalNogoTrialNum.ToString()));
-                file.WriteLine(String.Format("{0, -40}: {1}", "Success noGo Trials", successNogoTrialNum.ToString()));
             }
 
         }
@@ -640,10 +568,6 @@ namespace COTTask_wpf
             parent.textBox_noreactionGoTrialNum.Text = noreactionGoTrialNum.ToString();
             parent.textBox_noreachGoTrialNum.Text = noreachGoTrialNum.ToString();
 
-
-            // Nogo Trials
-            parent.textBox_successNogoTrialNum.Text = successNogoTrialNum.ToString();
-            parent.textBox_totalNogoTrialNum.Text = totalNogoTrialNum.ToString();
         }
 
         public void Present_Stop()
@@ -724,8 +648,8 @@ namespace COTTask_wpf
 
             // create orderred gonogo list
             List<TargetType> tmporder_go = new List<TargetType>(Enumerable.Repeat(TargetType.Go, gotrialnum));
-            List<TargetType> tmporder_nogo = new List<TargetType>(Enumerable.Repeat(TargetType.Nogo, nogotrialnum));
-            List<TargetType> tmporder_gonogo = tmporder_go.Concat(tmporder_nogo).ToList();
+
+            List<TargetType> tmporder_gonogo = tmporder_go;
 
 
             // shuffle 
@@ -752,7 +676,6 @@ namespace COTTask_wpf
                 // generate a random t_Ready and t_Cue, and and them into t_Ready_List and t_Cue_List individually
                 t_Cue_List.Add(TransferTo((float)r.NextDouble(), tRange_CueTime[0], tRange_CueTime[1]));
                 t_Ready_List.Add(TransferTo((float)r.NextDouble(), tRange_ReadyTime[0], tRange_ReadyTime[1]));
-                t_noGoShow_List.Add(TransferTo((float)r.NextDouble(), tRange_NogoShowTime[0], tRange_NogoShowTime[1]));
 
                 //remove this value
                 tmporder_gonogo.RemoveAt(randomIndex);
@@ -771,7 +694,6 @@ namespace COTTask_wpf
             // interfaces time related parameters
             tRange_ReadyTime = parent.tRange_ReadyTime;
             tRange_CueTime = parent.tRange_CueTime;
-            tRange_NogoShowTime = parent.tRange_NogoShowTime;
             tMax_ReactionTimeMS = parent.tMax_ReactionTimeS * 1000;
             tMax_ReachTimeMS = parent.tMax_ReachTimeS * 1000;
             t_VisfeedbackShow = (Int32)(parent.t_VisfeedbackShow * 1000);
@@ -786,9 +708,6 @@ namespace COTTask_wpf
             selectedColor = (Color)(typeof(Colors).GetProperty(parent.goColorStr) as PropertyInfo).GetValue(null, null);
             brush_goCircle = new SolidColorBrush(selectedColor);
 
-            // nogoRect Color
-            selectedColor = (Color)(typeof(Colors).GetProperty(parent.nogoColorStr) as PropertyInfo).GetValue(null, null);
-            brush_nogoRect = new SolidColorBrush(selectedColor);
 
             // Cue Crossing Color
             selectedColor = (Color)(typeof(Colors).GetProperty(parent.cueColorStr) as PropertyInfo).GetValue(null, null);
@@ -972,58 +891,6 @@ namespace COTTask_wpf
         }
 
 
-        private void Create_NogoRect()
-        {/*Create the red nogo rectangle: rectNogo*/
-
-            // Create an Ellipse  
-            rectNogo = new Rectangle();
-
-            rectNogo.Fill = brush_nogoRect;
-
-            // set the size, position of circleGo
-            int square_width = objdiameter;
-            int square_height = objdiameter;
-            rectNogo.Height = square_height;
-            rectNogo.Width = square_width;
-            rectNogo.VerticalAlignment = VerticalAlignment.Top;
-            rectNogo.HorizontalAlignment = HorizontalAlignment.Left;
-
-            // name
-            rectNogo.Name = name_rectNogo;
-
-            // hidden and not enabled at first
-            rectNogo.Visibility = Visibility.Hidden;
-            rectNogo.IsEnabled = false;
-
-            // add to myGrid   
-            myGrid.Children.Add(rectNogo);
-            myGrid.RegisterName(rectNogo.Name, rectNogo);
-            myGrid.UpdateLayout();
-        }
-
-        private void Add_NogoRect(int[] centerPoint_Pos)
-        {/*show the Nogo Rectangle with Rectangle Center at (centerPoint_Pos[0], centerPoint_Pos[1]) */
-
-            int centerPoint_X = centerPoint_Pos[0], centerPoint_Y = centerPoint_Pos[1];
-
-            double left = centerPoint_X - circleGo.Width / 2;
-            double top = centerPoint_Y - circleGo.Height / 2;
-            rectNogo.Margin = new Thickness(left, top, 0, 0);
-
-            rectNogo.Fill = brush_nogoRect;
-            rectNogo.Visibility = Visibility.Visible;
-            rectNogo.IsEnabled = true;
-            myGrid.UpdateLayout();
-        }
-
-        private void Remove_NogoRect()
-        {
-            rectNogo.Visibility = Visibility.Hidden;
-            rectNogo.IsEnabled = false;
-            myGrid.UpdateLayout();
-        }
-
-
         private void Create_TwoWhitePoints()
         {/* Create draw the two write points: point1, point2 */
 
@@ -1162,7 +1029,6 @@ namespace COTTask_wpf
             Remove_OneCrossing();
             Remove_TwoWhitePoints();
             Remove_GoCircle();
-            Remove_NogoRect();
 
         }
 
@@ -1609,60 +1475,6 @@ namespace COTTask_wpf
             
         }
 
-
-        private async Task Interface_noGo(float t_noGoShow, int[] pos_Target)
-        {/* task for noGo Interface: Show the noGo Interface while Listen to the state of the startpad.
-            * If StartpadTouched off within t_nogoshow, go to noGo Interface; Otherwise, noGo Correct Interface
-            
-            * Args:
-            *    t_noGoShow: noGo interface shows duration(s)
-            *    pos_Target: the center position of the Go Target
-
-            * Output:
-            *   startPadHoldstate_Cue = 
-            *       StartPadHoldState.HoldEnough (if startpad is touched lasting t_Cue)
-            *       StartPadHoldState.HoldTooShort (if startpad is released before t_Cue) 
-            */
-
-            try
-            {
-                // Remove the Crossing and Add the noGo Rect
-                Remove_OneCrossing();
-                Add_NogoRect(pos_Target);
-
-                // noGo target Onset Time Point
-                serialPort_IO8.WriteLine(cmdLow5 + cmdHigh6 + cmdHigh7 + cmdLow8);
-                timePoint_Interface_TargetOnset = globalWatch.ElapsedMilliseconds;
-
-                totalNogoTrialNum++;
-
-                // Wait Startpad TouchedOn  for t_noGoShow
-                startpadHoldstate = StartPadHoldState.HoldTooShort;
-                await Wait_EnoughTouch(t_noGoShow);
-                serialPort_IO8.WriteLine(cmdLow5 + cmdHigh6 + cmdHigh7 + cmdHigh8);
-
-                // noGo trial success when running here
-                Feedback_noGoCorrect();
-
-                successNogoTrialNum++;
-                trialExeResult = TrialExeResult.nogoSuccess;
-
-                await Task.Delay(t_VisfeedbackShow);
-            }
-            catch (TaskCanceledException)
-            {
-                serialPort_IO8.WriteLine(cmdHigh5 + cmdLow6 + cmdLow7 + cmdLow8);
-                Feedback_noGoError();
-
-                trialExeResult = TrialExeResult.nogoMoved;
-
-                await Task.Delay(t_VisfeedbackShow);
-                throw new TaskCanceledException("Startpad Touched off within t_nogoshow");
-            }
-
-        }
-
-
         private void Feedback_GoERROR()
         {
             // Visual Feedback
@@ -1720,38 +1532,6 @@ namespace COTTask_wpf
             // Audio Feedback
             player_Correct.Play();
         }
-
-        private void Feedback_noGoError()
-        {
-            // Visual Feedback
-            //myGridBorder.BorderBrush = brush_ErrorFill;
-            rectNogo.Fill = brush_ErrorFill;
-            rectNogo.Stroke = brush_ErrorOutline;
-            myGrid.UpdateLayout();
-
-
-            //Juicer Feedback
-            giveJuicerState = GiveJuicerState.No;
-
-            // Audio Feedback
-            player_Error.Play();
-        }
-
-        private void Feedback_noGoCorrect()
-        {
-            // Visual Feedback
-            //myGridBorder.BorderBrush = brush_CorrectFill;
-            rectNogo.Fill = brush_CorrectFill;
-            myGrid.UpdateLayout();
-
-
-            //Juicer Feedback
-            giveJuicerState = GiveJuicerState.FullGiven;
-
-            // Audio Feedback
-            player_Correct.Play();
-        }
-
 
         public void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
