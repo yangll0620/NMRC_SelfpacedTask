@@ -31,6 +31,13 @@ namespace COTTask_wpf
             return nonPrimaryS;
         }
 
+        public static sd.Rectangle Detect_PrimaryScreen_WorkArea()
+        {
+            swf.Screen PrimaryS = swf.Screen.PrimaryScreen;
+            sd.Rectangle workRect = PrimaryS.WorkingArea;
+
+            return workRect;
+        }
 
         public static int cm2pixal(float cmlen)
         {/* convert length with unit cm to unit pixal, 96 pixals = 1 inch = 2.54 cm
@@ -63,5 +70,6 @@ namespace COTTask_wpf
 
             return pixalen;
         }
+
     }
 }

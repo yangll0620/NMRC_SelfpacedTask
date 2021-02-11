@@ -73,11 +73,11 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <Label Content="Required # of Blocks" Grid.Column="0"
+                        <Label Content="Required # of Blocks" Grid.Column="0" Visibility="Hidden"
                                    HorizontalAlignment="Left" VerticalAlignment="top" 
                                HorizontalContentAlignment="Right" VerticalContentAlignment="Center"                             
                                Height="25" Margin="5,10,0,0"  FontWeight="Normal" FontSize="11"/>
-                        <TextBox x:Name="textBox_requiredBlocks"  Grid.Column="0"
+                        <TextBox x:Name="textBox_requiredBlocks"  Grid.Column="0" Visibility="Hidden"
                                  HorizontalAlignment="Left" VerticalAlignment="Top" 
                                  HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                  Height="25" Width ="50" Margin="160,10,5,0" 

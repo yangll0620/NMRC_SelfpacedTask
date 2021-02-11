@@ -5,9 +5,9 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:COTTask_wpf"
         mc:Ignorable="d"
-        Title="Target Settings" Height="300" Width="200"
+        Title="Target Settings" Height="600" Width="300"
         Closing="Window_Closing">
-    <Grid>
+    <Grid x:Name="Grid_setupTarget">
         <Grid.RowDefinitions>
             <RowDefinition Height="4*"/>
             <RowDefinition Height="*"/>
@@ -17,25 +17,90 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="*"/>
+                <RowDefinition Height="6*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <!--Diameter and Distance of Target -->
+            <!--Size -->
             <TextBlock  TextWrapping="WrapWithOverflow"  Grid.Row="0" 
+                                   HorizontalAlignment="Left" VerticalAlignment="Center" 
+                                    Margin="20,0,0,0"  FontWeight="Normal" FontSize="11"
+                                    TextAlignment="Center" Padding="5,1,0,0">
+                            Sizes(Diameters) cm</TextBlock>
+            <TextBox x:Name="textBox_targetSize" Grid.Row="0" 
+                     HorizontalAlignment="Left" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                     Height="25" Width ="60" Margin="150,0,0,0" TextWrapping="Wrap"   FontWeight="Normal"/>
+
+            <!--No.of Positions -->
+            <TextBlock  TextWrapping="WrapWithOverflow"  Grid.Row="1" 
+                                   HorizontalAlignment="Left" VerticalAlignment="Center" 
+                                    Margin="20,0,0,0"  FontWeight="Normal" FontSize="11"
+                                    TextAlignment="Center" Padding="5,1,0,0">
+                            No. of Positions</TextBlock>
+            <TextBox x:Name="textBox_targetNoOfPositions" Grid.Row="1" 
+                     HorizontalAlignment="Left" VerticalAlignment="Center" 
+                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                     Height="25" Width ="60" Margin="150,0,0,0" TextWrapping="Wrap"   FontWeight="Normal"
+                     TextChanged="TextBox_targetNoOfPositions_TextChanged"/>
+
+            <!--Generate, show and check sizes/positions -->
+            <Grid x:Name="grid_GenShowCheckSizesPos" Grid.Row="2" Width="280">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="4*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                
+                <Button x:Name="btn_GenSizePos" Grid.Row="0" Content="Generate Positions" 
+                        HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,0"  
+                        Width ="200" Height="25" FontWeight="Bold" FontFamily="Microsoft Sans Serif" FontSize="12" 
+                        Click="Btn_GenSizePos_Click"  />
+                
+                <Grid Grid.Row="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="4*"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock  TextWrapping="WrapWithOverflow"  Grid.Row="0" Grid.Column="1"
+                                   HorizontalAlignment="Center" VerticalAlignment="Bottom" 
+                                    Margin="0,0,0,0"  FontWeight="Normal" FontSize="11"
+                                    TextAlignment="Center" Padding="5,1,0,0">
+                            Positions(Center Co-ordinates)</TextBlock>
+
+                    <ListBox x:Name="listBox_Positions" Grid.Row="1" Grid.Column="1" Width="200"
+                             SelectionMode="Single"
+                             KeyDown="ListBox_Positions_KeyDown"
+                             MouseDoubleClick="ListBox_Positions_MouseDoubleClick"/>
+
+                </Grid>
+
+                <Button x:Name="btn_CheckPositions" Grid.Row="2" Content="Check Positions" 
+                        HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,0"  
+                        Width ="200" Height="25" FontWeight="Bold" FontFamily="Microsoft Sans Serif" FontSize="12" 
+                        Click="Btn_CheckPositions_Click"  />
+
+            </Grid>
+
+
+            <!--Diameter and Distance of Target -->
+            <TextBlock  TextWrapping="WrapWithOverflow"  Grid.Row="4" 
                                    HorizontalAlignment="Right" VerticalAlignment="top" 
                                     Margin="0,10,90,0"  FontWeight="Normal" FontSize="11"
                                     TextAlignment="Center" Padding="5,1,0,0">
                             Diameter of Target (inch)</TextBlock>
-            <TextBox x:Name="textBox_targetDiameter" Grid.Row="0" 
+            <TextBox x:Name="textBox_targetDiameter" Grid.Row="4" 
                                      HorizontalAlignment="Right" VerticalAlignment="Top" 
                                      HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                      Height="25" Width ="60" Margin="0,10,15,0" 
                                      TextWrapping="Wrap"   FontWeight="Normal"/>
 
-            <TextBlock  TextWrapping="WrapWithOverflow"  Grid.Row="1"  
+            <TextBlock  TextWrapping="WrapWithOverflow"  Grid.Row="4"  
                                    HorizontalAlignment="Right" VerticalAlignment="top" 
                                     Margin="0,10,90,0"  FontWeight="Normal" FontSize="11" >Distance from Center (inch)</TextBlock>
-            <TextBox x:Name="textBox_targetDisfromCenter"  Grid.Row="1"  
+            <TextBox x:Name="textBox_targetDisfromCenter"  Grid.Row="4"  
                                      HorizontalAlignment="Right" VerticalAlignment="Top" 
                                      HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                      Height="25" Width ="60" Margin="0,10,15,0" 
@@ -43,18 +108,18 @@
 
 
             <!--Error Margin Percentage -->
-            <TextBlock  TextWrapping="WrapWithOverflow"  Grid.Row="2"  
+            <TextBlock  TextWrapping="WrapWithOverflow"  Grid.Row="5"  
                                    HorizontalAlignment="Right" VerticalAlignment="top" 
                                     Margin="0,10,90,0"  FontWeight="Normal" FontSize="11" >Error Margin Percentage (%)</TextBlock>
 
-            <TextBox x:Name="textBox_closeMargin"  Grid.Row="2" 
+            <TextBox x:Name="textBox_closeMargin"  Grid.Row="5" 
                     HorizontalAlignment="Right" VerticalAlignment="Top" 
                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                     Height="25" Width ="60" Margin="0,10,15,0" 
                     TextWrapping="Wrap"   FontWeight="Normal" />
         </Grid>
 
-
+        <!--OK/Cancle Buttons -->
         <Grid Grid.Row="1">
             <Button x:Name="btn_OK"
             Content="OK" HorizontalAlignment="Right" VerticalAlignment="Top" 

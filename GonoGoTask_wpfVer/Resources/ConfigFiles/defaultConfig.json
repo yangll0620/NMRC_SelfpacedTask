@@ -14,6 +14,8 @@
     },
     "Target":
     {
+        "Target Size": 4,
+        "Target No of Positions": 9,
         "Target Diameter": 3,
         "Target Distance from Center": 3,
         "Close Margin Percentage": 50,

@@ -40,8 +40,12 @@ namespace COTTask_wpf
         public float tMax_ReactionTimeS, tMax_ReachTimeS, t_VisfeedbackShow;
         public float t_JuicerFullGivenS, t_JuicerCloseGivenS;
 
+        
         // Target Related Variables
         public float targetDiameterInch, targetDisFromCenterInch, closeMarginPercentage;
+        public int targetSizeCM, targetNoOfPositions;
+        public List<int[]> optPostions_OCenter_List;
+
 
 
         // Touch Screen Rectangle
@@ -85,6 +89,8 @@ namespace COTTask_wpf
 
             // Load Default Config File
             LoadConfigFile("");
+
+            optPostions_OCenter_List = new List<int[]>();
 
             if (textBox_NHPName.Text != "" && serialPortIO8_name != null)
             {
@@ -395,6 +401,7 @@ namespace COTTask_wpf
             tMax_ReachTimeS = float.Parse((string)configTime["Max Reaction Time"]);
             t_VisfeedbackShow = float.Parse((string)configTime["Visual Feedback Show Time"]);
 
+
             // Color Sections
             var configColors = config["Colors"];
             goColorStr = configColors["Go Fill Color"];
@@ -409,7 +416,9 @@ namespace COTTask_wpf
 
 
             // Target Sections
-            var configTarget = config["Target"];      
+            var configTarget = config["Target"];
+            targetSizeCM = int.Parse((string)configTarget["Target Size"]);
+            targetNoOfPositions = int.Parse((string)configTarget["Target No of Positions"]);
             targetDiameterInch = float.Parse((string)configTarget["Target Diameter"]);
             targetDisFromCenterInch = float.Parse((string)configTarget["Target Distance from Center"]);
             closeMarginPercentage = float.Parse((string)configTarget["Close Margin Percentage"]);
