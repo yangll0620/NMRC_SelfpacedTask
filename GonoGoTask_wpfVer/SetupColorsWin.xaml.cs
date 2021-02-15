@@ -55,7 +55,7 @@ namespace COTTask_wpf
             cbo_nogoColor.SelectedItem = typeof(Colors).GetProperty(parent.nogoColorStr);
             cbo_cueColor.SelectedItem = typeof(Colors).GetProperty(parent.cueColorStr);
             cbo_BKWaitTrialColor.SelectedItem = typeof(Colors).GetProperty(parent.BKWaitTrialColorStr);
-            cbo_BKTrialColor.SelectedItem = typeof(Colors).GetProperty(parent.BKTrialColorStr);
+            cbo_BKTrialColor.SelectedItem = typeof(Colors).GetProperty(parent.BKTargetShownColorStr);
             cbo_CorrFillColor.SelectedItem = typeof(Colors).GetProperty(parent.CorrFillColorStr);
             cbo_CorrOutlineColor.SelectedItem = typeof(Colors).GetProperty(parent.CorrOutlineColorStr);
             cbo_ErrorFillColor.SelectedItem = typeof(Colors).GetProperty(parent.ErrorFillColorStr);
@@ -69,7 +69,7 @@ namespace COTTask_wpf
             parent.nogoColorStr = (cbo_nogoColor.SelectedItem as PropertyInfo).Name;
             parent.cueColorStr = (cbo_cueColor.SelectedItem as PropertyInfo).Name;
             parent.BKWaitTrialColorStr = (cbo_BKWaitTrialColor.SelectedItem as PropertyInfo).Name;
-            parent.BKTrialColorStr = (cbo_BKTrialColor.SelectedItem as PropertyInfo).Name;
+            parent.BKTargetShownColorStr = (cbo_BKTrialColor.SelectedItem as PropertyInfo).Name;
             parent.CorrFillColorStr = (cbo_CorrFillColor.SelectedItem as PropertyInfo).Name;
             parent.CorrOutlineColorStr = (cbo_CorrOutlineColor.SelectedItem as PropertyInfo).Name;
             parent.ErrorFillColorStr = (cbo_ErrorFillColor.SelectedItem as PropertyInfo).Name;

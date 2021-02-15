@@ -23,15 +23,34 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
+            <Button x:Name="btn_test" Grid.Row="4" Content="Add"
+                    VerticalAlignment="Center" HorizontalAlignment="Right"
+                    Width="60" Height="30" Margin="0,0,150,0"
+                    Click="Btn_test_Click"/>
+            <Button x:Name="btn_test2" Grid.Row="4" Content="Remove"
+                    VerticalAlignment="Center" HorizontalAlignment="Right"
+                    Width="60" Height="30" Margin="0,0,80,0"
+                    Click="Btn_test2_Click"/>
+            <TextBox x:Name="textBox_Pos"  Grid.Row="4" 
+                    VerticalAlignment="Center" HorizontalAlignment="Right"
+                    Height="26" Width ="60" Margin="0,0,220,0" 
+                    TextWrapping="Wrap"   FontWeight="Normal" />
+            <TextBox x:Name="textBox_DiaPixal"  Grid.Row="0" 
+                    VerticalAlignment="Center" HorizontalAlignment="Right"
+                    Height="26" Width ="60" Margin="0,0,10,0" 
+                    TextWrapping="Wrap"   FontWeight="Normal" />
+
             <!--Size -->
             <TextBlock  TextWrapping="WrapWithOverflow"  Grid.Row="0" 
                                    HorizontalAlignment="Left" VerticalAlignment="Center" 
                                     Margin="20,0,0,0"  FontWeight="Normal" FontSize="11"
                                     TextAlignment="Center" Padding="5,1,0,0">
                             Sizes(Diameters) cm</TextBlock>
-            <TextBox x:Name="textBox_targetSize" Grid.Row="0" 
+            <TextBox x:Name="textBox_targetDiaCM" Grid.Row="0" 
                      HorizontalAlignment="Left" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                     Height="25" Width ="60" Margin="150,0,0,0" TextWrapping="Wrap"   FontWeight="Normal"/>
+                     Height="25" Width ="60" Margin="150,0,0,0" TextWrapping="Wrap"   FontWeight="Normal"
+                     TextChanged="TextBox_targetDiaCM_TextChanged"
+                     KeyDown="TextBox_targetDiaCM_KeyDown"/>
 
             <!--No.of Positions -->
             <TextBlock  TextWrapping="WrapWithOverflow"  Grid.Row="1" 
@@ -52,12 +71,12 @@
                     <RowDefinition Height="4*"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                
+
                 <Button x:Name="btn_GenSizePos" Grid.Row="0" Content="Generate Positions" 
                         HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,0"  
                         Width ="200" Height="25" FontWeight="Bold" FontFamily="Microsoft Sans Serif" FontSize="12" 
                         Click="Btn_GenSizePos_Click"  />
-                
+
                 <Grid Grid.Row="1">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
@@ -85,27 +104,6 @@
             </Grid>
 
 
-            <!--Diameter and Distance of Target -->
-            <TextBlock  TextWrapping="WrapWithOverflow"  Grid.Row="4" 
-                                   HorizontalAlignment="Right" VerticalAlignment="top" 
-                                    Margin="0,10,90,0"  FontWeight="Normal" FontSize="11"
-                                    TextAlignment="Center" Padding="5,1,0,0">
-                            Diameter of Target (inch)</TextBlock>
-            <TextBox x:Name="textBox_targetDiameter" Grid.Row="4" 
-                                     HorizontalAlignment="Right" VerticalAlignment="Top" 
-                                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                                     Height="25" Width ="60" Margin="0,10,15,0" 
-                                     TextWrapping="Wrap"   FontWeight="Normal"/>
-
-            <TextBlock  TextWrapping="WrapWithOverflow"  Grid.Row="4"  
-                                   HorizontalAlignment="Right" VerticalAlignment="top" 
-                                    Margin="0,10,90,0"  FontWeight="Normal" FontSize="11" >Distance from Center (inch)</TextBlock>
-            <TextBox x:Name="textBox_targetDisfromCenter"  Grid.Row="4"  
-                                     HorizontalAlignment="Right" VerticalAlignment="Top" 
-                                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                                     Height="25" Width ="60" Margin="0,10,15,0" 
-                                     TextWrapping="Wrap"   FontWeight="Normal" FontSize="11" />
-
 
             <!--Error Margin Percentage -->
             <TextBlock  TextWrapping="WrapWithOverflow"  Grid.Row="5"  
@@ -132,6 +130,6 @@
                 FontWeight="Bold" FontFamily="Microsoft Sans Serif" FontSize="12" Click="Btn_Cancle_Click" />
         </Grid>
 
-       
+
     </Grid>
 </Window>

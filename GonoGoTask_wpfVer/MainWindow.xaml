@@ -27,9 +27,9 @@
                 </MenuItem>
 
                 <MenuItem Header="Tools">
-                    <MenuItem Header="_Show All Optional Targets" Click="btnShowAllTargets_Click"/>
                     <MenuItem Header="_Show Close Circle" IsCheckable="True" Checked="MenuItem_showCloseCircle" Unchecked="MenuItem_noShowCloseCircle"/>
                     <MenuItem Header="_Test Touchpad, Juicer " Click="btnTestTouchpadJuicer_Click"/>
+                    <MenuItem Header="_Test Window " Click="MenuItem_NewWindow"/>
                 </MenuItem>
             </Menu>
         </DockPanel>

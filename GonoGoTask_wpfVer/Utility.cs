@@ -1,16 +1,18 @@
 ﻿using System;
+using System.Windows;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using swf = System.Windows.Forms;
 using sd = System.Drawing;
+using System.Windows.Shapes;
 using System.Windows.Media;
+
 namespace COTTask_wpf
 {
     class Utility
     {
         static public int ratioIn2Pixal = 96;
+        static public float ratioCM2Pixal = (float)96 / (float)2.54;
+
         public Utility()
         { }
 
@@ -31,12 +33,12 @@ namespace COTTask_wpf
             return nonPrimaryS;
         }
 
-        public static sd.Rectangle Detect_PrimaryScreen_WorkArea()
+        public static sd.Rectangle Detect_PrimaryScreen_Rect()
         {
             swf.Screen PrimaryS = swf.Screen.PrimaryScreen;
-            sd.Rectangle workRect = PrimaryS.WorkingArea;
+            sd.Rectangle screenRect = PrimaryS.Bounds;
 
-            return workRect;
+            return screenRect;
         }
 
         public static int cm2pixal(float cmlen)
@@ -49,9 +51,7 @@ namespace COTTask_wpf
                 pixalen: converted length with unit pixal
          */
 
-            float ratio = (float)96 / (float)2.54;
-
-            int pixalen = (int)(cmlen * ratio);
+            int pixalen = (int)(cmlen * ratioCM2Pixal);
 
             return pixalen;
         }
@@ -71,5 +71,88 @@ namespace COTTask_wpf
             return pixalen;
         }
 
+
+        public static List<int[]> GenPositions(int n, int epilson, sd.Rectangle workArea)
+        {/*
+                Generate the optional X, Y Positions (origin in center) for workArea
+                Unit is pixal
+
+                Args:
+                    n: the number of generated positions
+                    epilson: x in [-width/2 + epilson,  width/2 - epilson] 
+                             y in [-height/2 + epilson,  height/2 - epilson]
+
+            */
+
+            List<int[]> optPostions_OCenter_List = new List<int[]>();
+
+            
+            int xMin = -workArea.Width / 2 + epilson, xMax = workArea.Width / 2 - epilson;
+            int yMin = -workArea.Height / 2 + epilson, yMax = workArea.Height / 2 - epilson;
+
+            // generate randomly x, y positions
+            Random rnd = new Random();     
+            for (int i = 0; i < n; i++)
+            {
+                int x = rnd.Next(0, xMax - xMin) + xMin;
+                int y = rnd.Next(0, yMax - yMin) + yMin;
+                optPostions_OCenter_List.Add(new int[] { x, y });
+            }
+
+            return optPostions_OCenter_List;
+        }
+
+
+
+        public static Ellipse Create_Circle(double Diameter, SolidColorBrush brush_Fill)
+        {/*
+            Create the circle
+
+            Args:
+                Diameter: the Diameter of the Circle in Pixal
+
+            */
+
+            // Create an Ellipse  
+            Ellipse circle = new Ellipse();
+
+            // set the size, position of circleGo
+            circle.Height = Diameter;
+            circle.Width = Diameter;
+
+            circle.Fill = brush_Fill;
+
+            return circle;
+        }
+
+
+        public static Ellipse Move_Circle_OTopLeft(Ellipse circle, int[] cPoint_Pos_OTopLeft)
+        {/*
+            Move the circle into cPoint_Pos_OTopLeft (Origin in the topLeft of the Screen)
+
+            Args:
+                Diameter: the Diameter of the Circle in Pixal
+
+                cPoint_Pos_OTopLeft: the x, y Positions of the Circle center in Pixal (Origin in the topLeft of the Screen)
+
+            */
+
+
+            circle.VerticalAlignment = VerticalAlignment.Top;
+            circle.HorizontalAlignment = HorizontalAlignment.Left;
+
+            circle.Margin = new Thickness(cPoint_Pos_OTopLeft[0] - circle.Width/2, cPoint_Pos_OTopLeft[1] - circle.Height/2, 0, 0);
+
+            return circle;
+        }
+
+        public static float TransferTo(float value, float lower, float upper)
+        {// transform value (0=<value<1) into a valueT (lower=<valueT<upper)
+
+            float rndTime;
+            rndTime = value * (upper - lower) + lower;
+
+            return rndTime;
+        }
     }
 }

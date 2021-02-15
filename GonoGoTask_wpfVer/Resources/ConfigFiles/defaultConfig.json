@@ -14,8 +14,8 @@
     },
     "Target":
     {
-        "Target Size": 4,
-        "Target No of Positions": 9,
+        "Target Size": 6,
+        "Target No of Positions": 3,
         "Target Diameter": 3,
         "Target Distance from Center": 3,
         "Close Margin Percentage": 50,
@@ -23,10 +23,9 @@
     "Colors":
     {
         "Go Fill Color": "Green",
-        "noGo Fill Color": "Yellow",
-        "Cue Crossing Color": "Black",
-        "Wait Trial Start Background": "Black",
-        "Trial Background": "WhiteSmoke",
+        "Wait Start Background": "Black",
+        "Ready Background": "Blue",
+        "Target Shown Background": "WhiteSmoke",
         "Correct Fill": "Magenta",
         "Correct Outline": "Magenta",
         "Error Fill":"WhiteSmoke",
@@ -40,6 +39,6 @@
 
     "audioFile_Correct": "default",
     "audioFile_Error": "default",
-    "saved_folder": "C:\\GonoGoSave"
+    "saved_folder": "C:\\COTTaskDev"
   }
 ]

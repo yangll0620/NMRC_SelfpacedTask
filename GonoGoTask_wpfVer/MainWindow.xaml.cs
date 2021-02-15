@@ -32,7 +32,7 @@ namespace COTTask_wpf
 
         // Strings stoing the Colors
         public string goColorStr, nogoColorStr, cueColorStr;
-        public string BKWaitTrialColorStr, BKTrialColorStr;
+        public string BKWaitTrialColorStr, BKReadyColorStr, BKTargetShownColorStr;
         public string CorrFillColorStr, CorrOutlineColorStr, ErrorFillColorStr, ErrorOutlineColorStr;
 
         // Time Related Variables
@@ -42,8 +42,10 @@ namespace COTTask_wpf
 
         
         // Target Related Variables
-        public float targetDiameterInch, targetDisFromCenterInch, closeMarginPercentage;
-        public int targetSizeCM, targetNoOfPositions;
+        public float closeMarginPercentage;
+        public int targetNoOfPositions;
+        public float targetDiaCM;
+        public int targetDiaPixal;
         public List<int[]> optPostions_OCenter_List;
 
 
@@ -58,10 +60,14 @@ namespace COTTask_wpf
 
             // Get the first not Primary Screen 
             swf.Screen showMainScreen = Utility.Detect_oneNonPrimaryScreen();
+            
             // Show the  MainWindow on the Touch Screen
             sd.Rectangle Rect_showMainScreen = showMainScreen.WorkingArea;
             this.Top = Rect_showMainScreen.Top;
             this.Left = Rect_showMainScreen.Left;
+
+            // Get the touch Screen Rectangle
+            Rect_touchScreen = Utility.Detect_PrimaryScreen_Rect(); 
 
 
             // locate serial Port Name
@@ -89,8 +95,11 @@ namespace COTTask_wpf
 
             // Load Default Config File
             LoadConfigFile("");
+            targetDiaPixal = Utility.cm2pixal(targetDiaCM);
 
-            optPostions_OCenter_List = new List<int[]>();
+            // Generate optional positions
+            optPostions_OCenter_List = Utility.GenPositions(targetNoOfPositions, targetDiaPixal, Rect_touchScreen); 
+
 
             if (textBox_NHPName.Text != "" && serialPortIO8_name != null)
             {
@@ -102,11 +111,6 @@ namespace COTTask_wpf
                 btn_start.IsEnabled = false;
                 btn_stop.IsEnabled = false;
             }
-
-
-            // Get the touch Screen Rectangle
-            swf.Screen PrimaryScreen = swf.Screen.PrimaryScreen;
-            Rect_touchScreen = PrimaryScreen.WorkingArea;
         }
 
         private void Btn_comReconnect_Click(object sender, RoutedEventArgs e)
@@ -172,7 +176,7 @@ namespace COTTask_wpf
             // if saved_folder not exist, created!
             if (Directory.Exists(saved_folder) == false)
             {
-                System.IO.Directory.CreateDirectory(saved_folder);
+                Directory.CreateDirectory(saved_folder);
             }
 
             string filename_saved = textBox_NHPName.Text + time_now.ToString("-yyyyMMdd-HHmmss") + ".txt";
@@ -194,8 +198,7 @@ namespace COTTask_wpf
                 file.WriteLine(String.Format("{0, -40}:  {1}", "Go Target Color", goColorStr));
                 file.WriteLine(String.Format("{0, -40}:  {1}", "Nogo Target Color", nogoColorStr));
 
-                file.WriteLine(String.Format("{0, -40}:  {1}", "Target Diameter (inch)", targetDiameterInch.ToString()));
-                file.WriteLine(String.Format("{0, -40}:  {1}", "Target Distance from the Center (inch)", targetDisFromCenterInch.ToString()));
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Target Diameter (CM)", targetDiaCM.ToString()));
 
 
                 file.WriteLine(String.Format("{0, -40}:  [{1} {2}]", "Ready Interface Show Time Range (s)", tRange_ReadyTime[0].ToString(), tRange_ReadyTime[1].ToString()));
@@ -208,16 +211,32 @@ namespace COTTask_wpf
                 file.WriteLine(String.Format("{0, -40}:  {1}", "Max Reaction Time (s)", tMax_ReactionTimeS.ToString()));
 
                 file.WriteLine("\n");
-                file.WriteLine(String.Format("{0, -40}:  {1}", "Unit of X Y Position", "Pixal"));
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Unit of X Y Position", "CM"));
                 file.WriteLine(String.Format("{0, -40}:  {1}", "Unit of TimePoint/Time", "s"));
 
 
                 file.WriteLine(String.Format("{0, -40}:  {1}", "Screen Resolution(pixal)", Rect_touchScreen.Width.ToString() + "x" + Rect_touchScreen.Height.ToString()));
-                file.WriteLine(String.Format("{0, -40}:  {1}", "Inch to Pixal Ratio", Utility.ratioIn2Pixal.ToString()));
+                file.WriteLine(String.Format("{0, -40}:  {1}", "CM to Pixal Ratio", Utility.ratioCM2Pixal.ToString()));
+
+
+                // Store all the optional positions
+                file.WriteLine("\n");
+                for (int i = 0; i < optPostions_OCenter_List.Count; i++)
+                {
+                    int[] position = optPostions_OCenter_List[i];
+                    file.WriteLine(String.Format("{0, -40}:{1}, {2}", "Optional Postion " + i.ToString(), position[0], position[1]));
+                }
 
             }
         }
 
+
+        private void MenuItem_NewWindow(object sender, RoutedEventArgs e)
+        {
+            Window1 testWind = new Window1(this);
+            testWind.Show();
+
+        }
 
         private void MenuItem_SetupTime(object sender, RoutedEventArgs e)
         {
@@ -272,57 +291,6 @@ namespace COTTask_wpf
             Win_SetupTarget.Owner = this;
 
             Win_SetupTarget.Show();
-        }
-
-        private void btnShowAllTargets_Click(object sender, RoutedEventArgs e)
-        {
-
-            // Get the touch Screen, Should Set Touch Screen as the PrimaryScreen
-            swf.Screen primaryScreen = swf.Screen.PrimaryScreen;
-
-            //Show the Win_allTargets on the Touch Screen
-            Window Win_allTargets = new Window();
-            sd.Rectangle Rect_primaryScreen = primaryScreen.WorkingArea;
-            Win_allTargets.Top = Rect_primaryScreen.Top;
-            Win_allTargets.Left = Rect_primaryScreen.Left;
-
-            Color selectedColor = (Color)(typeof(Colors).GetProperty(BKTrialColorStr) as PropertyInfo).GetValue(null, null);
-            Win_allTargets.Background = new SolidColorBrush(selectedColor);
-            Win_allTargets.Show();
-            Win_allTargets.WindowState = WindowState.Maximized;
-            Win_allTargets.Name = "childWin_ShowAllTargets";
-
-            // Add a Grid
-            Grid wholeGrid = new Grid();
-            wholeGrid.Height = Win_allTargets.ActualHeight;
-            wholeGrid.Width = Win_allTargets.ActualWidth;
-            Win_allTargets.Content = wholeGrid;
-            wholeGrid.UpdateLayout();
-
-
-            int Diameter = Utility.in2pixal(targetDiameterInch);
-            List<int[]> optPostions_List = new List<int[]>();
-
-            int screenCenter_X = (int)wholeGrid.ActualWidth / 2;
-            int screenCenter_Y = (int)wholeGrid.ActualHeight / 2;
-            int disFromCenter = Utility.in2pixal(targetDisFromCenterInch);
-            int disXFromCenter = disFromCenter;
-            int disYFromCenter = disFromCenter;
-
-            optPostions_List.Add(new int[] { screenCenter_X - disXFromCenter, screenCenter_Y }); // left position
-            optPostions_List.Add(new int[] { screenCenter_X, screenCenter_Y - disYFromCenter }); // top position
-            optPostions_List.Add(new int[] { screenCenter_X + disXFromCenter, screenCenter_Y }); // right position
-
-            Color goCircleColor = (Color)(typeof(Colors).GetProperty(goColorStr) as PropertyInfo).GetValue(null, null); ;
-            foreach (int[] centerPoint_Pos in optPostions_List)
-            {
-                Ellipse circleGo = Create_GoCircle((double)Diameter, centerPoint_Pos);
-                circleGo.Fill = new SolidColorBrush(goCircleColor);
-                wholeGrid.Children.Add(circleGo);
-            }
-            wholeGrid.UpdateLayout();
-
-            Win_allTargets.Owner = this;
         }
 
         private Ellipse Create_GoCircle(double Diameter, int[] centerPoint_Pos)
@@ -405,10 +373,9 @@ namespace COTTask_wpf
             // Color Sections
             var configColors = config["Colors"];
             goColorStr = configColors["Go Fill Color"];
-            nogoColorStr = configColors["noGo Fill Color"];
-            cueColorStr = configColors["Cue Crossing Color"];
-            BKWaitTrialColorStr = configColors["Wait Trial Start Background"];
-            BKTrialColorStr = configColors["Trial Background"];
+            BKWaitTrialColorStr = configColors["Wait Start Background"];
+            BKReadyColorStr = configColors["Ready Background"];
+            BKTargetShownColorStr = configColors["Target Shown Background"];
             CorrFillColorStr = configColors["Correct Fill"];
             CorrOutlineColorStr = configColors["Correct Outline"];
             ErrorFillColorStr = configColors["Error Fill"];
@@ -417,10 +384,8 @@ namespace COTTask_wpf
 
             // Target Sections
             var configTarget = config["Target"];
-            targetSizeCM = int.Parse((string)configTarget["Target Size"]);
+            targetDiaCM = int.Parse((string)configTarget["Target Size"]);
             targetNoOfPositions = int.Parse((string)configTarget["Target No of Positions"]);
-            targetDiameterInch = float.Parse((string)configTarget["Target Diameter"]);
-            targetDisFromCenterInch = float.Parse((string)configTarget["Target Distance from Center"]);
             closeMarginPercentage = float.Parse((string)configTarget["Close Margin Percentage"]);
 
 
@@ -429,7 +394,7 @@ namespace COTTask_wpf
             saved_folder = config["saved_folder"];
             if (String.Compare(saved_folder, "default", true) == 0)
             {
-                saved_folder = @"C:\\GonoGoSave";
+                saved_folder = @"C:\\COTTaskSave";
             }
         }
 
