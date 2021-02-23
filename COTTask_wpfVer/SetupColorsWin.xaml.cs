@@ -39,41 +39,44 @@ namespace COTTask_wpf
         private void BindingComboData()
         {
             //Data binding the Color ComboBoxes
-            cbo_goColor.ItemsSource = typeof(Colors).GetProperties();
-            cbo_nogoColor.ItemsSource = typeof(Colors).GetProperties();
-            cbo_cueColor.ItemsSource = typeof(Colors).GetProperties();
+            cbo_goFillColor.ItemsSource = typeof(Colors).GetProperties();
+            cbo_goOutlineColor.ItemsSource = typeof(Colors).GetProperties();
             cbo_BKWaitTrialColor.ItemsSource = typeof(Colors).GetProperties();
-            cbo_BKTrialColor.ItemsSource = typeof(Colors).GetProperties();
+            cbo_BKReadyColor.ItemsSource = typeof(Colors).GetProperties();
+            cbo_BKTargetShownColor.ItemsSource = typeof(Colors).GetProperties();
             cbo_CorrFillColor.ItemsSource = typeof(Colors).GetProperties();
             cbo_CorrOutlineColor.ItemsSource = typeof(Colors).GetProperties();
             cbo_ErrorFillColor.ItemsSource = typeof(Colors).GetProperties();
             cbo_ErrorOutlineColor.ItemsSource = typeof(Colors).GetProperties();
+            cbo_ErrorCrossingColor.ItemsSource = typeof(Colors).GetProperties();
 
 
             // Set Default Selected Item
-            cbo_goColor.SelectedItem = typeof(Colors).GetProperty(parent.goColorStr);
-            cbo_nogoColor.SelectedItem = typeof(Colors).GetProperty(parent.nogoColorStr);
-            cbo_cueColor.SelectedItem = typeof(Colors).GetProperty(parent.cueColorStr);
+            cbo_goFillColor.SelectedItem = typeof(Colors).GetProperty(parent.goFillColorStr);
+            cbo_goOutlineColor.SelectedItem = typeof(Colors).GetProperty(parent.goFillColorStr);
             cbo_BKWaitTrialColor.SelectedItem = typeof(Colors).GetProperty(parent.BKWaitTrialColorStr);
-            cbo_BKTrialColor.SelectedItem = typeof(Colors).GetProperty(parent.BKTargetShownColorStr);
+            cbo_BKReadyColor.SelectedItem = typeof(Colors).GetProperty(parent.BKReadyColorStr);
+            cbo_BKTargetShownColor.SelectedItem = typeof(Colors).GetProperty(parent.BKTargetShownColorStr);
             cbo_CorrFillColor.SelectedItem = typeof(Colors).GetProperty(parent.CorrFillColorStr);
             cbo_CorrOutlineColor.SelectedItem = typeof(Colors).GetProperty(parent.CorrOutlineColorStr);
             cbo_ErrorFillColor.SelectedItem = typeof(Colors).GetProperty(parent.ErrorFillColorStr);
             cbo_ErrorOutlineColor.SelectedItem = typeof(Colors).GetProperty(parent.ErrorOutlineColorStr);
+            cbo_ErrorCrossingColor.SelectedItem = typeof(Colors).GetProperty(parent.ErrorCrossingColorStr);
         }
 
         private void SaveColorsData()
         { /* ---- Save all the Select Colors Information back to MainWindow Color Strings ----- */
 
-            parent.goColorStr = (cbo_goColor.SelectedItem as PropertyInfo).Name;
-            parent.nogoColorStr = (cbo_nogoColor.SelectedItem as PropertyInfo).Name;
-            parent.cueColorStr = (cbo_cueColor.SelectedItem as PropertyInfo).Name;
+            parent.goFillColorStr = (cbo_goFillColor.SelectedItem as PropertyInfo).Name;
+            parent.goOutlineColorStr = (cbo_goOutlineColor.SelectedItem as PropertyInfo).Name;
             parent.BKWaitTrialColorStr = (cbo_BKWaitTrialColor.SelectedItem as PropertyInfo).Name;
-            parent.BKTargetShownColorStr = (cbo_BKTrialColor.SelectedItem as PropertyInfo).Name;
+            parent.BKReadyColorStr = (cbo_BKReadyColor.SelectedItem as PropertyInfo).Name;
+            parent.BKTargetShownColorStr = (cbo_BKTargetShownColor.SelectedItem as PropertyInfo).Name;
             parent.CorrFillColorStr = (cbo_CorrFillColor.SelectedItem as PropertyInfo).Name;
             parent.CorrOutlineColorStr = (cbo_CorrOutlineColor.SelectedItem as PropertyInfo).Name;
             parent.ErrorFillColorStr = (cbo_ErrorFillColor.SelectedItem as PropertyInfo).Name;
             parent.ErrorOutlineColorStr = (cbo_ErrorOutlineColor.SelectedItem as PropertyInfo).Name;
+            parent.ErrorCrossingColorStr = (cbo_ErrorCrossingColor.SelectedItem as PropertyInfo).Name;
         }
 
         private void Btn_OK_Click(object sender, RoutedEventArgs e)

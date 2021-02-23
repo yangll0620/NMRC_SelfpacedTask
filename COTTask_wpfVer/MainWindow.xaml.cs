@@ -31,18 +31,17 @@ namespace COTTask_wpf
         presentation taskPresentWin;
 
         // Strings stoing the Colors
-        public string goColorStr, nogoColorStr, cueColorStr;
+        public string goFillColorStr, goOutlineColorStr;
         public string BKWaitTrialColorStr, BKReadyColorStr, BKTargetShownColorStr;
-        public string CorrFillColorStr, CorrOutlineColorStr, ErrorFillColorStr, ErrorOutlineColorStr;
+        public string CorrFillColorStr, CorrOutlineColorStr, ErrorFillColorStr, ErrorOutlineColorStr, ErrorCrossingColorStr;
 
         // Time Related Variables
-        public float[] tRange_ReadyTime, tRange_CueTime, tRange_NogoShowTime;
-        public float tMax_ReactionTimeS, tMax_ReachTimeS, t_VisfeedbackShow;
+        public float[] tRange_ReadyTime;
+        public float tMax_ReactionTimeS, tMax_ReachTimeS, t_VisfeedbackShow, t_InterTrial;
         public float t_JuicerFullGivenS, t_JuicerCloseGivenS;
 
         
         // Target Related Variables
-        public float closeMarginPercentage;
         public int targetNoOfPositions;
         public float targetDiaCM;
         public int targetDiaPixal;
@@ -97,8 +96,8 @@ namespace COTTask_wpf
             LoadConfigFile("");
             targetDiaPixal = Utility.cm2pixal(targetDiaCM);
 
-            // Generate optional positions
-            optPostions_OCenter_List = Utility.GenPositions(targetNoOfPositions, targetDiaPixal, Rect_touchScreen); 
+            // Generate default optional positions
+            optPostions_OCenter_List = Utility.GenDefaultPositions(targetNoOfPositions, 2 * targetDiaPixal, Rect_touchScreen); 
 
 
             if (textBox_NHPName.Text != "" && serialPortIO8_name != null)
@@ -154,10 +153,12 @@ namespace COTTask_wpf
 
         private void btnTestTouchpadJuicer_Click(object sender, RoutedEventArgs e)
         {
-            TestStartpadJuicerWin Win_TestStartpadJuicer = new TestStartpadJuicerWin(this);
+            TestStartpadJuicerWin Win_TestStartpadJuicer = new TestStartpadJuicerWin(this)
+            {
 
-            // Set Owner
-            Win_TestStartpadJuicer.Owner = this;
+                // Set Owner
+                Owner = this
+            };
 
             // Get the first not Primary Screen 
             swf.Screen showMainScreen = Utility.Detect_oneNonPrimaryScreen();
@@ -191,21 +192,15 @@ namespace COTTask_wpf
 
                 file.WriteLine("Input Parameters:");
 
-                file.WriteLine(String.Format("{0, -40}:  {1}", "Close Margin (%)", closeMarginPercentage.ToString()));
-
-                file.WriteLine(String.Format("{0, -40}:  {1}", "Required Number of Blocks", textBox_requiredBlocks.Text));
-
-                file.WriteLine(String.Format("{0, -40}:  {1}", "Go Target Color", goColorStr));
-                file.WriteLine(String.Format("{0, -40}:  {1}", "Nogo Target Color", nogoColorStr));
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Go Target Fill Color", goFillColorStr));
 
                 file.WriteLine(String.Format("{0, -40}:  {1}", "Target Diameter (CM)", targetDiaCM.ToString()));
 
 
                 file.WriteLine(String.Format("{0, -40}:  [{1} {2}]", "Ready Interface Show Time Range (s)", tRange_ReadyTime[0].ToString(), tRange_ReadyTime[1].ToString()));
-                file.WriteLine(String.Format("{0, -40}:  [{1} {2}]", "Cue Interface Show Time Range (s)", tRange_CueTime[0].ToString(), tRange_CueTime[1].ToString()));
-                file.WriteLine(String.Format("{0, -40}:  [{1} {2}]", "Nogo Interface Show Range Time (s)", tRange_NogoShowTime[0].ToString(), tRange_NogoShowTime[1].ToString()));
                 file.WriteLine(String.Format("{0, -40}:  {1}", "Visual Feedback Time (s)", t_VisfeedbackShow.ToString()));
                 file.WriteLine(String.Format("{0, -40}:  {1}", "Juicer Feedback Time (s)", t_JuicerCloseGivenS.ToString()));
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Inter-Trial Time (s)", t_InterTrial.ToString()));
 
                 file.WriteLine(String.Format("{0, -40}:  {1}", "Max Reach Time (s)", tMax_ReachTimeS.ToString()));
                 file.WriteLine(String.Format("{0, -40}:  {1}", "Max Reaction Time (s)", tMax_ReactionTimeS.ToString()));
@@ -236,6 +231,48 @@ namespace COTTask_wpf
             Window1 testWind = new Window1(this);
             testWind.Show();
 
+        }
+
+        private void menuSaveConf_Click(object sender, RoutedEventArgs e)
+        {
+            Microsoft.Win32.SaveFileDialog saveFileDlg = new Microsoft.Win32.SaveFileDialog
+            {
+
+                // Set filter for file extension and default file extension 
+                DefaultExt = ".json",
+                Filter = "Json Files|*.json",
+                FileName = "config"
+            };
+
+            Nullable<bool> result = saveFileDlg.ShowDialog();
+            if (result == true)
+            {
+                // Open document 
+                string saveConfigFile = saveFileDlg.FileName;
+                SaveConfigFile(saveConfigFile);
+            }
+
+        }
+
+        private void menuLoadConf_Click(object sender, RoutedEventArgs e)
+        {
+            Microsoft.Win32.OpenFileDialog openFileDlg = new Microsoft.Win32.OpenFileDialog
+            {
+
+                // Set filter for file extension and default file extension 
+                DefaultExt = ".json",
+                Filter = "Json Files|*.json"
+            };
+
+            Nullable<bool> result = openFileDlg.ShowDialog();
+
+            // Get the selected file name and display in a TextBox 
+            if (result == true)
+            {
+                // Open document 
+                string configFile = openFileDlg.FileName;
+                LoadConfigFile(configFile);
+            }
         }
 
         private void MenuItem_SetupTime(object sender, RoutedEventArgs e)
@@ -300,14 +337,16 @@ namespace COTTask_wpf
             */
 
             // Create an Ellipse  
-            Ellipse circleGo = new System.Windows.Shapes.Ellipse();
+            Ellipse circleGo = new System.Windows.Shapes.Ellipse
+            {
 
-            // set the size, position of circleGo
-            circleGo.Height = Diameter;
-            circleGo.Width = Diameter;
-            circleGo.VerticalAlignment = VerticalAlignment.Top;
-            circleGo.HorizontalAlignment = HorizontalAlignment.Left;
-            circleGo.Fill = new SolidColorBrush(Colors.Blue);
+                // set the size, position of circleGo
+                Height = Diameter,
+                Width = Diameter,
+                VerticalAlignment = VerticalAlignment.Top,
+                HorizontalAlignment = HorizontalAlignment.Left,
+                Fill = new SolidColorBrush(Colors.Blue)
+            };
 
             double left = centerPoint_Pos[0] - circleGo.Width / 2;
             double top = centerPoint_Pos[1] - circleGo.Height / 2;
@@ -346,12 +385,10 @@ namespace COTTask_wpf
                 }
             }
                       
-            dynamic array = JsonConvert.DeserializeObject(jsonStr);
+            dynamic config = JsonConvert.DeserializeObject(jsonStr);
             
             /* ---- Config into the Interface ---- */
-            var config = array[0];
             textBox_NHPName.Text = config["NHP Name"];
-            textBox_requiredBlocks.Text = config["Required Blocks"];
 
 
             // Juicer Given Time
@@ -363,16 +400,15 @@ namespace COTTask_wpf
             // Times Sections
             var configTime = config["Times"];
             tRange_ReadyTime = new float[] {float.Parse((string)configTime["Ready Show Time Range"][0]), float.Parse((string)configTime["Ready Show Time Range"][1])};
-            tRange_CueTime = new float[] {float.Parse((string)configTime["Cue Show Time Range"][0]), float.Parse((string)configTime["Cue Show Time Range"][1])};
-            tRange_NogoShowTime = new float[] { float.Parse((string)configTime["Nogo Show Range Time"][0]), float.Parse((string)configTime["Nogo Show Range Time"][1]) };
             tMax_ReactionTimeS = float.Parse((string)configTime["Max Reach Time"]);
             tMax_ReachTimeS = float.Parse((string)configTime["Max Reaction Time"]);
             t_VisfeedbackShow = float.Parse((string)configTime["Visual Feedback Show Time"]);
+            t_InterTrial = float.Parse((string)configTime["Inter Trials Time"]);
 
 
             // Color Sections
             var configColors = config["Colors"];
-            goColorStr = configColors["Go Fill Color"];
+            goFillColorStr = configColors["Go Fill Color"];
             BKWaitTrialColorStr = configColors["Wait Start Background"];
             BKReadyColorStr = configColors["Ready Background"];
             BKTargetShownColorStr = configColors["Target Shown Background"];
@@ -380,13 +416,20 @@ namespace COTTask_wpf
             CorrOutlineColorStr = configColors["Correct Outline"];
             ErrorFillColorStr = configColors["Error Fill"];
             ErrorOutlineColorStr = configColors["Error Outline"];
+            ErrorCrossingColorStr = configColors["Error Crossing"];
 
 
             // Target Sections
             var configTarget = config["Target"];
-            targetDiaCM = int.Parse((string)configTarget["Target Size"]);
+            targetDiaCM = int.Parse((string)configTarget["Target Diameter (cm)"]);
             targetNoOfPositions = int.Parse((string)configTarget["Target No of Positions"]);
-            closeMarginPercentage = float.Parse((string)configTarget["Close Margin Percentage"]);
+            dynamic tmp = configTarget["optPostions_OCenter_List"];
+            for(int i = 0; i<tmp.Count; i++)
+            {
+                int a = int.Parse((string)tmp[i][0]);
+                int b = int.Parse((string)tmp[i][1]);
+                optPostions_OCenter_List[i] = new int[] { a,  b};
+            }
 
 
             audioFile_Correct = config["audioFile_Correct"];
@@ -398,25 +441,64 @@ namespace COTTask_wpf
             }
         }
 
-        private void btnLoadConf_Click(object sender, RoutedEventArgs e)
-        {
 
-            Microsoft.Win32.OpenFileDialog openFileDlg = new Microsoft.Win32.OpenFileDialog();
+        private void SaveConfigFile(string configFile)
+        {/*Load Config File .json 
+            configFile == '': load the default Config File
+            */
 
-            // Set filter for file extension and default file extension 
-            openFileDlg.DefaultExt = ".json";
-            openFileDlg.Filter = "Json Files|*.json";
+            // config Times
+            ConfigTimes configTimes = new ConfigTimes();
+            configTimes.tRange_ReadyTime = tRange_ReadyTime;
+            configTimes.tMax_ReactionTimeS = tMax_ReactionTimeS;
+            configTimes.tMax_ReachTimeS = tMax_ReachTimeS;
+            configTimes.t_InterTrial = t_InterTrial;
+            configTimes.t_VisfeedbackShow = t_VisfeedbackShow;
 
-            Nullable<bool> result = openFileDlg.ShowDialog();
 
-            // Get the selected file name and display in a TextBox 
-            if (result == true)
-            {
-                // Open document 
-                string configFile = openFileDlg.FileName;
-                LoadConfigFile(configFile);
-            }
+            // config Target
+            ConfigTarget configTarget = new ConfigTarget();
+            configTarget.targetDiaCM = targetDiaCM;
+            configTarget.targetNoOfPositions = targetNoOfPositions;
+            configTarget.optPostions_OCenter_List = optPostions_OCenter_List;
+
+
+            // config Colors
+            ConfigColors configColors = new ConfigColors();
+            configColors.goFillColorStr = goFillColorStr;
+            configColors.BKWaitTrialColorStr = BKWaitTrialColorStr;
+            configColors.BKReadyColorStr = BKReadyColorStr;
+            configColors.BKTargetShownColorStr = BKTargetShownColorStr;
+            configColors.CorrFillColorStr = CorrFillColorStr;
+            configColors.CorrOutlineColorStr = CorrOutlineColorStr;
+            configColors.ErrorFillColorStr = ErrorFillColorStr;
+            configColors.ErrorOutlineColorStr = ErrorOutlineColorStr;
+            configColors.ErrorCrossingColorStr = ErrorCrossingColorStr;
+
+
+            // config Juicer Given Time
+            ConfigJuicerGivenTime configJuicerGivenTime = new ConfigJuicerGivenTime();
+            configJuicerGivenTime.t_JuicerFullGivenS = t_JuicerFullGivenS;
+            configJuicerGivenTime.t_JuicerCloseGivenS = t_JuicerCloseGivenS;
+
+
+            // Combine all configs
+            Config config = new Config();
+            config.saved_folder = saved_folder;
+            config.NHPName = textBox_NHPName.Text;
+            config.configTimes = configTimes;
+            config.configTarget = configTarget;
+            config.configColors = configColors;
+            config.configJuicerGivenTime = configJuicerGivenTime;
+            config.audioFile_Correct = audioFile_Correct;
+            config.audioFile_Error = audioFile_Error;
+
+            // Write to Json file
+            string json = JsonConvert.SerializeObject(config, Formatting.Indented);
+            File.WriteAllText(configFile, json);
         }
+
+
 
         private void btnStart_Click(object sender, RoutedEventArgs e)
         {
@@ -429,15 +511,17 @@ namespace COTTask_wpf
 
 
             // Show the taskpresent Window on the Touch Screen
-            taskPresentWin = new presentation(this);
-            taskPresentWin.Top = Rect_touchScreen.Top;
-            taskPresentWin.Left = Rect_touchScreen.Left;
+            taskPresentWin = new presentation(this)
+            {
+                Top = Rect_touchScreen.Top,
+                Left = Rect_touchScreen.Left,
 
-            taskPresentWin.Name = "childWin_Task";
-            taskPresentWin.Owner = this;
+                Name = "childWin_Task",
+                Owner = this
+            };
 
 
-            
+
 
             // Start the Task
             taskPresentWin.Show();

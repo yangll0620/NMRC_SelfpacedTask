@@ -14,8 +14,8 @@
         <DockPanel>
             <Menu DockPanel.Dock="Top">
                 <MenuItem Header="_File" FontSize="14">
-                    <MenuItem Header="_Load Config. File" Click="btnLoadConf_Click"/>
-                    <MenuItem Header="_Save Current Config." IsEnabled="False"/>
+                    <MenuItem Header="_Load Config. File" Click="menuLoadConf_Click"/>
+                    <MenuItem Header="_Save Current Config." IsEnabled="True" Click="menuSaveConf_Click"/>
                     <Separator />
                     <MenuItem Header="_Exit" />
                 </MenuItem>
@@ -66,26 +66,6 @@
                          Width="75" Height="25" Margin="80,10,10,0"
                        TextWrapping="Wrap"  FontWeight="Normal" TextChanged="TextBox_NHPName_TextChanged" />
                     </Grid>
-
-                    <Grid Grid.Column="1">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-
-                        <Label Content="Required # of Blocks" Grid.Column="0" Visibility="Hidden"
-                                   HorizontalAlignment="Left" VerticalAlignment="top" 
-                               HorizontalContentAlignment="Right" VerticalContentAlignment="Center"                             
-                               Height="25" Margin="5,10,0,0"  FontWeight="Normal" FontSize="11"/>
-                        <TextBox x:Name="textBox_requiredBlocks"  Grid.Column="0" Visibility="Hidden"
-                                 HorizontalAlignment="Left" VerticalAlignment="Top" 
-                                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                                 Height="25" Width ="50" Margin="160,10,5,0" 
-                                 TextWrapping="Wrap"   FontSize="11" FontWeight="Normal" />
-
-                    </Grid>
-
-
 
                     <TextBlock  x:Name="textblock_comState"
                     TextWrapping="WrapWithOverflow"  Grid.Column="2"   

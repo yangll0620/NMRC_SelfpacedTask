@@ -41,17 +41,13 @@ namespace COTTask_wpf
             textBox_tReady_min.Text = parent.tRange_ReadyTime[0].ToString();
             textBox_tReady_max.Text = parent.tRange_ReadyTime[1].ToString();
 
-            textBox_tCue_min.Text = parent.tRange_CueTime[0].ToString();
-            textBox_tCue_max.Text = parent.tRange_CueTime[1].ToString();
-
-            textBox_tNogoShow_min.Text = parent.tRange_NogoShowTime[0].ToString();
-            textBox_tNogoShow_max.Text = parent.tRange_NogoShowTime[1].ToString();
-
 
             textBox_MaxReachTime.Text = parent.tMax_ReachTimeS.ToString();
             textBox_MaxReactionTime.Text = parent.tMax_ReactionTimeS.ToString();
 
-            textBox_tVisFeedback.Text = parent.t_VisfeedbackShow.ToString(); 
+            textBox_tVisFeedback.Text = parent.t_VisfeedbackShow.ToString();
+
+            textBox_tInterTrial.Text = parent.t_InterTrial.ToString();
         }
 
         private void SaveTimeData()
@@ -59,17 +55,12 @@ namespace COTTask_wpf
             parent.tRange_ReadyTime[0] = float.Parse(textBox_tReady_min.Text);
             parent.tRange_ReadyTime[1] = float.Parse(textBox_tReady_max.Text);
 
-            parent.tRange_CueTime[0] = float.Parse(textBox_tCue_min.Text);
-            parent.tRange_CueTime[1] = float.Parse(textBox_tCue_max.Text);
-
-            parent.tRange_NogoShowTime[0] = float.Parse(textBox_tNogoShow_min.Text);
-            parent.tRange_NogoShowTime[1] = float.Parse(textBox_tNogoShow_max.Text);
-
 
             parent.tMax_ReachTimeS = float.Parse(textBox_MaxReachTime.Text);
             parent.tMax_ReactionTimeS = float.Parse(textBox_MaxReactionTime.Text);
 
             parent.t_VisfeedbackShow = float.Parse(textBox_tVisFeedback.Text);
+            parent.t_InterTrial = float.Parse(textBox_tInterTrial.Text);
         }
 
         private void Btn_Cancle_Click(object sender, RoutedEventArgs e)

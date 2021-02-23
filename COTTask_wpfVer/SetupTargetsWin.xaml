@@ -26,16 +26,16 @@
             <Button x:Name="btn_test" Grid.Row="4" Content="Add"
                     VerticalAlignment="Center" HorizontalAlignment="Right"
                     Width="60" Height="30" Margin="0,0,150,0"
-                    Click="Btn_test_Click"/>
+                    Click="Btn_test_Click" IsEnabled="False" Visibility="Hidden"/>
             <Button x:Name="btn_test2" Grid.Row="4" Content="Remove"
                     VerticalAlignment="Center" HorizontalAlignment="Right"
                     Width="60" Height="30" Margin="0,0,80,0"
-                    Click="Btn_test2_Click"/>
+                    Click="Btn_test2_Click" IsEnabled="False" Visibility="Hidden"/>
             <TextBox x:Name="textBox_Pos"  Grid.Row="4" 
                     VerticalAlignment="Center" HorizontalAlignment="Right"
                     Height="26" Width ="60" Margin="0,0,220,0" 
-                    TextWrapping="Wrap"   FontWeight="Normal" />
-            <TextBox x:Name="textBox_DiaPixal"  Grid.Row="0" 
+                    TextWrapping="Wrap"   FontWeight="Normal" IsEnabled="False" Visibility="Hidden"/>
+            <TextBox x:Name="textBox_DiaPixal"  Grid.Row="0" IsEnabled="False" Visibility="Hidden"
                     VerticalAlignment="Center" HorizontalAlignment="Right"
                     Height="26" Width ="60" Margin="0,0,10,0" 
                     TextWrapping="Wrap"   FontWeight="Normal" />
@@ -75,7 +75,7 @@
                 <Button x:Name="btn_GenSizePos" Grid.Row="0" Content="Generate Positions" 
                         HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,0"  
                         Width ="200" Height="25" FontWeight="Bold" FontFamily="Microsoft Sans Serif" FontSize="12" 
-                        Click="Btn_GenSizePos_Click"  />
+                        Click="Btn_GenOptPos_Click"  />
 
                 <Grid Grid.Row="1">
                     <Grid.RowDefinitions>
@@ -86,8 +86,13 @@
                     <TextBlock  TextWrapping="WrapWithOverflow"  Grid.Row="0" Grid.Column="1"
                                    HorizontalAlignment="Center" VerticalAlignment="Bottom" 
                                     Margin="0,0,0,0"  FontWeight="Normal" FontSize="11"
+                                    TextAlignment="Center" Padding="5,1,0,15">
+                            Positions</TextBlock>
+                    <TextBlock  TextWrapping="WrapWithOverflow"  Grid.Row="0" Grid.Column="1"
+                                   HorizontalAlignment="Center" VerticalAlignment="Bottom" 
+                                    Margin="0,0,0,0"  FontWeight="Normal" FontSize="11"
                                     TextAlignment="Center" Padding="5,1,0,0">
-                            Positions(Center Co-ordinates)</TextBlock>
+                            (Center Co-ordinates, F2 + Enter to Change Each Pos)</TextBlock>
 
                     <ListBox x:Name="listBox_Positions" Grid.Row="1" Grid.Column="1" Width="200"
                              SelectionMode="Single"
@@ -106,15 +111,6 @@
 
 
             <!--Error Margin Percentage -->
-            <TextBlock  TextWrapping="WrapWithOverflow"  Grid.Row="5"  
-                                   HorizontalAlignment="Right" VerticalAlignment="top" 
-                                    Margin="0,10,90,0"  FontWeight="Normal" FontSize="11" >Error Margin Percentage (%)</TextBlock>
-
-            <TextBox x:Name="textBox_closeMargin"  Grid.Row="5" 
-                    HorizontalAlignment="Right" VerticalAlignment="Top" 
-                    HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                    Height="25" Width ="60" Margin="0,10,15,0" 
-                    TextWrapping="Wrap"   FontWeight="Normal" />
         </Grid>
 
         <!--OK/Cancle Buttons -->
@@ -124,7 +120,7 @@
                 Margin="0,10,120,0"  Width="60" Height="25" 
                 FontWeight="Bold" FontFamily="Microsoft Sans Serif" FontSize="12" Click="Btn_OK_Click"  />
 
-            <Button x:Name="btn_Cancle"
+            <Button x:Name="btn_Cancel"
             Content="Cancle" HorizontalAlignment="Right" VerticalAlignment="Top" 
                 Margin="0,10,10,0"  Width="60" Height="25" 
                 FontWeight="Bold" FontFamily="Microsoft Sans Serif" FontSize="12" Click="Btn_Cancle_Click" />

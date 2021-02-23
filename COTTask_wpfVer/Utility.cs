@@ -72,15 +72,15 @@ namespace COTTask_wpf
         }
 
 
-        public static List<int[]> GenPositions(int n, int epilson, sd.Rectangle workArea)
+        public static List<int[]> GenRandomPositions(int n, int epilson, sd.Rectangle workArea)
         {/*
                 Generate the optional X, Y Positions (origin in center) for workArea
                 Unit is pixal
 
                 Args:
                     n: the number of generated positions
-                    epilson: x in [-width/2 + epilson,  width/2 - epilson] 
-                             y in [-height/2 + epilson,  height/2 - epilson]
+                    epilson: x range in [-width/2 + epilson,  width/2 - epilson] 
+                             y range in [-height/2 + epilson,  height/2 - epilson]
 
             */
 
@@ -104,7 +104,42 @@ namespace COTTask_wpf
 
 
 
-        public static Ellipse Create_Circle(double Diameter, SolidColorBrush brush_Fill)
+        public static List<int[]> GenDefaultPositions(int n, int radius, sd.Rectangle workArea)
+        {/*
+                Generate the default optional X, Y Positions (origin in center) for workArea
+                1. The first position always [0, 0]
+                2. The remaining equally in a circle (origin = [0, 0], radius)
+
+                Unit is pixal
+
+                Args:
+                    n: the number of generated positions
+                    radius: the radius of the circle (Pixal)
+
+            */
+            List<int[]> defaultPostions_OCenter_List = new List<int[]>();
+
+
+            if(n >= 1) 
+            {// the first position always (0, 0)
+                defaultPostions_OCenter_List.Add(new int[] { 0, 0 });
+            }
+            
+
+            // generate x, y positions randomly in a circle
+            for (int i = 2; i <= n; i++)
+            {
+                double deg = 2 * Math.PI / (n - 1) * i;
+                int x = (int) (radius * Math.Cos(deg)), y = (int)(radius * Math.Sin(deg));
+                defaultPostions_OCenter_List.Add(new int[] { x, y });
+            }
+
+            return defaultPostions_OCenter_List;
+
+        }
+
+
+            public static Ellipse Create_Circle(double Diameter, SolidColorBrush brush_Fill)
         {/*
             Create the circle
 

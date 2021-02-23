@@ -49,13 +49,14 @@ namespace COTTask_wpf
 
         private void LoadInitTargetData()
         {
-            // Fill in textBox_targetDiaCM
-            textBox_targetDiaCM.Text = parent.targetDiaCM.ToString();
-            
-
             // generate sizesList and bind optPosString_list to listBox_Sizes
             optPosString_List = new ArrayList();
-            GenPositions();
+            UpdatePosListBox();
+
+            // Fill in textBox_targetDiaCM
+            textBox_targetDiaCM.Text = parent.targetDiaCM.ToString();
+            textBox_targetNoOfPositions.Text = parent.targetNoOfPositions.ToString();
+
 
             // Editable TextBox for changing position
             editBox_Pos = new TextBox();
@@ -71,21 +72,17 @@ namespace COTTask_wpf
             Grid_setupTarget.UpdateLayout();
 
 
-            textBox_targetNoOfPositions.Text = parent.targetNoOfPositions.ToString();
-
-            textBox_closeMargin.Text = parent.closeMarginPercentage.ToString();
+            
+            
         }
 
-        private void GenPositions()
+        private void UpdatePosListBox()
         {/*
                 Generate the optional X, Y Positions (origin in center)
 
                 Store into class member parent.optPostions_OCenter_List
                 and Show on the control listBox_Positions
             */
-
-            sd.Rectangle Rect_touchScreen = Utility.Detect_PrimaryScreen_Rect();
-            parent.optPostions_OCenter_List = Utility.GenPositions(parent.targetNoOfPositions, parent.targetDiaPixal, Rect_touchScreen);
 
             // Binding with listBox_Position
             optPosString_List.Clear();
@@ -104,7 +101,6 @@ namespace COTTask_wpf
             parent.targetDiaPixal = Utility.cm2pixal(parent.targetDiaCM);
             parent.targetNoOfPositions = int.Parse(textBox_targetNoOfPositions.Text);
 
-            parent.closeMarginPercentage = float.Parse(textBox_closeMargin.Text);
         }
 
         private void DisableBtnStartStop()
@@ -127,16 +123,17 @@ namespace COTTask_wpf
             ResumeBtnStartStop();
         }
 
-        private void Btn_GenSizePos_Click(object sender, RoutedEventArgs e)
+        private void Btn_GenOptPos_Click(object sender, RoutedEventArgs e)
         {
-            GenPositions();
+            parent.optPostions_OCenter_List = Utility.GenRandomPositions(parent.targetNoOfPositions, parent.targetDiaPixal, Utility.Detect_PrimaryScreen_Rect());
+            UpdatePosListBox();
         }
 
         private void Btn_CheckPositions_Click(object sender, RoutedEventArgs e)
         {
 
             Color BKColor = (Color)(typeof(Colors).GetProperty(parent.BKTargetShownColorStr) as PropertyInfo).GetValue(null, null);
-            Color targetColor = (Color)(typeof(Colors).GetProperty(parent.goColorStr) as PropertyInfo).GetValue(null, null); ;
+            Color targetColor = (Color)(typeof(Colors).GetProperty(parent.goFillColorStr) as PropertyInfo).GetValue(null, null); ;
 
             ShowAllTargets(parent.targetDiaPixal, parent.optPostions_OCenter_List, targetColor, BKColor);
         }
@@ -247,7 +244,8 @@ namespace COTTask_wpf
             try
             {
                 parent.targetNoOfPositions = int.Parse(textBox_targetNoOfPositions.Text);
-                GenPositions();
+                parent.optPostions_OCenter_List = Utility.GenDefaultPositions(parent.targetNoOfPositions, 2 * parent.targetDiaPixal, Utility.Detect_PrimaryScreen_Rect());
+                UpdatePosListBox();
             }
             catch(Exception)
             {
@@ -340,7 +338,7 @@ namespace COTTask_wpf
                 int[] pos_OCenter_Pixal = new int[] { int.Parse(strxy[0]), int.Parse(strxy[1]) };
 
                 Color BKColor = (Color)(typeof(Colors).GetProperty(parent.BKTargetShownColorStr) as PropertyInfo).GetValue(null, null);
-                Color targetColor = (Color)(typeof(Colors).GetProperty(parent.goColorStr) as PropertyInfo).GetValue(null, null); ;
+                Color targetColor = (Color)(typeof(Colors).GetProperty(parent.goFillColorStr) as PropertyInfo).GetValue(null, null); ;
 
 
                 if (wholeGrid == null)
@@ -371,6 +369,10 @@ namespace COTTask_wpf
 
         private void TextBox_targetDiaCM_TextChanged(object sender, TextChangedEventArgs e)
         {
+            parent.targetDiaCM = float.Parse(textBox_targetDiaCM.Text);
+            parent.targetDiaPixal = Utility.cm2pixal(parent.targetDiaCM);
+            parent.optPostions_OCenter_List = Utility.GenDefaultPositions(parent.targetNoOfPositions, 2 * parent.targetDiaPixal, Utility.Detect_PrimaryScreen_Rect());
+            UpdatePosListBox();
         }
 
         private void TextBox_targetDiaCM_KeyDown(object sender, KeyEventArgs e)

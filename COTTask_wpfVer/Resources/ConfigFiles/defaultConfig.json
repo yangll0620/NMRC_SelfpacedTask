@@ -1,0 +1,73 @@
+{
+  "NHP Name": "Barb",
+  "saved folder": null,
+  "Times": {
+    "Ready Show Time Range": [
+      1.0,
+      3.0
+    ],
+    "Max Reaction Time": 0.8,
+    "Max Reach Time": 0.8,
+    "Visual Feedback Show Time": 1.0,
+    "Inter Trials Time": 0.5
+  },
+  "Target": {
+    "Target Diameter (cm)": 3.0,
+    "Target No of Positions": 9,
+    "optPostions_OCenter_List": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        226
+      ],
+      [
+        -159,
+        159
+      ],
+      [
+        -226,
+        0
+      ],
+      [
+        -159,
+        -159
+      ],
+      [
+        0,
+        -226
+      ],
+      [
+        159,
+        -159
+      ],
+      [
+        226,
+        0
+      ],
+      [
+        159,
+        159
+      ]
+    ]
+  },
+  "Colors": {
+    "Go Fill Color": "Green",
+    "Wait Start Background": "Black",
+    "Ready Background": "Blue",
+    "Target Shown Background": "WhiteSmoke",
+    "Correct Fill": "Magenta",
+    "Correct Outline": "Magenta",
+    "Error Fill": "WhiteSmoke",
+    "Error Outline": "Red",
+    "Error Crossing": "Red"
+  },
+  "JuicerGivenTime": {
+    "Correct": 0.8,
+    "Close": 0.5
+  },
+  "audioFile_Correct": "default",
+  "audioFile_Error": "default"
+}

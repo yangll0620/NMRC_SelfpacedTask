@@ -92,20 +92,23 @@ namespace COTTask_wpf
         string file_saved;
 
         // diameter for crossing, circle, square and white points
-        int objdiameter, closediameter;
+        int crossing_LineThickness = 3;
+        int crossing_len = 10;
 
 
         TargetType targetType;
 
 
 
-        // objects of Go cirle, nogo Rectangle, lines of the crossing, and two white points
+        // objects of Go cirle,  lines of the crossing, and two white points
         Ellipse circleGo, circleGoClose;
+        Line crossing_vertLine, crossing_horiLine;
 
         // ColorBrushes 
         private SolidColorBrush brush_goCircleFill;
         private SolidColorBrush brush_BKWaitTrialStart, brush_BKReady, brush_BKTargetShown;
-        private SolidColorBrush brush_CorrectFill, brush_CorrOutline, brush_ErrorFill, brush_ErrorOutline;
+        private SolidColorBrush brush_CorrectFill, brush_CorrOutline;
+        private SolidColorBrush brush_ErrorCrossing, brush_ErrorFill, brush_ErrorOutline;
         private SolidColorBrush brush_CloseFill;
         private SolidColorBrush brush_BDWaitTrialStart;
 
@@ -114,7 +117,8 @@ namespace COTTask_wpf
         Point circleGo_cPoint_Pixal; 
         double circleGo_Radius_Pixal;
         // the Radius of CircleGoClose (in Pixal)
-        double circleGoClose_Radius_Pixal; 
+        double circleGoClose_Radius_Pixal;
+        double circleGo_StrokeThickness = 3;
 
         // audio feedback
         private string audioFile_Correct, audioFile_Error;
@@ -124,15 +128,16 @@ namespace COTTask_wpf
         // name of all the objects
         string name_circleGo = "circleGo";
         string name_circleGoClose = "circleGoClose";
+        string name_crossingVLine = "crossing_vLine", name_crossingHLine = "crossing_hLine";
 
 
         // rng for shuffling 
         private static Random rng = new Random();
 
 
-        // Wait Time Range for Each Event, and Max Reaction and Reach Time
+        // Wait Time Range for Each Event, and Max Reaction and Reach Time (ms)
         float tMax_ReactionTimeMS, tMax_ReachTimeMS; 
-        Int32 t_VisfeedbackShow; // Visual Feedback Show Time (ms)
+        Int32 t_VisfeedbackShowMS, t_InterTrialMS; // Visual Feedback Show Time (ms)
 
         bool PresentTrial;
 
@@ -242,8 +247,9 @@ namespace COTTask_wpf
 
 
 
-            // Create necessary elements: go circle,  two white points and one crossing
+            // Create necessary elements: go circle,  and one crossing
             Create_GoCircle();
+            Create_OneCrossing();
 
             // Set audio Feedback related members 
             SetAudioFeedback();
@@ -335,15 +341,30 @@ namespace COTTask_wpf
                     pressedStartpad = PressedStartpad.No;
                     await Interface_WaitStartTrial();
 
+                    if (PresentTrial == false)
+                    {
+                        break;
+                    }
+
                     /*-------- Trial Interfaces -------*/
                     try
                     {
                         // Ready Interface
                         await Interface_Ready(t_Ready);
 
+                        if (PresentTrial == false)
+                        {
+                            break;
+                        }
+
 
                         // Go Target Interface
                         await Interface_Go(pos_OCenter_Taget);
+
+                        if (PresentTrial == false)
+                        {
+                            break;
+                        }
 
 
                         Update_FeedbackTrialsInformation();
@@ -475,6 +496,19 @@ namespace COTTask_wpf
                     {
                         break;
                     }
+
+                    // Wait t_InterTrialMS between the end of the trial and before the next
+                    Stopwatch waitWatch = new Stopwatch();
+                    waitWatch.Start();
+                    while (PresentTrial)
+                    {
+                        if (waitWatch.ElapsedMilliseconds >= t_InterTrialMS)
+                        {
+                            waitWatch.Stop();
+                            break;
+                        }
+                    }
+                            
                 }
             }
 
@@ -494,6 +528,8 @@ namespace COTTask_wpf
 
             // save the summary of exp
             SaveSummaryofExp();
+
+
         }
 
 
@@ -583,14 +619,12 @@ namespace COTTask_wpf
         private void GetSetupParameters()
         {/* get the setup from the parent interface */
 
-            // close  diameter
-            closediameter = (int)(parent.targetDiaPixal * (1 + parent.closeMarginPercentage / 100));
-
 
             // interfaces time related parameters
             tMax_ReactionTimeMS = parent.tMax_ReactionTimeS * 1000;
             tMax_ReachTimeMS = parent.tMax_ReachTimeS * 1000;
-            t_VisfeedbackShow = (Int32)(parent.t_VisfeedbackShow * 1000);
+            t_VisfeedbackShowMS = (Int32)(parent.t_VisfeedbackShow * 1000);
+            t_InterTrialMS = (Int32)(parent.t_InterTrial * 1000);
 
             // Juicer Time
             t_JuicerFullGiven = (Int32)(parent.t_JuicerFullGivenS * 1000);
@@ -600,7 +634,7 @@ namespace COTTask_wpf
             Color selectedColor;
             
             // goCircle Color
-            selectedColor = (Color)(typeof(Colors).GetProperty(parent.goColorStr) as PropertyInfo).GetValue(null, null);
+            selectedColor = (Color)(typeof(Colors).GetProperty(parent.goFillColorStr) as PropertyInfo).GetValue(null, null);
             brush_goCircleFill = new SolidColorBrush(selectedColor);
 
 
@@ -634,6 +668,11 @@ namespace COTTask_wpf
             selectedColor = (Color)(typeof(Colors).GetProperty(parent.ErrorOutlineColorStr) as PropertyInfo).GetValue(null, null);
             brush_ErrorOutline = new SolidColorBrush(selectedColor);
 
+
+            // Error Crossing Color
+            selectedColor = (Color)(typeof(Colors).GetProperty(parent.ErrorCrossingColorStr) as PropertyInfo).GetValue(null, null);
+            brush_ErrorCrossing = new SolidColorBrush(selectedColor);
+
             // Close Fill Color
             brush_CloseFill = brush_CorrectFill;
 
@@ -658,15 +697,13 @@ namespace COTTask_wpf
             circleGo.Name = name_circleGo;
             circleGo.Visibility = Visibility.Hidden;
             circleGo.IsEnabled = false;
+            circleGo.StrokeThickness = circleGo_StrokeThickness;
 
             // add to myGrid
             myGrid.Children.Add(circleGo);
             myGrid.RegisterName(circleGo.Name, circleGo);
             myGrid.UpdateLayout();
 
-
-            // create the go close circle
-            Create_GoCircleClose();
         }
 
         private void Show_GoCircle(int[] cPoint_Pos_OCenter)
@@ -706,70 +743,91 @@ namespace COTTask_wpf
             circleGo.IsEnabled = false;
             myGrid.UpdateLayout();
 
-            // Remove the go close circle
-            Remove_GoCircleClose();
         }
 
 
-        private void Create_GoCircleClose()
-        {/*
-            Create the go Close circle: circleGoClose
+        private void Create_OneCrossing()
+        {/*create the crossing cue*/
 
-            */
 
-            // Create an Ellipse  
-            circleGoClose = new Ellipse();
+            // Create the horizontal line
+            crossing_horiLine = new Line();
+            crossing_horiLine.X1 = 0;
+            crossing_horiLine.Y1 = 0;
+            crossing_horiLine.X2 = crossing_len;
+            crossing_horiLine.Y2 = crossing_horiLine.Y1;
 
-            circleGoClose.Stroke = brush_goCircleFill;
+            // horizontal line position
+            crossing_horiLine.HorizontalAlignment = HorizontalAlignment.Left;
+            crossing_horiLine.VerticalAlignment = VerticalAlignment.Top;
 
-            // set the size, position of circleGo
-            circleGoClose.Height = closediameter;
-            circleGoClose.Width = closediameter;
-            circleGoClose.VerticalAlignment = VerticalAlignment.Top;
-            circleGoClose.HorizontalAlignment = HorizontalAlignment.Left;
+            // horizontal line color
+            crossing_horiLine.Stroke = brush_ErrorCrossing;
+            // horizontal line stroke thickness
+            crossing_horiLine.StrokeThickness = crossing_LineThickness;
+            // name
+            crossing_horiLine.Name = name_crossingHLine;
 
-            circleGoClose.Name = name_circleGoClose;
-            circleGoClose.Visibility = Visibility.Hidden;
-            circleGoClose.IsEnabled = false;
 
-            // add to myGrid
-            myGrid.Children.Add(circleGoClose);
-            myGrid.RegisterName(circleGoClose.Name, circleGoClose);
+            // Create the vertical line
+            crossing_vertLine = new Line();
+            crossing_vertLine.X1 = 0;
+            crossing_vertLine.Y1 = 0;
+            crossing_vertLine.X2 = crossing_vertLine.X1;
+            crossing_vertLine.Y2 = crossing_len;
+            // vertical line position
+            crossing_vertLine.HorizontalAlignment = HorizontalAlignment.Left;
+            crossing_vertLine.VerticalAlignment = VerticalAlignment.Top;
+
+            // vertical line color
+            crossing_vertLine.Stroke = brush_ErrorCrossing;
+            // vertical line stroke thickness
+            crossing_vertLine.StrokeThickness = crossing_LineThickness;
+            //name
+            crossing_vertLine.Name = name_crossingVLine;
+
+
+            // Add, Hidden and Disable the Crossing
+            crossing_horiLine.Visibility = Visibility.Hidden;
+            crossing_horiLine.IsEnabled = false;
+            myGrid.Children.Add(crossing_horiLine);
+            myGrid.RegisterName(crossing_horiLine.Name, crossing_horiLine);
+
+            crossing_vertLine.Visibility = Visibility.Hidden;
+            crossing_vertLine.IsEnabled = false;
+            myGrid.Children.Add(crossing_vertLine);
+            myGrid.RegisterName(crossing_vertLine.Name, crossing_vertLine);
+
             myGrid.UpdateLayout();
         }
 
-        private void Add_GoCircleClose(int[] centerPoint_Pos)
-        {/*show the Go Close Circle with Circle Center at (centerPoint_Pos[0], centerPoint_Pos[1]) */
+        private void Add_OneCrossing(int[] centerPoint_Pos)
+        {/*     Show One Crossing Containing One Horizontal Line and One Vertical Line
+            *   The Center Points of the Two Lines Intersect at centerPoint_Pos
+            * 
+             */
 
             int centerPoint_X = centerPoint_Pos[0], centerPoint_Y = centerPoint_Pos[1];
 
-            double left = centerPoint_X - circleGoClose.Width / 2;
-            double top = centerPoint_Y - circleGoClose.Height / 2;
-            circleGoClose.Margin = new Thickness(left, top, 0, 0);
+            crossing_horiLine.Margin = new Thickness(centerPoint_X - crossing_len / 2, centerPoint_Y, 0, 0);
+            crossing_vertLine.Margin = new Thickness(centerPoint_X, centerPoint_Y - crossing_len / 2, 0, 0);
 
-            if(parent.showCloseCircle==true)
-                circleGoClose.Visibility = Visibility.Visible;
-            else
-                circleGoClose.Visibility = Visibility.Hidden;
-            circleGoClose.IsEnabled = true;
+            crossing_horiLine.Visibility = Visibility.Visible;
+            crossing_vertLine.Visibility = Visibility.Visible;
             myGrid.UpdateLayout();
-
-
-            // get the center point and the radius of circleGo
-            circleGoClose_Radius_Pixal = ((circleGoClose.Height + circleGoClose.Width) / 2) / 2;
         }
-        private void Remove_GoCircleClose()
+
+        private void Remove_OneCrossing()
         {
-            circleGoClose.Visibility = Visibility.Hidden;
-            circleGo.IsEnabled = false;
+            crossing_horiLine.Visibility = Visibility.Hidden;
+            crossing_vertLine.Visibility = Visibility.Hidden;
             myGrid.UpdateLayout();
         }
-
-
 
         private void Remove_All()
         {
             Remove_GoCircle();
+            Remove_OneCrossing();
         }
 
 
@@ -1144,16 +1202,17 @@ namespace COTTask_wpf
                     trialExeResult = TrialExeResult.goMiss;
                 }
                 
-                await Task.Delay(t_VisfeedbackShow);
+                await Task.Delay(t_VisfeedbackShowMS);
             }
             catch(TaskCanceledException)
             {
                 Interface_GoERROR_LongReactionReach();
-                await Task.Delay(t_VisfeedbackShow);
+                await Task.Delay(t_VisfeedbackShowMS);
                 throw new TaskCanceledException("Not Reaction Within the Max Reaction Time.");
             }
             
         }
+
 
         private void Feedback_GoERROR()
         {
@@ -1162,6 +1221,9 @@ namespace COTTask_wpf
             circleGo.Fill = brush_ErrorFill;
             circleGo.Stroke = brush_ErrorOutline;
             circleGoClose.Stroke = brush_ErrorOutline;
+
+            Add_OneCrossing(new int[] { (int)circleGo_cPoint_Pixal.X, (int)circleGo_cPoint_Pixal.Y});
+
             myGrid.UpdateLayout();
 
 
