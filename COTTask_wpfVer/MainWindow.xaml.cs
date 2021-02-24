@@ -12,6 +12,7 @@ using sd = System.Drawing;
 using Newtonsoft.Json;
 using System.Reflection;
 
+
 namespace COTTask_wpf
 {
     /// <summary>
@@ -21,7 +22,6 @@ namespace COTTask_wpf
     {
         public string serialPortIO8_name;
 
-        private string saved_folder;
         public string file_saved;
         public string audioFile_Correct, audioFile_Error;
 
@@ -95,10 +95,6 @@ namespace COTTask_wpf
             // Load Default Config File
             LoadConfigFile("");
             targetDiaPixal = Utility.cm2pixal(targetDiaCM);
-
-            // Generate default optional positions
-            optPostions_OCenter_List = Utility.GenDefaultPositions(targetNoOfPositions, 2 * targetDiaPixal, Rect_touchScreen); 
-
 
             if (textBox_NHPName.Text != "" && serialPortIO8_name != null)
             {
@@ -175,13 +171,13 @@ namespace COTTask_wpf
             DateTime time_now = DateTime.Now;
 
             // if saved_folder not exist, created!
-            if (Directory.Exists(saved_folder) == false)
+            if (Directory.Exists(textBox_savedFolder.Text) == false)
             {
-                Directory.CreateDirectory(saved_folder);
+                Directory.CreateDirectory(textBox_savedFolder.Text);
             }
 
             string filename_saved = textBox_NHPName.Text + time_now.ToString("-yyyyMMdd-HHmmss") + ".txt";
-            file_saved = System.IO.Path.Combine(saved_folder, filename_saved);
+            file_saved = System.IO.Path.Combine(textBox_savedFolder.Text, filename_saved);
 
             using (StreamWriter file = new StreamWriter(file_saved))
             {
@@ -264,15 +260,36 @@ namespace COTTask_wpf
                 Filter = "Json Files|*.json"
             };
 
-            Nullable<bool> result = openFileDlg.ShowDialog();
 
             // Get the selected file name and display in a TextBox 
-            if (result == true)
+            if (openFileDlg.ShowDialog() == true)
             {
                 // Open document 
                 string configFile = openFileDlg.FileName;
                 LoadConfigFile(configFile);
             }
+        }
+
+        private void menuSavefolder_Click(object sender, RoutedEventArgs e)
+        {
+            Microsoft.Win32.OpenFileDialog folderBrowser = new Microsoft.Win32.OpenFileDialog
+            {
+
+                // Set validate names and check file exists to false otherwise windows will
+                // not let you select "Folder Selection."
+                ValidateNames = false,
+                CheckFileExists = false,
+                CheckPathExists = true,
+                FileName = "Save Folder Selection. "
+            };
+
+            Nullable<bool> result = folderBrowser.ShowDialog();
+
+            if (result == true)
+            {
+                textBox_savedFolder.Text = System.IO.Path.GetDirectoryName(folderBrowser.FileName);
+            }
+
         }
 
         private void MenuItem_SetupTime(object sender, RoutedEventArgs e)
@@ -390,6 +407,12 @@ namespace COTTask_wpf
             /* ---- Config into the Interface ---- */
             textBox_NHPName.Text = config["NHP Name"];
 
+            textBox_savedFolder.Text = config["saved folder"];
+            if (String.Compare(textBox_savedFolder.Text, "default", true) == 0)
+            {
+                textBox_savedFolder.Text = @"C:\\COTTaskSave";
+            }
+
 
             // Juicer Given Time
             var configJuicer = config["JuicerGivenTime"];
@@ -423,22 +446,18 @@ namespace COTTask_wpf
             var configTarget = config["Target"];
             targetDiaCM = int.Parse((string)configTarget["Target Diameter (cm)"]);
             targetNoOfPositions = int.Parse((string)configTarget["Target No of Positions"]);
+            optPostions_OCenter_List = new List<int[]>();
             dynamic tmp = configTarget["optPostions_OCenter_List"];
-            for(int i = 0; i<tmp.Count; i++)
-            {
-                int a = int.Parse((string)tmp[i][0]);
-                int b = int.Parse((string)tmp[i][1]);
-                optPostions_OCenter_List[i] = new int[] { a,  b};
+           foreach (var xyPos in tmp)
+           {
+                int a = int.Parse((string)xyPos[0]);
+                int b = int.Parse((string)xyPos[1]);
+                optPostions_OCenter_List.Add(new int[] { a,  b});
             }
 
 
             audioFile_Correct = config["audioFile_Correct"];
             audioFile_Error = config["audioFile_Error"];
-            saved_folder = config["saved_folder"];
-            if (String.Compare(saved_folder, "default", true) == 0)
-            {
-                saved_folder = @"C:\\COTTaskSave";
-            }
         }
 
 
@@ -484,7 +503,7 @@ namespace COTTask_wpf
 
             // Combine all configs
             Config config = new Config();
-            config.saved_folder = saved_folder;
+            config.saved_folder = textBox_savedFolder.Text;
             config.NHPName = textBox_NHPName.Text;
             config.configTimes = configTimes;
             config.configTarget = configTarget;

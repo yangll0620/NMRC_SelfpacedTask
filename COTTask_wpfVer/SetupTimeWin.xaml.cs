@@ -74,7 +74,7 @@ namespace COTTask_wpf
             ResumeBtnStartStop();
         }
 
-        private void Btn_OK_Click(object sender, RoutedEventArgs e)
+        private void Btn_Save_Click(object sender, RoutedEventArgs e)
         {
             SaveTimeData();
             ResumeBtnStartStop();

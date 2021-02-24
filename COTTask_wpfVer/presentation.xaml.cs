@@ -40,7 +40,6 @@ namespace COTTask_wpf
             goReactionTimeToolong,
             goReachTimeToolong,
             goHit,
-            goClose,
             goMiss
         }
 
@@ -53,7 +52,6 @@ namespace COTTask_wpf
         private enum GoTargetTouchState
         {
             goHit, // at least one finger inside the circleGo
-            goClose, // the distance between the closest touch point and the center of the circleGo is less than a threshold
             goMissed, // touched with longer distance 
         }
 
@@ -101,7 +99,7 @@ namespace COTTask_wpf
 
 
         // objects of Go cirle,  lines of the crossing, and two white points
-        Ellipse circleGo, circleGoClose;
+        Ellipse circleGo;
         Line crossing_vertLine, crossing_horiLine;
 
         // ColorBrushes 
@@ -116,8 +114,6 @@ namespace COTTask_wpf
         // Center Point and Radius of CircleGo (in Pixal)
         Point circleGo_cPoint_Pixal; 
         double circleGo_Radius_Pixal;
-        // the Radius of CircleGoClose (in Pixal)
-        double circleGoClose_Radius_Pixal;
         double circleGo_StrokeThickness = 3;
 
         // audio feedback
@@ -127,7 +123,6 @@ namespace COTTask_wpf
 
         // name of all the objects
         string name_circleGo = "circleGo";
-        string name_circleGoClose = "circleGoClose";
         string name_crossingVLine = "crossing_vLine", name_crossingHLine = "crossing_hLine";
 
 
@@ -446,7 +441,7 @@ namespace COTTask_wpf
                             // trial exe result
                             file.WriteLine(String.Format("{0, -40}: {1}, {2}", "Trial Result", strExeFail, strExeSubResult[3]));
                         }
-                        else if (trialExeResult == TrialExeResult.goClose | trialExeResult == TrialExeResult.goHit | trialExeResult == TrialExeResult.goMiss)
+                        else if (trialExeResult == TrialExeResult.goHit | trialExeResult == TrialExeResult.goMiss)
                         {// case: Go success (goClose or goHit) or goMiss
 
                             // Target Interface Timepoint, and Target position 
@@ -630,6 +625,7 @@ namespace COTTask_wpf
             t_JuicerFullGiven = (Int32)(parent.t_JuicerFullGivenS * 1000);
             t_JuicerCloseGiven = (Int32)(parent.t_JuicerCloseGivenS * 1000);
 
+
             /* ---- Get all the Set Colors ----- */
             Color selectedColor;
             
@@ -672,9 +668,6 @@ namespace COTTask_wpf
             // Error Crossing Color
             selectedColor = (Color)(typeof(Colors).GetProperty(parent.ErrorCrossingColorStr) as PropertyInfo).GetValue(null, null);
             brush_ErrorCrossing = new SolidColorBrush(selectedColor);
-
-            // Close Fill Color
-            brush_CloseFill = brush_CorrectFill;
 
             
             
@@ -1049,18 +1042,12 @@ namespace COTTask_wpf
                     downPoints_Pos.Clear();
                     break;
                 }
-                else if (gotargetTouchstate == GoTargetTouchState.goMissed && distance <= circleGoClose_Radius_Pixal)
-                {
-                    gotargetTouchstate = GoTargetTouchState.goClose;
-                }
+
                 // remove the downPoint at 0
                 downPoints_Pos.RemoveAt(0);
             }
-            if(gotargetTouchstate == GoTargetTouchState.goClose)
-            {
-                serialPort_IO8.WriteLine(TDTCmd_GoTouchedClose);
-            }
-            else if (gotargetTouchstate == GoTargetTouchState.goMissed)
+
+            if (gotargetTouchstate == GoTargetTouchState.goMissed)
             {
                 serialPort_IO8.WriteLine(TDTCmd_GoTouchedMiss);
             }
@@ -1181,16 +1168,6 @@ namespace COTTask_wpf
                     trialExeResult = TrialExeResult.goHit;
                     
                 }
-                else if (gotargetTouchstate == GoTargetTouchState.goClose)
-                {/* touch close to the target*/
-                    
-                    Feedback_GoCorrect_Close();
-
-                    successGoTrialNum++;
-
-                    // trial execute result: goClose 
-                    trialExeResult = TrialExeResult.goClose;
-                }
                 else if (gotargetTouchstate == GoTargetTouchState.goMissed)
                 {/* touch missed*/
                     
@@ -1220,7 +1197,7 @@ namespace COTTask_wpf
             //myGridBorder.BorderBrush = brush_ErrorFill;
             circleGo.Fill = brush_ErrorFill;
             circleGo.Stroke = brush_ErrorOutline;
-            circleGoClose.Stroke = brush_ErrorOutline;
+            
 
             Add_OneCrossing(new int[] { (int)circleGo_cPoint_Pixal.X, (int)circleGo_cPoint_Pixal.Y});
 
@@ -1249,7 +1226,7 @@ namespace COTTask_wpf
             // Visual Feedback
             //myGridBorder.BorderBrush = brush_CorrectFill;
             circleGo.Fill = brush_CorrectFill;
-            circleGoClose.Stroke = brush_CorrectFill;
+            circleGo.Stroke = brush_CorrOutline;
             myGrid.UpdateLayout();
 
 
@@ -1260,20 +1237,7 @@ namespace COTTask_wpf
             player_Correct.Play();
         }
 
-        private void Feedback_GoCorrect_Close()
-        {
-            // Visual Feedback
-            //myGridBorder.BorderBrush = brush_CloseFill;
-            circleGo.Fill = brush_CloseFill;
-            circleGoClose.Stroke = brush_CloseFill;
-            myGrid.UpdateLayout();
 
-            //Juicer Feedback
-            giveJuicerState = GiveJuicerState.CloseGiven;
-
-            // Audio Feedback
-            player_Correct.Play();
-        }
 
         public void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {

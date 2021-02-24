@@ -14,6 +14,7 @@
         <DockPanel>
             <Menu DockPanel.Dock="Top">
                 <MenuItem Header="_File" FontSize="14">
+                    <MenuItem Header="_Select Save Folder" Click="menuSavefolder_Click"/>
                     <MenuItem Header="_Load Config. File" Click="menuLoadConf_Click"/>
                     <MenuItem Header="_Save Current Config." IsEnabled="True" Click="menuSaveConf_Click"/>
                     <Separator />
@@ -56,7 +57,7 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <Grid Margin="0">
+                    <Grid Margin="0" Grid.Column="0">
                         <Label Content="NHP Name" HorizontalAlignment="Left"  VerticalAlignment="top" 
                        HorizontalContentAlignment="Right"
                        Height="25" Margin="10,10,0,0" FontWeight="Normal" />
@@ -65,6 +66,19 @@
                          HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                          Width="75" Height="25" Margin="80,10,10,0"
                        TextWrapping="Wrap"  FontWeight="Normal" TextChanged="TextBox_NHPName_TextChanged" />
+                    </Grid>
+
+                    <Grid Grid.Column="1">
+                        <Label Content="Saved Folder" HorizontalAlignment="Left"  VerticalAlignment="top" 
+                       HorizontalContentAlignment="Right"
+                       Height="25" Margin="10,10,0,0" FontWeight="Normal" />
+
+                        <TextBox x:Name="textBox_savedFolder" IsEnabled="False"
+                                 HorizontalAlignment="Left" VerticalAlignment="Top"
+                                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                 Width="300" Height="25" Margin="120,10,10,0"
+                                 TextWrapping="Wrap"  FontWeight="Normal" TextChanged="TextBox_NHPName_TextChanged" />
+
                     </Grid>
 
                     <TextBlock  x:Name="textblock_comState"

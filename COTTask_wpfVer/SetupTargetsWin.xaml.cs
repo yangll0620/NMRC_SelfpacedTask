@@ -29,6 +29,9 @@ namespace COTTask_wpf
         private TextBox editBox_Pos;
         int indexSelected = 0;
 
+        // The maximum Diameter for determing the default circle centers 
+        int maxDiameterCM = 8, cRadius;
+
 
         // Window and Grid showing the targets
         Window Win_allTargets;
@@ -43,19 +46,39 @@ namespace COTTask_wpf
 
             DisableBtnStartStop();
 
+            optPosString_List = new ArrayList();
+            cRadius = CenterRadius(maxDiameterCM);
+
             LoadInitTargetData();
 
         }
 
-        private void LoadInitTargetData()
-        {
-            // generate sizesList and bind optPosString_list to listBox_Sizes
-            optPosString_List = new ArrayList();
-            UpdatePosListBox();
+        private void UpdatePosListBox(List <int[]> optPostions_OCenter_List)
+        {/*
+                Generate the optional X, Y Positions (origin in center)
 
+                Store into class member parent.optPostions_OCenter_List
+                and Show on the control listBox_Positions
+            */
+
+            // Binding with listBox_Position
+            optPosString_List.Clear();
+            foreach (int[] xyPos in optPostions_OCenter_List)
+            {
+                optPosString_List.Add(xyPos[0].ToString() + ", " + xyPos[1].ToString());
+            }
+            listBox_Positions.ItemsSource = null;
+            listBox_Positions.ItemsSource = optPosString_List;
+        }
+
+        private void LoadInitTargetData()
+        {          
             // Fill in textBox_targetDiaCM
             textBox_targetDiaCM.Text = parent.targetDiaCM.ToString();
             textBox_targetNoOfPositions.Text = parent.targetNoOfPositions.ToString();
+
+            // Update Pos List Box
+            UpdatePosListBox(parent.optPostions_OCenter_List);
 
 
             // Editable TextBox for changing position
@@ -69,30 +92,10 @@ namespace COTTask_wpf
             editBox_Pos.Foreground = new SolidColorBrush(Colors.Blue);
             Grid_setupTarget.Children.Add(editBox_Pos);
             Grid_setupTarget.RegisterName(editBox_Pos.Name, editBox_Pos);
-            Grid_setupTarget.UpdateLayout();
-
-
-            
-            
+            Grid_setupTarget.UpdateLayout();   
         }
 
-        private void UpdatePosListBox()
-        {/*
-                Generate the optional X, Y Positions (origin in center)
-
-                Store into class member parent.optPostions_OCenter_List
-                and Show on the control listBox_Positions
-            */
-
-            // Binding with listBox_Position
-            optPosString_List.Clear();
-            foreach (int[] xyPos in parent.optPostions_OCenter_List)
-            {
-                optPosString_List.Add(xyPos[0].ToString() + ", " + xyPos[1].ToString());
-            }
-            listBox_Positions.ItemsSource = null;
-            listBox_Positions.ItemsSource = optPosString_List;
-        }
+        
 
         private void SaveTargetData()
         {/* ---- Save all the Set Target Information back to MainWindow Variables ----- */
@@ -101,6 +104,20 @@ namespace COTTask_wpf
             parent.targetDiaPixal = Utility.cm2pixal(parent.targetDiaCM);
             parent.targetNoOfPositions = int.Parse(textBox_targetNoOfPositions.Text);
 
+            // Extract parent.optPostions_OCenter_List from optPosString_List
+            for (int i = 0; i < optPosString_List.Count; i ++)
+            {
+                try
+                {
+                    string xyPosString = (string)optPosString_List[i];
+                    string[] strxy = xyPosString.Split(',');
+                    parent.optPostions_OCenter_List[i] = new int[] { int.Parse(strxy[0]), int.Parse(strxy[1]) };
+                }
+                catch(Exception ex)
+                {
+                    throw ex;
+                }
+            }
         }
 
         private void DisableBtnStartStop()
@@ -125,21 +142,25 @@ namespace COTTask_wpf
 
         private void Btn_GenOptPos_Click(object sender, RoutedEventArgs e)
         {
-            parent.optPostions_OCenter_List = Utility.GenRandomPositions(parent.targetNoOfPositions, parent.targetDiaPixal, Utility.Detect_PrimaryScreen_Rect());
-            UpdatePosListBox();
+            int targetNoOfPositions = int.Parse(textBox_targetNoOfPositions.Text);
+
+            List<int[]> optPostions_OCenter_List = Utility.GenDefaultPositions(targetNoOfPositions, cRadius, Utility.Detect_PrimaryScreen_Rect());
+            UpdatePosListBox(optPostions_OCenter_List);
         }
 
         private void Btn_CheckPositions_Click(object sender, RoutedEventArgs e)
         {
 
             Color BKColor = (Color)(typeof(Colors).GetProperty(parent.BKTargetShownColorStr) as PropertyInfo).GetValue(null, null);
-            Color targetColor = (Color)(typeof(Colors).GetProperty(parent.goFillColorStr) as PropertyInfo).GetValue(null, null); ;
+            Color targetColor = (Color)(typeof(Colors).GetProperty(parent.goFillColorStr) as PropertyInfo).GetValue(null, null);
 
-            ShowAllTargets(parent.targetDiaPixal, parent.optPostions_OCenter_List, targetColor, BKColor);
+
+            int targetDiaPixal = Utility.cm2pixal(float.Parse(textBox_targetDiaCM.Text));
+            ShowAllTargets(targetDiaPixal, optPosString_List, targetColor, BKColor);
         }
 
 
-        private void ShowAllTargets(int targetDiaPixal, List<int[]> postions_OriginCenter_List, Color targetColor, Color BKColor)
+        private void ShowAllTargets(int targetDiaPixal, ArrayList optPosString_List, Color targetColor, Color BKColor)
         {/* 
             Show all the targets 
 
@@ -176,6 +197,22 @@ namespace COTTask_wpf
             Win_allTargets.Content = wholeGrid;
             wholeGrid.UpdateLayout();
 
+
+            // Extract postions_OriginCenter_List from optPosString_List
+            List<int[]> postions_OriginCenter_List = new List<int[]>();
+            for (int i = 0; i < optPosString_List.Count; i++)
+            {
+                try
+                {
+                    string xyPosString = (string)optPosString_List[i];
+                    string[] strxy = xyPosString.Split(',');
+                    postions_OriginCenter_List.Add(new int[] { int.Parse(strxy[0]), int.Parse(strxy[1]) });
+                }
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
+            }
 
             // Show All Targets
             foreach (int[] cPoint_Pos_OCenter in postions_OriginCenter_List)
@@ -239,22 +276,31 @@ namespace COTTask_wpf
             }
         }
 
-        private void TextBox_targetNoOfPositions_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            try
-            {
-                parent.targetNoOfPositions = int.Parse(textBox_targetNoOfPositions.Text);
-                parent.optPostions_OCenter_List = Utility.GenDefaultPositions(parent.targetNoOfPositions, 2 * parent.targetDiaPixal, Utility.Detect_PrimaryScreen_Rect());
-                UpdatePosListBox();
-            }
-            catch(Exception)
-            {
-            }
 
+        private int CenterRadius(int diameterCM)
+        {/*
+            The default circle centers are designed in a circle (origin = [0, 0], cRadius)
+
+            This function for generating the radius used.
+
+            Arg:
+                diameterCM: the diameter of the circles (CM)
+
+            Return:
+                cRadius: center radius (pixal)
+            */
+            sd.Rectangle workArea = Utility.Detect_PrimaryScreen_Rect();
+            int len;
+            if (workArea.Width < workArea.Height)
+            { len = workArea.Width / 2; }
+            else { len = workArea.Height / 2; }
+
+            int cRadius = len - Utility.cm2pixal(diameterCM)/2;
+
+            return cRadius;
         }
 
-
-        private void Btn_OK_Click(object sender, RoutedEventArgs e)
+        private void Btn_Save_Click(object sender, RoutedEventArgs e)
         {
             SaveTargetData();
             ResumeBtnStartStop();
@@ -367,25 +413,8 @@ namespace COTTask_wpf
             }
         }
 
-        private void TextBox_targetDiaCM_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            parent.targetDiaCM = float.Parse(textBox_targetDiaCM.Text);
-            parent.targetDiaPixal = Utility.cm2pixal(parent.targetDiaCM);
-            parent.optPostions_OCenter_List = Utility.GenDefaultPositions(parent.targetNoOfPositions, 2 * parent.targetDiaPixal, Utility.Detect_PrimaryScreen_Rect());
-            UpdatePosListBox();
-        }
 
-        private void TextBox_targetDiaCM_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Enter)
-            {
-                parent.targetDiaCM = float.Parse(textBox_targetDiaCM.Text);
-                parent.targetDiaPixal = Utility.cm2pixal(parent.targetDiaCM);
-                textBox_DiaPixal.Text = parent.targetDiaPixal.ToString();
-            }
-        }
-
-        private void Btn_Cancle_Click(object sender, RoutedEventArgs e)
+        private void Btn_Cancel_Click(object sender, RoutedEventArgs e)
         {
             ResumeBtnStartStop();
             this.Close();

@@ -69,9 +69,11 @@ namespace COTTask_wpf
 
             parent.goFillColorStr = (cbo_goFillColor.SelectedItem as PropertyInfo).Name;
             parent.goOutlineColorStr = (cbo_goOutlineColor.SelectedItem as PropertyInfo).Name;
+
             parent.BKWaitTrialColorStr = (cbo_BKWaitTrialColor.SelectedItem as PropertyInfo).Name;
             parent.BKReadyColorStr = (cbo_BKReadyColor.SelectedItem as PropertyInfo).Name;
             parent.BKTargetShownColorStr = (cbo_BKTargetShownColor.SelectedItem as PropertyInfo).Name;
+
             parent.CorrFillColorStr = (cbo_CorrFillColor.SelectedItem as PropertyInfo).Name;
             parent.CorrOutlineColorStr = (cbo_CorrOutlineColor.SelectedItem as PropertyInfo).Name;
             parent.ErrorFillColorStr = (cbo_ErrorFillColor.SelectedItem as PropertyInfo).Name;
@@ -79,7 +81,7 @@ namespace COTTask_wpf
             parent.ErrorCrossingColorStr = (cbo_ErrorCrossingColor.SelectedItem as PropertyInfo).Name;
         }
 
-        private void Btn_OK_Click(object sender, RoutedEventArgs e)
+        private void Btn_Save_Click(object sender, RoutedEventArgs e)
         {
             SaveColorsData();
             ResumeBtnStartStop();
@@ -91,7 +93,7 @@ namespace COTTask_wpf
             ResumeBtnStartStop();
         }
 
-        private void Btn_Cancle_Click(object sender, RoutedEventArgs e)
+        private void Btn_Cancel_Click(object sender, RoutedEventArgs e)
         {
             ResumeBtnStartStop();
             this.Close();

@@ -122,13 +122,13 @@
             </Grid>
         </GroupBox>
 
-        <Button x:Name="btn_OK"
-            Content="OK" HorizontalAlignment="Right" VerticalAlignment="Top" Grid.Row="1" 
+        <Button x:Name="btn_Save"
+            Content="Save" HorizontalAlignment="Right" VerticalAlignment="Top" Grid.Row="1" 
                 Margin="0,10,120,0"  Width="60" Height="25" 
-                FontWeight="Bold" FontFamily="Microsoft Sans Serif" FontSize="12" Click="Btn_OK_Click"  />
+                FontWeight="Bold" FontFamily="Microsoft Sans Serif" FontSize="12" Click="Btn_Save_Click"  />
 
         <Button x:Name="btn_Cancle"
-            Content="Cancle" HorizontalAlignment="Right" VerticalAlignment="Top" Grid.Row="1" 
+            Content="Cancel" HorizontalAlignment="Right" VerticalAlignment="Top" Grid.Row="1" 
                 Margin="0,10,10,0"  Width="60" Height="25" 
                 FontWeight="Bold" FontFamily="Microsoft Sans Serif" FontSize="12" Click="Btn_Cancle_Click" />
 

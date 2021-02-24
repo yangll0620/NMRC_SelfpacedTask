@@ -28,7 +28,7 @@
 
 
             <!--Go Color -->
-            <Label Content="Go Fill" Grid.Row="0" Grid.Column="0" 
+            <Label Content="Target Fill" Grid.Row="0" Grid.Column="0" 
                    HorizontalAlignment="Right" VerticalAlignment="top" 
                    HorizontalContentAlignment="Right" VerticalContentAlignment="Center"
                    Height="25" Margin="0,5,135,0"  FontWeight="Normal"/>
@@ -46,32 +46,11 @@
                 </ComboBox.ItemTemplate>
             </ComboBox>
 
-            <Label Content="Go Outline" Grid.Row="0" Grid.Column="1" 
+            <Label Content="Target Outline" Grid.Row="0" Grid.Column="1" 
                    HorizontalAlignment="Right" VerticalAlignment="top" 
                    HorizontalContentAlignment="Right" VerticalContentAlignment="Center"
                    Height="25" Margin="0,5,135,0"  FontWeight="Normal"/>
             <ComboBox x:Name="cbo_goOutlineColor" Grid.Row="0" Grid.Column="1" 
-                      HorizontalAlignment="Right" VerticalAlignment="Top" 
-                      Width="120" Height="25" Margin="0,5,10,0" 
-                      VerticalContentAlignment="Center" FontWeight="Normal" >
-                <ComboBox.ItemTemplate>
-                    <DataTemplate>
-                        <StackPanel Orientation="Horizontal">
-                            <Rectangle Fill="{Binding Name}" Width="16" Height="16" Margin="0,2,5,2" />
-                            <TextBlock Text="{Binding Name}" />
-                        </StackPanel>
-                    </DataTemplate>
-                </ComboBox.ItemTemplate>
-            </ComboBox>
-
-
-
-            <!--Cue Crossing Color -->
-            <Label Content="Error Crossing" Grid.Row="1" Grid.Column="0" 
-                   HorizontalAlignment="Right" VerticalAlignment="top" 
-                   HorizontalContentAlignment="Right" VerticalContentAlignment="Center"
-                   Height="25" Margin="0,5,135,0"  FontWeight="Normal"/>
-            <ComboBox x:Name="cbo_ErrorCrossingColor" Grid.Row="1" Grid.Column="0" 
                       HorizontalAlignment="Right" VerticalAlignment="Top" 
                       Width="120" Height="25" Margin="0,5,10,0" 
                       VerticalContentAlignment="Center" FontWeight="Normal" >
@@ -145,12 +124,12 @@
             </ComboBox>
 
             <!-- Visual Feedback (Correct and Error) Colors -->
-            <Label Content="Correct Fill" Grid.Row="2" Grid.Column="0" 
+            <Label Content="Correct Fill" Grid.Row="1" Grid.Column="0" 
                    HorizontalAlignment="Right" VerticalAlignment="top" 
                    HorizontalContentAlignment="Right" VerticalContentAlignment="Center"
                    Margin="0,5,135,0"  FontWeight="Normal"/>
 
-            <ComboBox x:Name="cbo_CorrFillColor" Grid.Row="2" Grid.Column="0" 
+            <ComboBox x:Name="cbo_CorrFillColor" Grid.Row="1" Grid.Column="0" 
                       HorizontalAlignment="Right" VerticalAlignment="Top" 
                       Width="120" Height="25" Margin="0,5,10,0" 
                       VerticalContentAlignment="Center" FontWeight="Normal">
@@ -165,12 +144,12 @@
             </ComboBox>
 
 
-            <Label Content="Correct Outline" Grid.Row="2" Grid.Column="1" 
+            <Label Content="Correct Outline" Grid.Row="1" Grid.Column="1" 
                    HorizontalAlignment="Right" VerticalAlignment="top" 
                    HorizontalContentAlignment="Right" VerticalContentAlignment="Center"
                    Margin="0,5,135,0"  FontWeight="Normal"/>
 
-            <ComboBox x:Name="cbo_CorrOutlineColor" Grid.Row="2" Grid.Column="1" 
+            <ComboBox x:Name="cbo_CorrOutlineColor" Grid.Row="1" Grid.Column="1" 
                       HorizontalAlignment="Right" VerticalAlignment="Top" 
                       Width="120" Height="25" Margin="0,5,10,0" 
                       VerticalContentAlignment="Center" FontWeight="Normal">
@@ -185,12 +164,12 @@
             </ComboBox>
 
 
-            <Label Content="Error Fill" Grid.Row="3" Grid.Column="0" 
+            <Label Content="Error Fill" Grid.Row="2" Grid.Column="0" 
                    HorizontalAlignment="Right" VerticalAlignment="top" 
                    HorizontalContentAlignment="Right" VerticalContentAlignment="Center"
                    Margin="0,5,135,0"  FontWeight="Normal"/>
 
-            <ComboBox x:Name="cbo_ErrorFillColor" Grid.Row="3" Grid.Column="0" 
+            <ComboBox x:Name="cbo_ErrorFillColor" Grid.Row="2" Grid.Column="0" 
                       HorizontalAlignment="Right" VerticalAlignment="Top" 
                       Width="120" Height="25" Margin="0,5,10,0" 
                       VerticalContentAlignment="Center" FontWeight="Normal">
@@ -206,14 +185,33 @@
 
 
 
-            <Label Content="Error Outline" Grid.Row="3" Grid.Column="1" 
+            <Label Content="Error Outline" Grid.Row="2" Grid.Column="1" 
                    HorizontalAlignment="Right" VerticalAlignment="top" 
                    HorizontalContentAlignment="Right" VerticalContentAlignment="Center"
                    Margin="0,5,135,0"  FontWeight="Normal"/>
-            <ComboBox x:Name="cbo_ErrorOutlineColor" Grid.Row="3" Grid.Column="1" 
+            <ComboBox x:Name="cbo_ErrorOutlineColor" Grid.Row="2" Grid.Column="1" 
                       HorizontalAlignment="Right" VerticalAlignment="Top" 
                       Width="120" Height="25" Margin="0,5,10,0" 
                       VerticalContentAlignment="Center" FontWeight="Normal">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <Rectangle Fill="{Binding Name}" Width="16" Height="16" Margin="0,2,5,2" />
+                            <TextBlock Text="{Binding Name}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+
+            <!--Error Crossing Color -->
+            <Label Content="Error Crossing" Grid.Row="3" Grid.Column="0" 
+                   HorizontalAlignment="Right" VerticalAlignment="top" 
+                   HorizontalContentAlignment="Right" VerticalContentAlignment="Center"
+                   Height="25" Margin="0,5,135,0"  FontWeight="Normal"/>
+            <ComboBox x:Name="cbo_ErrorCrossingColor" Grid.Row="3" Grid.Column="0" 
+                      HorizontalAlignment="Right" VerticalAlignment="Top" 
+                      Width="120" Height="25" Margin="0,5,10,0" 
+                      VerticalContentAlignment="Center" FontWeight="Normal" >
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
@@ -228,17 +226,17 @@
 
         
         <Grid Grid.Row="1">
-            <Button x:Name="btn_OK"
-                    Content="OK" HorizontalAlignment="Right" VerticalAlignment="Bottom" 
+            <Button x:Name="btn_Save"
+                    Content="Save" HorizontalAlignment="Right" VerticalAlignment="Bottom" 
                     Margin="0,0,110,10"  Width="60" Height="30" 
                     FontWeight="Bold" FontFamily="Microsoft Sans Serif" FontSize="14" 
-                    Click="Btn_OK_Click" />
+                    Click="Btn_Save_Click" />
 
             <Button x:Name="btn_Cancle"
-                    Content="Cancle" HorizontalAlignment="Right" VerticalAlignment="Bottom" 
+                    Content="Cancel" HorizontalAlignment="Right" VerticalAlignment="Bottom" 
                     Margin="0,0,10,10"  Width="60" Height="30" 
                     FontWeight="Bold" FontFamily="Microsoft Sans Serif" FontSize="14" 
-                    Click="Btn_Cancle_Click" />
+                    Click="Btn_Cancel_Click" />
         </Grid>
         
 
