@@ -9,10 +9,11 @@
     "Max Reaction Time": 0.8,
     "Max Reach Time": 0.8,
     "Visual Feedback Show Time": 1.0,
-    "Inter Trials Time": 0.5
+    "Inter Trials Time": 0.5,
+    "Juice Correct Given Time": 0.8
   },
   "Target": {
-    "Target Diameter (cm)": 3.0,
+    "Target Diameter (cm)": 8.0,
     "Target No of Positions": 9,
     "optPostions_OCenter_List": [
       [
@@ -54,7 +55,7 @@
     ]
   },
   "Colors": {
-    "Go Fill Color": "Green",
+    "Target Fill Color": "Green",
     "Wait Start Background": "Black",
     "Ready Background": "Blue",
     "Target Shown Background": "WhiteSmoke",
@@ -63,10 +64,6 @@
     "Error Fill": "WhiteSmoke",
     "Error Outline": "Red",
     "Error Crossing": "Red"
-  },
-  "JuicerGivenTime": {
-    "Correct": 0.8,
-    "Close": 0.5
   },
   "audioFile_Correct": "default",
   "audioFile_Error": "default"

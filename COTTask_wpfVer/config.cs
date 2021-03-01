@@ -25,8 +25,6 @@ namespace COTTask_wpf
         [JsonProperty(PropertyName = "Colors")]
         public ConfigColors configColors;
 
-        [JsonProperty(PropertyName = "JuicerGivenTime")]
-        public ConfigJuicerGivenTime configJuicerGivenTime;
 
         public string audioFile_Correct, audioFile_Error;
     }
@@ -37,16 +35,19 @@ namespace COTTask_wpf
         public float[] tRange_ReadyTime;
 
         [JsonProperty(PropertyName = "Max Reaction Time")]
-        public float tMax_ReactionTimeS;
+        public float tMax_ReactionTime;
 
         [JsonProperty(PropertyName = "Max Reach Time")]
-        public float tMax_ReachTimeS;
+        public float tMax_ReachTime;
 
         [JsonProperty(PropertyName = "Visual Feedback Show Time")]
         public float t_VisfeedbackShow;
 
         [JsonProperty(PropertyName = "Inter Trials Time")]
         public float t_InterTrial;
+
+        [JsonProperty(PropertyName = "Juice Correct Given Time")]
+        public float t_JuicerCorrectGiven;
     }
 
 
@@ -62,19 +63,10 @@ namespace COTTask_wpf
     }
 
 
-    class ConfigJuicerGivenTime
-    {
-        [JsonProperty(PropertyName = "Correct")]
-        public float t_JuicerFullGivenS;
-
-        [JsonProperty(PropertyName = "Close")]
-        public float t_JuicerCloseGivenS;
-    }
-
     class ConfigColors
     {
-        [JsonProperty(PropertyName = "Go Fill Color")]
-        public string goFillColorStr;
+        [JsonProperty(PropertyName = "Target Fill Color")]
+        public string targetFillColorStr;
 
         [JsonProperty(PropertyName = "Wait Start Background")]
         public string BKWaitTrialColorStr;

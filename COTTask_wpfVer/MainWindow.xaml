@@ -13,22 +13,20 @@
 
         <DockPanel>
             <Menu DockPanel.Dock="Top">
-                <MenuItem Header="_File" FontSize="14">
-                    <MenuItem Header="_Select Save Folder" Click="menuSavefolder_Click"/>
+                <MenuItem x:Name="menu_File" Header="_File" FontSize="14">
                     <MenuItem Header="_Load Config. File" Click="menuLoadConf_Click"/>
                     <MenuItem Header="_Save Current Config." IsEnabled="True" Click="menuSaveConf_Click"/>
                     <Separator />
                     <MenuItem Header="_Exit" />
                 </MenuItem>
 
-                <MenuItem Header="_Settings">
+                <MenuItem x:Name="menu_Settings" Header="_Settings">
                     <MenuItem Header="_Color Settings" Click="MenuItem_SetupColors"/>
                     <MenuItem Header="_Time Setting" Click="MenuItem_SetupTime"/>
                     <MenuItem Header="_Target Setting" Click="MenuItem_SetupTarget"/>
                 </MenuItem>
 
-                <MenuItem Header="Tools">
-                    <MenuItem Header="_Show Close Circle" IsCheckable="True" Checked="MenuItem_showCloseCircle" Unchecked="MenuItem_noShowCloseCircle"/>
+                <MenuItem x:Name="menu_Tools" Header="Tools">
                     <MenuItem Header="_Test Touchpad, Juicer " Click="btnTestTouchpadJuicer_Click"/>
                     <MenuItem Header="_Test Window " Click="MenuItem_NewWindow"/>
                 </MenuItem>
@@ -37,7 +35,7 @@
 
 
         <Grid Margin="0, 20, 0, 0" Height="550"  Width="800">
-            
+
             <!--Grid RowDefinitions: 0, 1, 2-->
             <Grid.RowDefinitions>
                 <RowDefinition Height="2*"/>
@@ -69,16 +67,6 @@
                     </Grid>
 
                     <Grid Grid.Column="1">
-                        <Label Content="Saved Folder" HorizontalAlignment="Left"  VerticalAlignment="top" 
-                       HorizontalContentAlignment="Right"
-                       Height="25" Margin="10,10,0,0" FontWeight="Normal" />
-
-                        <TextBox x:Name="textBox_savedFolder" IsEnabled="False"
-                                 HorizontalAlignment="Left" VerticalAlignment="Top"
-                                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                                 Width="300" Height="25" Margin="120,10,10,0"
-                                 TextWrapping="Wrap"  FontWeight="Normal" TextChanged="TextBox_NHPName_TextChanged" />
-
                     </Grid>
 
                     <TextBlock  x:Name="textblock_comState"
@@ -95,56 +83,137 @@
                 </Grid>
             </GroupBox>
 
-            <!--Row1: Realtime Feedback-->
-            <GroupBox Header="Realtime Feedback" Grid.Row="1" 
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*" />
+                    <ColumnDefinition Width="3*"/>
+                </Grid.ColumnDefinitions>
+
+
+                <!--Row1: Realtime Feedback-->
+                <GroupBox Header="Realtime Feedback" Grid.Column="0" 
                       HorizontalAlignment="Left" VerticalAlignment="Top"
                       Margin="5,15,0,0" FontFamily="Microsoft Sans Serif" FontWeight="Bold">
-                <Grid HorizontalAlignment="Left" VerticalAlignment="Top" Height="250"  Width="300" Margin="0,10,0,0">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
+                    <Grid HorizontalAlignment="Left" VerticalAlignment="Top" Height="250"  Width="300" Margin="0,10,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
 
-                    <Label Content="Total Trials" Grid.Row="0"
+                        <Label Content="Total Trials" Grid.Row="0"
                                        HorizontalAlignment="Left" VerticalAlignment="top" HorizontalContentAlignment="Right" VerticalContentAlignment="Center"                             
                                        Height="25" Margin="5,10,0,0"  FontWeight="Normal" FontSize="11"/>
-                    <TextBox x:Name="textBox_totalGoTrialNum"  Grid.Row="0" Text="0"
+                        <TextBox x:Name="textBox_totalGoTrialNum"  Grid.Row="0" Text="0"
                                          IsEnabled="False" HorizontalAlignment="Left" VerticalAlignment="Top" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                          Height="25" Width ="75" Margin="110,10,5,0" TextWrapping="Wrap"   FontSize="11" FontWeight="Normal" />
 
-                    <Label Content="Success Go Trials" Grid.Row="1"
+                        <Label Content="Success Go Trials" Grid.Row="1"
                                        HorizontalAlignment="Left" VerticalAlignment="top" HorizontalContentAlignment="Right" VerticalContentAlignment="Center"                             
                                        Height="25" Margin="5,10,0,0"  FontWeight="Normal" FontSize="11"/>
-                    <TextBox x:Name="textBox_successGoTrialNum"  Grid.Row="1" Text="0"
+                        <TextBox x:Name="textBox_successGoTrialNum"  Grid.Row="1" Text="0"
                                          IsEnabled="False" HorizontalAlignment="Left" VerticalAlignment="Top" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                          Height="25" Width ="75" Margin="110,10,5,0" TextWrapping="Wrap"   FontSize="11" FontWeight="Normal" />
 
-                    <Label Content="Miss Trials" Grid.Row="2" 
+                        <Label Content="Miss Trials" Grid.Row="2" 
                                        HorizontalAlignment="Left" VerticalAlignment="top" HorizontalContentAlignment="Right" VerticalContentAlignment="Center"                             
                                        Height="25" Margin="5,10,0,0"  FontWeight="Normal" FontSize="11"/>
-                    <TextBox x:Name="textBox_missGoTrialNum"  Grid.Row="2" Text="0"
+                        <TextBox x:Name="textBox_missGoTrialNum"  Grid.Row="2" Text="0"
                                          IsEnabled="False" HorizontalAlignment="Left" VerticalAlignment="Top" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                          Height="25" Width ="75" Margin="110,10,5,0" TextWrapping="Wrap"   FontSize="11" FontWeight="Normal" />
 
 
-                    <Label Content="No Reaction Trials" Grid.Row="3"
+                        <Label Content="No Reaction Trials" Grid.Row="3"
                                        HorizontalAlignment="Left" VerticalAlignment="top" HorizontalContentAlignment="Right" VerticalContentAlignment="Center"                             
                                        Height="25" Margin="5,10,0,0"  FontWeight="Normal" FontSize="11"/>
-                    <TextBox x:Name="textBox_noreactionGoTrialNum"  Grid.Row="3" Text="0"
+                        <TextBox x:Name="textBox_noreactionGoTrialNum"  Grid.Row="3" Text="0"
                                          IsEnabled="False" HorizontalAlignment="Left" VerticalAlignment="Top" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                          Height="25" Width ="75" Margin="110,10,5,0" TextWrapping="Wrap"   FontSize="11" FontWeight="Normal" />
 
-                    <Label Content="No Reach Trials" Grid.Row="4"
+                        <Label Content="No Reach Trials" Grid.Row="4"
                                        HorizontalAlignment="Left" VerticalAlignment="top" HorizontalContentAlignment="Right" VerticalContentAlignment="Center"                             
                                        Height="25" Margin="5,10,0,0"  FontWeight="Normal" FontSize="11"/>
-                    <TextBox x:Name="textBox_noreachGoTrialNum"  Grid.Row="4" Text="0"
+                        <TextBox x:Name="textBox_noreachGoTrialNum"  Grid.Row="4" Text="0"
                                          IsEnabled="False" HorizontalAlignment="Left" VerticalAlignment="Top" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                          Height="25" Width ="75" Margin="110,10,5,0" TextWrapping="Wrap"   FontSize="11" FontWeight="Normal"/>
-                </Grid>
-            </GroupBox>
+                    </Grid>
+                </GroupBox>
+
+
+                <GroupBox Header="Save Folder and Audios Parameters" Grid.Column="1" 
+                      HorizontalAlignment="Left" VerticalAlignment="Top"
+                      Margin="5,15,0,0" FontFamily="Microsoft Sans Serif" FontWeight="Bold">
+                    <Grid HorizontalAlignment="Left" VerticalAlignment="Top" Height="320"  Width="460" Margin="0,10,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="3.5*"/>
+                        </Grid.RowDefinitions>
+
+                        <Grid Grid.Row="0">
+                            <Label Content="Saved Folder" 
+                                   HorizontalAlignment="Left"  VerticalAlignment="Center" HorizontalContentAlignment="Right"
+                                   Height="25" Margin="0,0,0,0" FontWeight="Normal" />
+
+                            <TextBox x:Name="textBox_savedFolder" IsEnabled="False"
+                                 HorizontalAlignment="Left" VerticalAlignment="Top"
+                                 HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
+                                 Width="280" Height="40" Margin="110,0,0,0"
+                                 TextWrapping="Wrap"  FontWeight="Normal" Grid.ColumnSpan="2" />
+
+                            <Button x:Name="btn_SelectSavefolder" 
+                                    Content="Browse" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                    Margin="0,0,0,0"  Width="60" Height="25" 
+                                    FontFamily="Microsoft Sans Serif" 
+                                    Click="Btn_SelectSavefolder_Click" />
+                        </Grid>
+                        <Grid Grid.Row="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="66*"/>
+                                <ColumnDefinition Width="49*"/>
+                            </Grid.ColumnDefinitions>
+                            <Label Content="Corrent Audio File" 
+                                   HorizontalAlignment="Left"  VerticalAlignment="Center" HorizontalContentAlignment="Right"
+                                   Height="26" Margin="0,12" FontWeight="Normal" />
+
+                            <TextBox x:Name="textBox_audioFile_Correct" IsEnabled="False"
+                                 HorizontalAlignment="Left" VerticalAlignment="Top"
+                                 HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
+                                 Width="280" Height="40" Margin="110,0,0,0"
+                                 TextWrapping="Wrap"  FontWeight="Normal" Grid.ColumnSpan="2" />
+
+                            <Button x:Name="btn_Select_AudioFile_Correct" 
+                                    Content="Browse" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                    Margin="0,12"  Width="60" Height="26" 
+                                    FontFamily="Microsoft Sans Serif" 
+                                    Click="Btn_Select_AudioFile_Correct_Click" Grid.Column="1" />
+                        </Grid>
+                        <Grid Grid.Row="2">
+                            <Label Content="Error Audio File" 
+                                   HorizontalAlignment="Left"  VerticalAlignment="Center" HorizontalContentAlignment="Right"
+                                   Height="25" Margin="0,0,0,0" FontWeight="Normal"  />
+
+                            <TextBox x:Name="textBox_audioFile_Error" IsEnabled="False"
+                                 HorizontalAlignment="Left" VerticalAlignment="Top"
+                                 HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
+                                 Width="280" Height="40" Margin="110,0,0,0"
+                                 TextWrapping="Wrap"  FontWeight="Normal" Grid.ColumnSpan="2" />
+
+                            <Button x:Name="btn_Select_AudioFile_Error" 
+                                    Content="Browse" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                    Margin="0,0,0,0"  Width="60" Height="25" 
+                                    FontFamily="Microsoft Sans Serif" 
+                                    Click="Btn_Select_AudioFile_Error_Click" />
+                        </Grid>
+                    </Grid>
+
+                </GroupBox>
+
+            </Grid>
+
 
             <!--Row2: Buttons-->
             <Grid Grid.Row="2" >
@@ -159,9 +228,9 @@
                         Margin="0,0,20,15"  Width="100" Height="35" 
                         FontWeight="Bold" FontFamily="Microsoft Sans Serif" FontSize="14"
                         Click="Btn_stop_Click"/>
-                
+
             </Grid>
-            
+
 
         </Grid>
     </Canvas>

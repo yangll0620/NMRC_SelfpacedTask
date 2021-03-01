@@ -52,8 +52,8 @@ namespace COTTask_wpf
 
 
             // Set Default Selected Item
-            cbo_goFillColor.SelectedItem = typeof(Colors).GetProperty(parent.goFillColorStr);
-            cbo_goOutlineColor.SelectedItem = typeof(Colors).GetProperty(parent.goFillColorStr);
+            cbo_goFillColor.SelectedItem = typeof(Colors).GetProperty(parent.targetFillColorStr);
+            cbo_goOutlineColor.SelectedItem = typeof(Colors).GetProperty(parent.targetFillColorStr);
             cbo_BKWaitTrialColor.SelectedItem = typeof(Colors).GetProperty(parent.BKWaitTrialColorStr);
             cbo_BKReadyColor.SelectedItem = typeof(Colors).GetProperty(parent.BKReadyColorStr);
             cbo_BKTargetShownColor.SelectedItem = typeof(Colors).GetProperty(parent.BKTargetShownColorStr);
@@ -67,8 +67,8 @@ namespace COTTask_wpf
         private void SaveColorsData()
         { /* ---- Save all the Select Colors Information back to MainWindow Color Strings ----- */
 
-            parent.goFillColorStr = (cbo_goFillColor.SelectedItem as PropertyInfo).Name;
-            parent.goOutlineColorStr = (cbo_goOutlineColor.SelectedItem as PropertyInfo).Name;
+            parent.targetFillColorStr = (cbo_goFillColor.SelectedItem as PropertyInfo).Name;
+            parent.targetOutlineColorStr = (cbo_goOutlineColor.SelectedItem as PropertyInfo).Name;
 
             parent.BKWaitTrialColorStr = (cbo_BKWaitTrialColor.SelectedItem as PropertyInfo).Name;
             parent.BKReadyColorStr = (cbo_BKReadyColor.SelectedItem as PropertyInfo).Name;

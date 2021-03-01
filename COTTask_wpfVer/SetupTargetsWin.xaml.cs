@@ -50,7 +50,6 @@ namespace COTTask_wpf
             cRadius = CenterRadius(maxDiameterCM);
 
             LoadInitTargetData();
-
         }
 
         private void UpdatePosListBox(List <int[]> optPostions_OCenter_List)
@@ -100,24 +99,30 @@ namespace COTTask_wpf
         private void SaveTargetData()
         {/* ---- Save all the Set Target Information back to MainWindow Variables ----- */
 
+            
             parent.targetDiaCM = float.Parse(textBox_targetDiaCM.Text);
             parent.targetDiaPixal = Utility.cm2pixal(parent.targetDiaCM);
             parent.targetNoOfPositions = int.Parse(textBox_targetNoOfPositions.Text);
 
+
             // Extract parent.optPostions_OCenter_List from optPosString_List
+            parent.optPostions_OCenter_List.Clear();
             for (int i = 0; i < optPosString_List.Count; i ++)
             {
                 try
                 {
                     string xyPosString = (string)optPosString_List[i];
                     string[] strxy = xyPosString.Split(',');
-                    parent.optPostions_OCenter_List[i] = new int[] { int.Parse(strxy[0]), int.Parse(strxy[1]) };
+                    parent.optPostions_OCenter_List.Add( new int[] { int.Parse(strxy[0]), int.Parse(strxy[1]) });
                 }
                 catch(Exception ex)
                 {
                     throw ex;
                 }
             }
+
+
+
         }
 
         private void DisableBtnStartStop()
@@ -152,15 +157,18 @@ namespace COTTask_wpf
         {
 
             Color BKColor = (Color)(typeof(Colors).GetProperty(parent.BKTargetShownColorStr) as PropertyInfo).GetValue(null, null);
-            Color targetColor = (Color)(typeof(Colors).GetProperty(parent.goFillColorStr) as PropertyInfo).GetValue(null, null);
+            Color targetColor = (Color)(typeof(Colors).GetProperty(parent.targetFillColorStr) as PropertyInfo).GetValue(null, null);
 
 
             int targetDiaPixal = Utility.cm2pixal(float.Parse(textBox_targetDiaCM.Text));
-            ShowAllTargets(targetDiaPixal, optPosString_List, targetColor, BKColor);
+            Win_allTargets = ShowAllTargets(targetDiaPixal, optPosString_List, targetColor, BKColor);
+
+            btn_CheckPositions.IsEnabled = false;
+            btn_ClosePositions.IsEnabled = true;
         }
 
 
-        private void ShowAllTargets(int targetDiaPixal, ArrayList optPosString_List, Color targetColor, Color BKColor)
+        private Window ShowAllTargets(int targetDiaPixal, ArrayList optPosString_List, Color targetColor, Color BKColor)
         {/* 
             Show all the targets 
 
@@ -184,10 +192,10 @@ namespace COTTask_wpf
 
             // Show Background
             Win_allTargets.Background = new SolidColorBrush(BKColor);
-            Win_allTargets.Show();
             Win_allTargets.WindowState = WindowState.Maximized;
             Win_allTargets.Name = "childWin_ShowAllTargets";
-            Win_allTargets.Title = "All Optional Targets";
+            Win_allTargets.WindowStyle = WindowStyle.None;
+            Win_allTargets.Show();
 
 
             // Add a Grid
@@ -229,6 +237,8 @@ namespace COTTask_wpf
             wholeGrid.UpdateLayout();
 
             Win_allTargets.Owner = this;
+
+            return Win_allTargets;
         }
 
 
@@ -302,9 +312,19 @@ namespace COTTask_wpf
 
         private void Btn_Save_Click(object sender, RoutedEventArgs e)
         {
-            SaveTargetData();
-            ResumeBtnStartStop();
-            this.Close();
+            if (optPosString_List.Count == int.Parse(textBox_targetNoOfPositions.Text))
+            {
+                SaveTargetData();
+                ResumeBtnStartStop();
+                this.Close();
+            }
+
+            else
+            {
+                MessageBoxResult result = MessageBox.Show("The No. of Targets is not equal to the No. of Center Positions, fix it pls.",
+                                          "Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            }
+
         }
 
         private void ListBox_Positions_KeyDown(object sender, KeyEventArgs e)
@@ -321,97 +341,15 @@ namespace COTTask_wpf
         }
 
 
-        private void Create_ShowGrid(Color BKColor)
+
+        private void Btn_ClosePositions_Click(object sender, RoutedEventArgs e)
         {
-            //Show the Win_allTargets on the Touch Screen
-            Win_allTargets = new Window();
-            sd.Rectangle Rect_primaryScreen = Utility.Detect_PrimaryScreen_Rect();
-            Win_allTargets.Top = Rect_primaryScreen.Top;
-            Win_allTargets.Left = Rect_primaryScreen.Left;
+            Win_allTargets.Close();
 
-
-            // Show Background
-            Win_allTargets.Background = new SolidColorBrush(BKColor);
-            Win_allTargets.Show();
-            Win_allTargets.WindowState = WindowState.Maximized;
-            Win_allTargets.Name = "childWin_ShowAllTargets";
-            Win_allTargets.Title = "All Optional Targets";
-            Win_allTargets.Owner = this;
-
-
-            // Add a Grid
-            wholeGrid = new Grid();
-            wholeGrid.Height = Win_allTargets.ActualHeight;
-            wholeGrid.Width = Win_allTargets.ActualWidth;
-            Win_allTargets.Content = wholeGrid;
-            wholeGrid.UpdateLayout();
-
+            btn_CheckPositions.IsEnabled = true;
+            btn_ClosePositions.IsEnabled = false;
         }
 
-        private void AddTarget(int targetDiaPixal, int[] cPoint_Pos_OCenter, Color targetColor)
-        {/* 
-            Add a new target into the Grid 
-
-            Args:
-                targetDiaPixal: Target Diameter in Pixal
-
-                cPoint_Pos_OCenter: x,y Position for the Target (Origin in Screen Center)
-
-                targetColor: the target Color
-
-                BKColor: the Background Color
-            */
-
-
-            // Change the cPoint  into Top Left Coordinate System
-            sd.Rectangle Rect_touchScreen = Utility.Detect_PrimaryScreen_Rect();
-            int[] cPoint_Pos_OTopLeft = new int[] { cPoint_Pos_OCenter[0] + Rect_touchScreen.Width / 2, cPoint_Pos_OCenter[1] + Rect_touchScreen.Height / 2 };
-
-
-            // Add A new Target
-            Ellipse circle = Utility.Create_Circle((double)targetDiaPixal, new SolidColorBrush(targetColor));
-            Utility.Move_Circle_OTopLeft(circle, cPoint_Pos_OTopLeft);
-
-            wholeGrid.Children.Add(circle);
-            wholeGrid.UpdateLayout();  
-        }
-
-
-        private void Btn_test_Click(object sender, RoutedEventArgs e)
-        {
-            try {
-                string[] strxy = textBox_Pos.Text.Split(',');
-                int[] pos_OCenter_Pixal = new int[] { int.Parse(strxy[0]), int.Parse(strxy[1]) };
-
-                Color BKColor = (Color)(typeof(Colors).GetProperty(parent.BKTargetShownColorStr) as PropertyInfo).GetValue(null, null);
-                Color targetColor = (Color)(typeof(Colors).GetProperty(parent.goFillColorStr) as PropertyInfo).GetValue(null, null); ;
-
-
-                if (wholeGrid == null)
-                {
-                    Create_ShowGrid(BKColor);
-                }
-
-                AddTarget(parent.targetDiaPixal, pos_OCenter_Pixal, targetColor);
-
-            }
-            catch
-            {
-
-            }
-        }
-
-        private void Btn_test2_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                wholeGrid.Children.RemoveAt(wholeGrid.Children.Count - 1);
-            }
-            catch
-            {
-
-            }
-        }
 
 
         private void Btn_Cancel_Click(object sender, RoutedEventArgs e)

@@ -71,8 +71,7 @@ namespace COTTask_wpf
         private enum GiveJuicerState
         {
             No,
-            CloseGiven,
-            FullGiven
+            CorrectGiven
         }
 
         private enum StartPadHoldState
@@ -207,8 +206,8 @@ namespace COTTask_wpf
 
         /*Juicer Parameters*/
         GiveJuicerState giveJuicerState;
-        // juiver given duration(ms)
-        int t_JuicerFullGiven, t_JuicerCloseGiven;
+        // juicer given duration(ms)
+        int t_JuicerCorrectGiven;
 
 
         // Global stopwatch
@@ -230,50 +229,36 @@ namespace COTTask_wpf
 
             // parent
             parent = mainWindow;
+
         }
 
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
-        {
+        {//  Called by Window.show() at the first time
             WindowState = WindowState.Maximized;
 
-            // get the setup from the parent interface
-            GetSetupParameters();
 
+            // Create Serial port 
+            Create_SerialPort();
 
-
-            // Create necessary elements: go circle,  and one crossing
-            Create_GoCircle();
-            Create_OneCrossing();
-
-            // Set audio Feedback related members 
-            SetAudioFeedback();
-
-            PrepBef_Present();
+            // Create stopwatches
+            Create_StopWatches();
         }
 
-        private void PrepBef_Present()
+
+        private void Create_SerialPort()
         {
-            // create a serial Port IO8 instance, and open it
             serialPort_IO8 = new SerialPort();
-            try
-            {
-                serialPort_SetOpen(parent.serialPortIO8_name, baudRate);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message, "Error Message", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-            // Thread for Read and Write IO8
-            thread_ReadWrite_IO8 = new Thread(new ThreadStart(Thread_ReadWrite_IO8));
+
+            serialPort_IO8.PortName = parent.serialPortIO8_name;
+            serialPort_IO8.BaudRate = baudRate;
+        }
 
 
-            // init a global stopwatch
+        private void Create_StopWatches()
+        {
             globalWatch = new Stopwatch();
             tpoints1TouchWatch = new Stopwatch();
-
-            // Init Trial Information
-            Update_FeedbackTrialsInformation();
         }
 
         public static void Shuffle<T>(List<T> list)
@@ -292,6 +277,36 @@ namespace COTTask_wpf
 
         public async void Present_Start()
         {                 
+            /* Prepare before presenting Trials*/
+
+            // get the setup from the parent interface
+            GetSetupParameters();
+
+
+            // Create necessary elements: go circle,  and one crossing
+            Create_GoCircle();
+            Create_OneCrossing();
+
+            // Set audio Feedback related members 
+            SetAudioFeedback();
+
+            // Init Trial Information
+            Init_FeedbackTrialsInformation();
+
+            // Open SerialPort_IO8
+            try
+            {
+                serialPort_IO8.Open();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error Message", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+
+            // Thread for Reading and Writing IO8
+            thread_ReadWrite_IO8 = new Thread(new ThreadStart(Thread_ReadWrite_IO8));
+
+
             int[] pos_OCenter_Taget;
             float t_Ready;
             Random rnd = new Random();
@@ -316,19 +331,22 @@ namespace COTTask_wpf
                     if(totalTriali == 0)
                     {
                         file.WriteLine("Trial Information:");
+                        file.WriteLine("XY Position Unit is Pixal, (0,0) in Screen Top Left Corner");
+                        file.WriteLine("Unit of Event TimePoint/Time is second");
                         file.WriteLine("\n\n");
                     }
 
                     file.WriteLine(String.Format("{0, -40}: {1}", "BlockN", blockN.ToString()));
                 }
 
-                for (int opi = 0; opi < parent.optPostions_OCenter_List.Count; opi++)
+                int opi = 0;
+                while (opi < parent.optPostions_OCenter_List.Count)
                 {
                     // Extract trial parameters
                     targetType = TargetType.Go;
                     pos_OCenter_Taget = parent.optPostions_OCenter_List[opi];
 
-                    t_Ready = Utility.TransferTo((float)rnd.NextDouble(), parent.tRange_ReadyTime[0], parent.tRange_ReadyTime[1]);
+                    t_Ready = Utility.TransferTo((float)rnd.NextDouble(), parent.tRange_ReadyTimeS[0], parent.tRange_ReadyTimeS[1]);
 
                     totalTriali++;
 
@@ -353,7 +371,8 @@ namespace COTTask_wpf
                         }
 
 
-                        // Go Target Interface
+                        // Target Interface
+                        opi = opi + 1;
                         await Interface_Go(pos_OCenter_Taget);
 
                         if (PresentTrial == false)
@@ -376,10 +395,10 @@ namespace COTTask_wpf
                     List<String> strExeSubResult = new List<String>();
                     strExeSubResult.Add("readyWaitTooShort");
                     strExeSubResult.Add("cueWaitTooShort");
-                    strExeSubResult.Add("goReactionTimeToolong");
-                    strExeSubResult.Add("goReachTimeToolong");
-                    strExeSubResult.Add("goMiss");
-                    strExeSubResult.Add("goSuccess");
+                    strExeSubResult.Add("ReactionTimeToolong");
+                    strExeSubResult.Add("ReachTimeToolong");
+                    strExeSubResult.Add("Miss");
+                    strExeSubResult.Add("Success");
                     String strExeFail = "Failed";
                     String strExeSuccess = "Success";
 
@@ -536,12 +555,12 @@ namespace COTTask_wpf
             {
                 file.WriteLine("\n\n");
 
-                file.WriteLine(String.Format("{0}", "Summary of the Go Trials"));
-                file.WriteLine(String.Format("{0, -40}: {1}", "Total Go Trials", totalGoTrialNum.ToString()));
-                file.WriteLine(String.Format("{0, -40}: {1}", "Success Go Trials", successGoTrialNum.ToString()));
-                file.WriteLine(String.Format("{0, -40}: {1}", "Miss Go Trials", missGoTrialNum.ToString()));
-                file.WriteLine(String.Format("{0, -40}: {1}", "No Reaction Go Trials", noreactionGoTrialNum.ToString()));
-                file.WriteLine(String.Format("{0, -40}: {1}", "No Reach Go Trials", noreachGoTrialNum.ToString()));
+                file.WriteLine(String.Format("{0}", "Summary of the Trials"));
+                file.WriteLine(String.Format("{0, -40}: {1}", "Total Trials", totalGoTrialNum.ToString()));
+                file.WriteLine(String.Format("{0, -40}: {1}", "Success Trials", successGoTrialNum.ToString()));
+                file.WriteLine(String.Format("{0, -40}: {1}", "Miss Trials", missGoTrialNum.ToString()));
+                file.WriteLine(String.Format("{0, -40}: {1}", "No Reaction Trials", noreactionGoTrialNum.ToString()));
+                file.WriteLine(String.Format("{0, -40}: {1}", "No Reach Trials", noreachGoTrialNum.ToString()));
             }
 
         }
@@ -551,6 +570,25 @@ namespace COTTask_wpf
         {/* Update the Feedback Trial Information in the Mainwindow */
 
             // Go trials
+            parent.textBox_totalGoTrialNum.Text = totalGoTrialNum.ToString();
+            parent.textBox_successGoTrialNum.Text = successGoTrialNum.ToString();
+            parent.textBox_missGoTrialNum.Text = missGoTrialNum.ToString();
+            parent.textBox_noreactionGoTrialNum.Text = noreactionGoTrialNum.ToString();
+            parent.textBox_noreachGoTrialNum.Text = noreachGoTrialNum.ToString();
+
+        }
+
+        private void Init_FeedbackTrialsInformation()
+        {/* Update the Feedback Trial Information in the Mainwindow */
+
+
+            totalGoTrialNum = 0;
+            successGoTrialNum = 0;
+            missGoTrialNum = 0;
+            noreactionGoTrialNum = 0;
+            noreachGoTrialNum = 0;
+
+            // Update Main Window Feedback 
             parent.textBox_totalGoTrialNum.Text = totalGoTrialNum.ToString();
             parent.textBox_successGoTrialNum.Text = successGoTrialNum.ToString();
             parent.textBox_missGoTrialNum.Text = missGoTrialNum.ToString();
@@ -589,27 +627,10 @@ namespace COTTask_wpf
             {
                 player_Error.SoundLocation = audioFile_Error;
             }
-
-            
-
         }
 
 
-        private void serialPort_SetOpen (string portName, int baudRate)
-        {
-            try
-            {
-                serialPort_IO8.PortName = portName;
-                serialPort_IO8.BaudRate = baudRate;
-                serialPort_IO8.Open();  
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-        }
-
-
+        
 
         private void GetSetupParameters()
         {/* get the setup from the parent interface */
@@ -618,19 +639,19 @@ namespace COTTask_wpf
             // interfaces time related parameters
             tMax_ReactionTimeMS = parent.tMax_ReactionTimeS * 1000;
             tMax_ReachTimeMS = parent.tMax_ReachTimeS * 1000;
-            t_VisfeedbackShowMS = (Int32)(parent.t_VisfeedbackShow * 1000);
-            t_InterTrialMS = (Int32)(parent.t_InterTrial * 1000);
+            t_VisfeedbackShowMS = (Int32)(parent.t_VisfeedbackShowS * 1000);
+            t_InterTrialMS = (Int32)(parent.t_InterTrialS * 1000);
 
             // Juicer Time
-            t_JuicerFullGiven = (Int32)(parent.t_JuicerFullGivenS * 1000);
-            t_JuicerCloseGiven = (Int32)(parent.t_JuicerCloseGivenS * 1000);
+            t_JuicerCorrectGiven = (Int32)(parent.t_JuicerCorrectGivenS * 1000);
+
 
 
             /* ---- Get all the Set Colors ----- */
             Color selectedColor;
             
             // goCircle Color
-            selectedColor = (Color)(typeof(Colors).GetProperty(parent.goFillColorStr) as PropertyInfo).GetValue(null, null);
+            selectedColor = (Color)(typeof(Colors).GetProperty(parent.targetFillColorStr) as PropertyInfo).GetValue(null, null);
             brush_goCircleFill = new SolidColorBrush(selectedColor);
 
 
@@ -673,8 +694,8 @@ namespace COTTask_wpf
             
             // get the file for saving 
             file_saved = parent.file_saved;
-            audioFile_Correct = parent.audioFile_Correct;
-            audioFile_Error = parent.audioFile_Error;
+            audioFile_Correct = parent.textBox_audioFile_Correct.Text;
+            audioFile_Error = parent.textBox_audioFile_Error.Text;
         }
 
 
@@ -684,8 +705,18 @@ namespace COTTask_wpf
 
             */
 
-            // Create an Ellipse  
-            circleGo = Utility.Create_Circle(parent.targetDiaPixal,  brush_goCircleFill);
+            // Create an Ellipse 
+            if(circleGo == null)
+            {
+                circleGo = Utility.Create_Circle(parent.targetDiaPixal, brush_goCircleFill);
+            }
+            else
+            {
+                circleGo.Height = parent.targetDiaPixal;
+                circleGo.Width = parent.targetDiaPixal;
+
+                circleGo.Fill = brush_goCircleFill;
+            }
             
             circleGo.Name = name_circleGo;
             circleGo.Visibility = Visibility.Hidden;
@@ -693,8 +724,12 @@ namespace COTTask_wpf
             circleGo.StrokeThickness = circleGo_StrokeThickness;
 
             // add to myGrid
-            myGrid.Children.Add(circleGo);
-            myGrid.RegisterName(circleGo.Name, circleGo);
+            if(!myGrid.Children.Contains(circleGo))
+            {
+                myGrid.Children.Add(circleGo);
+                myGrid.RegisterName(circleGo.Name, circleGo);
+            }
+
             myGrid.UpdateLayout();
 
         }
@@ -744,7 +779,9 @@ namespace COTTask_wpf
 
 
             // Create the horizontal line
-            crossing_horiLine = new Line();
+            if (crossing_horiLine == null)
+                crossing_horiLine = new Line();
+
             crossing_horiLine.X1 = 0;
             crossing_horiLine.Y1 = 0;
             crossing_horiLine.X2 = crossing_len;
@@ -763,7 +800,8 @@ namespace COTTask_wpf
 
 
             // Create the vertical line
-            crossing_vertLine = new Line();
+            if (crossing_vertLine == null)
+                crossing_vertLine = new Line();
             crossing_vertLine.X1 = 0;
             crossing_vertLine.Y1 = 0;
             crossing_vertLine.X2 = crossing_vertLine.X1;
@@ -783,13 +821,21 @@ namespace COTTask_wpf
             // Add, Hidden and Disable the Crossing
             crossing_horiLine.Visibility = Visibility.Hidden;
             crossing_horiLine.IsEnabled = false;
-            myGrid.Children.Add(crossing_horiLine);
-            myGrid.RegisterName(crossing_horiLine.Name, crossing_horiLine);
+            if (!myGrid.Children.Contains(crossing_horiLine))
+            {
+                myGrid.Children.Add(crossing_horiLine);
+                myGrid.RegisterName(crossing_horiLine.Name, crossing_horiLine);
+            }
+
 
             crossing_vertLine.Visibility = Visibility.Hidden;
             crossing_vertLine.IsEnabled = false;
-            myGrid.Children.Add(crossing_vertLine);
-            myGrid.RegisterName(crossing_vertLine.Name, crossing_vertLine);
+            if (!myGrid.Children.Contains(crossing_vertLine))
+            {
+                myGrid.Children.Add(crossing_vertLine);
+                myGrid.RegisterName(crossing_vertLine.Name, crossing_vertLine);
+            }
+
 
             myGrid.UpdateLayout();
         }
@@ -831,22 +877,19 @@ namespace COTTask_wpf
             Stopwatch startpadReadWatch = new Stopwatch();
             long startpadReadInterval = 30;
 
-            serialPort_IO8.WriteLine(codeLow_JuicerPin);
+            if (serialPort_IO8.IsOpen)
+            {
+                serialPort_IO8.WriteLine(codeLow_JuicerPin);
+            }
+
             startpadReadWatch.Start();
             while (serialPort_IO8.IsOpen)
             {
                 // ----- Juicer Control
-                if (giveJuicerState == GiveJuicerState.FullGiven)
+                if (giveJuicerState == GiveJuicerState.CorrectGiven)
                 {
                     serialPort_IO8.WriteLine(codeHigh_JuicerPin);
-                    Thread.Sleep(t_JuicerFullGiven);
-                    serialPort_IO8.WriteLine(codeLow_JuicerPin);
-                    giveJuicerState = GiveJuicerState.No;
-                }
-                if (giveJuicerState == GiveJuicerState.CloseGiven)
-                {
-                    serialPort_IO8.WriteLine(codeHigh_JuicerPin);
-                    Thread.Sleep(t_JuicerCloseGiven);
+                    Thread.Sleep(t_JuicerCorrectGiven);
                     serialPort_IO8.WriteLine(codeLow_JuicerPin);
                     giveJuicerState = GiveJuicerState.No;
                 }
@@ -1231,7 +1274,7 @@ namespace COTTask_wpf
 
 
             //Juicer Feedback
-            giveJuicerState = GiveJuicerState.FullGiven;
+            giveJuicerState = GiveJuicerState.CorrectGiven;
 
             // Audio Feedback
             player_Correct.Play();

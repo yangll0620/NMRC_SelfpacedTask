@@ -17,30 +17,18 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="*"/>
-                <RowDefinition Height="6*"/>
-                <RowDefinition Height="*"/>
+                <RowDefinition Height="7*"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <Button x:Name="btn_test" Grid.Row="4" Content="Add"
-                    VerticalAlignment="Center" HorizontalAlignment="Right"
-                    Width="60" Height="30" Margin="0,0,150,0"
-                    Click="Btn_test_Click" IsEnabled="False" Visibility="Hidden"/>
-            <Button x:Name="btn_test2" Grid.Row="4" Content="Remove"
-                    VerticalAlignment="Center" HorizontalAlignment="Right"
-                    Width="60" Height="30" Margin="0,0,80,0"
-                    Click="Btn_test2_Click" IsEnabled="False" Visibility="Hidden"/>
             <TextBox x:Name="textBox_Pos"  Grid.Row="4" 
                     VerticalAlignment="Center" HorizontalAlignment="Right"
                     Height="26" Width ="60" Margin="0,0,220,0" 
                     TextWrapping="Wrap"   FontWeight="Normal" IsEnabled="False" Visibility="Hidden"/>
-            <TextBox x:Name="textBox_DiaPixal"  Grid.Row="0" IsEnabled="False" Visibility="Hidden"
-                    VerticalAlignment="Center" HorizontalAlignment="Right"
-                    Height="26" Width ="60" Margin="0,0,10,0" 
-                    TextWrapping="Wrap"   FontWeight="Normal" />
 
-            <!--Size -->
+
+            <!--target Dia CM -->
             <TextBlock  TextWrapping="WrapWithOverflow"  Grid.Row="0" 
                                    HorizontalAlignment="Left" VerticalAlignment="Center" 
                                     Margin="20,0,0,0"  FontWeight="Normal" FontSize="11"
@@ -55,7 +43,7 @@
                                    HorizontalAlignment="Left" VerticalAlignment="Center" 
                                     Margin="20,0,0,0"  FontWeight="Normal" FontSize="11"
                                     TextAlignment="Center" Padding="5,1,0,0">
-                            No. of Positions</TextBlock>
+                            No. of Targets</TextBlock>
             <TextBox x:Name="textBox_targetNoOfPositions" Grid.Row="1" 
                      HorizontalAlignment="Left" VerticalAlignment="Center" 
                      HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
@@ -67,14 +55,15 @@
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="4*"/>
                     <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
                 <Button x:Name="btn_GenSizePos" Grid.Row="0" Content="Generate Default Positions" 
-                        HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,0"  
+                        HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="40,0,29,0"  
                         Width ="200" Height="25" FontWeight="Bold" FontFamily="Microsoft Sans Serif" FontSize="12" 
                         Click="Btn_GenOptPos_Click"  />
 
-                <Grid Grid.Row="1">
+                <Grid Grid.Row="1" >
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="4*"/>
@@ -84,7 +73,7 @@
                                    HorizontalAlignment="Center" VerticalAlignment="Bottom" 
                                     Margin="0,0,0,0"  FontWeight="Normal" FontSize="11"
                                     TextAlignment="Center" Padding="5,1,0,15">
-                            Positions</TextBlock>
+                            Center Positions</TextBlock>
                     <TextBlock  TextWrapping="WrapWithOverflow"  Grid.Row="0" Grid.Column="1"
                                    HorizontalAlignment="Center" VerticalAlignment="Bottom" 
                                     Margin="0,0,0,0"  FontWeight="Normal" FontSize="11"
@@ -98,10 +87,15 @@
 
                 </Grid>
 
-                <Button x:Name="btn_CheckPositions" Grid.Row="2" Content="Check Positions" 
-                        HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,0"  
+                <Button x:Name="btn_CheckPositions" Grid.Row="2" Content="Check Targets" 
+                        HorizontalAlignment="Center" VerticalAlignment="Center" Margin="40,8,29,8"  
                         Width ="200" Height="25" FontWeight="Bold" FontFamily="Microsoft Sans Serif" FontSize="12" 
                         Click="Btn_CheckPositions_Click"  />
+
+                <Button x:Name="btn_ClosePositions" Grid.Row="3" Content="Close Shown Targets" IsEnabled="False"
+                        HorizontalAlignment="Center" VerticalAlignment="Center" Margin="40,8,29,8"  
+                        Width ="200" Height="25" FontWeight="Bold" FontFamily="Microsoft Sans Serif" FontSize="12" 
+                        Click="Btn_ClosePositions_Click"  />
 
             </Grid>
 

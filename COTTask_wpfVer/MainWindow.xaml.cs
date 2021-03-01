@@ -31,14 +31,14 @@ namespace COTTask_wpf
         presentation taskPresentWin;
 
         // Strings stoing the Colors
-        public string goFillColorStr, goOutlineColorStr;
+        public string targetFillColorStr, targetOutlineColorStr;
         public string BKWaitTrialColorStr, BKReadyColorStr, BKTargetShownColorStr;
         public string CorrFillColorStr, CorrOutlineColorStr, ErrorFillColorStr, ErrorOutlineColorStr, ErrorCrossingColorStr;
 
         // Time Related Variables
-        public float[] tRange_ReadyTime;
-        public float tMax_ReactionTimeS, tMax_ReachTimeS, t_VisfeedbackShow, t_InterTrial;
-        public float t_JuicerFullGivenS, t_JuicerCloseGivenS;
+        public float[] tRange_ReadyTimeS;
+        public float tMax_ReactionTimeS, tMax_ReachTimeS, t_VisfeedbackShowS, t_InterTrialS, t_JuicerCorrectGivenS;
+
 
         
         // Target Related Variables
@@ -47,6 +47,7 @@ namespace COTTask_wpf
         public int targetDiaPixal;
         public List<int[]> optPostions_OCenter_List;
 
+        public bool hasStartedPresention = false;
 
 
         // Touch Screen Rectangle
@@ -186,37 +187,43 @@ namespace COTTask_wpf
                 file.WriteLine("\n");
 
 
-                file.WriteLine("Input Parameters:");
-
-                file.WriteLine(String.Format("{0, -40}:  {1}", "Go Target Fill Color", goFillColorStr));
-
-                file.WriteLine(String.Format("{0, -40}:  {1}", "Target Diameter (CM)", targetDiaCM.ToString()));
-
-
-                file.WriteLine(String.Format("{0, -40}:  [{1} {2}]", "Ready Interface Show Time Range (s)", tRange_ReadyTime[0].ToString(), tRange_ReadyTime[1].ToString()));
-                file.WriteLine(String.Format("{0, -40}:  {1}", "Visual Feedback Time (s)", t_VisfeedbackShow.ToString()));
-                file.WriteLine(String.Format("{0, -40}:  {1}", "Juicer Feedback Time (s)", t_JuicerCloseGivenS.ToString()));
-                file.WriteLine(String.Format("{0, -40}:  {1}", "Inter-Trial Time (s)", t_InterTrial.ToString()));
-
-                file.WriteLine(String.Format("{0, -40}:  {1}", "Max Reach Time (s)", tMax_ReachTimeS.ToString()));
-                file.WriteLine(String.Format("{0, -40}:  {1}", "Max Reaction Time (s)", tMax_ReactionTimeS.ToString()));
-
-                file.WriteLine("\n");
-                file.WriteLine(String.Format("{0, -40}:  {1}", "Unit of X Y Position", "CM"));
-                file.WriteLine(String.Format("{0, -40}:  {1}", "Unit of TimePoint/Time", "s"));
-
-
                 file.WriteLine(String.Format("{0, -40}:  {1}", "Screen Resolution(pixal)", Rect_touchScreen.Width.ToString() + "x" + Rect_touchScreen.Height.ToString()));
                 file.WriteLine(String.Format("{0, -40}:  {1}", "CM to Pixal Ratio", Utility.ratioCM2Pixal.ToString()));
 
 
-                // Store all the optional positions
-                file.WriteLine("\n");
+                file.WriteLine("\n\nInput Parameters:");
+
+                // Save Target Settings
+                file.WriteLine("\nTarget Settings:");
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Target Diameter (CM)", targetDiaCM.ToString()));
+                file.WriteLine(String.Format("{0, -40}:  {1}", "No of Targets", targetNoOfPositions.ToString()));
+                file.WriteLine("Center Coordinates of Each Target (Pixal, (0,0) in Screen Center):");
                 for (int i = 0; i < optPostions_OCenter_List.Count; i++)
                 {
                     int[] position = optPostions_OCenter_List[i];
-                    file.WriteLine(String.Format("{0, -40}:{1}, {2}", "Optional Postion " + i.ToString(), position[0], position[1]));
+                    file.WriteLine(String.Format("{0, -40}:{1}, {2}", "Postion " + (i+1).ToString(), position[0], position[1]));
                 }
+
+                // Save Time Settings
+                file.WriteLine("\nTime Settings:");
+                file.WriteLine(String.Format("{0, -40}:  [{1} {2}]", "Ready Interface Show Time Range (s)", tRange_ReadyTimeS[0].ToString(), tRange_ReadyTimeS[1].ToString()));
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Max Reaction Time (s)", tMax_ReactionTimeS.ToString()));
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Max Reach Time (s)", tMax_ReachTimeS.ToString()));
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Inter-Trial Time (s)", t_InterTrialS.ToString()));
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Visual Feedback Time (s)", t_VisfeedbackShowS.ToString()));
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Juicer Given Time for Correct (s)", t_JuicerCorrectGivenS.ToString()));
+
+                // Save Color Settings
+                file.WriteLine("\nColor Settings:");
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Target Fill Color", targetFillColorStr));
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Wait Start Background", BKWaitTrialColorStr));
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Ready Background", BKReadyColorStr));
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Target Shown Background", BKTargetShownColorStr));
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Correct Fill", CorrFillColorStr));
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Correct Outline", CorrOutlineColorStr));
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Error Fill", ErrorFillColorStr));
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Error Outline", ErrorOutlineColorStr));
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Error Crossing", ErrorCrossingColorStr));
 
             }
         }
@@ -270,7 +277,7 @@ namespace COTTask_wpf
             }
         }
 
-        private void menuSavefolder_Click(object sender, RoutedEventArgs e)
+        private void Btn_SelectSavefolder_Click(object sender, RoutedEventArgs e)
         {
             Microsoft.Win32.OpenFileDialog folderBrowser = new Microsoft.Win32.OpenFileDialog
             {
@@ -289,7 +296,43 @@ namespace COTTask_wpf
             {
                 textBox_savedFolder.Text = System.IO.Path.GetDirectoryName(folderBrowser.FileName);
             }
+        }
 
+        private void Btn_Select_AudioFile_Correct_Click(object sender, RoutedEventArgs e)
+        {
+            Microsoft.Win32.OpenFileDialog openFileDlg = new Microsoft.Win32.OpenFileDialog
+            {
+
+                // Set filter for file extension and default file extension 
+                DefaultExt = ".wav",
+                Filter = "Audio Files|*.wav",
+                Title = "Selecting an Audio for Correcting "
+            };
+
+            Nullable<bool> result = openFileDlg.ShowDialog();
+            if (result == true)
+            {
+                textBox_audioFile_Correct.Text = openFileDlg.FileName;
+            }
+        }
+
+        private void Btn_Select_AudioFile_Error_Click(object sender, RoutedEventArgs e)
+        {
+            Microsoft.Win32.OpenFileDialog openFileDlg = new Microsoft.Win32.OpenFileDialog
+            {
+
+                // Set filter for file extension and default file extension 
+                DefaultExt = ".wav",
+                Filter = "Audio Files|*.wav",
+                Title = "Selecting an Audio for Error "
+            };
+
+
+            Nullable<bool> result = openFileDlg.ShowDialog();
+            if (result == true)
+            {
+                textBox_audioFile_Error.Text = openFileDlg.FileName;
+            }
         }
 
         private void MenuItem_SetupTime(object sender, RoutedEventArgs e)
@@ -347,30 +390,6 @@ namespace COTTask_wpf
             Win_SetupTarget.Show();
         }
 
-        private Ellipse Create_GoCircle(double Diameter, int[] centerPoint_Pos)
-        {/*
-            Create the go circle
-
-            */
-
-            // Create an Ellipse  
-            Ellipse circleGo = new System.Windows.Shapes.Ellipse
-            {
-
-                // set the size, position of circleGo
-                Height = Diameter,
-                Width = Diameter,
-                VerticalAlignment = VerticalAlignment.Top,
-                HorizontalAlignment = HorizontalAlignment.Left,
-                Fill = new SolidColorBrush(Colors.Blue)
-            };
-
-            double left = centerPoint_Pos[0] - circleGo.Width / 2;
-            double top = centerPoint_Pos[1] - circleGo.Height / 2;
-            circleGo.Margin = new Thickness(left, top, 0, 0);
-
-            return circleGo;
-        }
 
 
         private void LoadConfigFile(string configFile)
@@ -378,29 +397,19 @@ namespace COTTask_wpf
             configFile == '': load the default Config File
             */
 
-            // Read the Config. File and convert to JsonObject
+            // Read the Config. File
             string jsonStr;
             if (String.IsNullOrEmpty(configFile))
             {
-                var assembly = Assembly.GetExecutingAssembly();
-                var defaultConfigFile = "COTTask_wpf.Resources.ConfigFiles.defaultConfig.json";
-
-                using (Stream stream = assembly.GetManifestResourceStream(defaultConfigFile))
-                {
-                    using (StreamReader r = new StreamReader(stream))
-                    {
-                        jsonStr = r.ReadToEnd();
-                    }
-                }
+                configFile = @"..\\..\\Resources\\ConfigFiles\\defaultConfig.json";
 
             }
-            else
+
+            using (StreamReader r = new StreamReader(configFile))
             {
-                using (StreamReader r = new StreamReader(configFile))
-                {
-                    jsonStr = r.ReadToEnd();
-                }
+                jsonStr = r.ReadToEnd();
             }
+
                       
             dynamic config = JsonConvert.DeserializeObject(jsonStr);
             
@@ -413,25 +422,23 @@ namespace COTTask_wpf
                 textBox_savedFolder.Text = @"C:\\COTTaskSave";
             }
 
+            textBox_audioFile_Correct.Text = config["audioFile_Correct"];
+            textBox_audioFile_Error.Text = config["audioFile_Error"];
 
-            // Juicer Given Time
-            var configJuicer = config["JuicerGivenTime"];
-            t_JuicerFullGivenS = float.Parse((string)configJuicer["Correct"]);
-            t_JuicerCloseGivenS = float.Parse((string)configJuicer["Close"]);
 
 
             // Times Sections
             var configTime = config["Times"];
-            tRange_ReadyTime = new float[] {float.Parse((string)configTime["Ready Show Time Range"][0]), float.Parse((string)configTime["Ready Show Time Range"][1])};
+            tRange_ReadyTimeS = new float[] {float.Parse((string)configTime["Ready Show Time Range"][0]), float.Parse((string)configTime["Ready Show Time Range"][1])};
             tMax_ReactionTimeS = float.Parse((string)configTime["Max Reach Time"]);
             tMax_ReachTimeS = float.Parse((string)configTime["Max Reaction Time"]);
-            t_VisfeedbackShow = float.Parse((string)configTime["Visual Feedback Show Time"]);
-            t_InterTrial = float.Parse((string)configTime["Inter Trials Time"]);
-
+            t_VisfeedbackShowS = float.Parse((string)configTime["Visual Feedback Show Time"]);
+            t_InterTrialS = float.Parse((string)configTime["Inter Trials Time"]);
+            t_JuicerCorrectGivenS = float.Parse((string)configTime["Juice Correct Given Time"]);
 
             // Color Sections
             var configColors = config["Colors"];
-            goFillColorStr = configColors["Go Fill Color"];
+            targetFillColorStr = configColors["Target Fill Color"];
             BKWaitTrialColorStr = configColors["Wait Start Background"];
             BKReadyColorStr = configColors["Ready Background"];
             BKTargetShownColorStr = configColors["Target Shown Background"];
@@ -448,16 +455,12 @@ namespace COTTask_wpf
             targetNoOfPositions = int.Parse((string)configTarget["Target No of Positions"]);
             optPostions_OCenter_List = new List<int[]>();
             dynamic tmp = configTarget["optPostions_OCenter_List"];
-           foreach (var xyPos in tmp)
-           {
-                int a = int.Parse((string)xyPos[0]);
-                int b = int.Parse((string)xyPos[1]);
-                optPostions_OCenter_List.Add(new int[] { a,  b});
+            foreach (var xyPos in tmp)
+            {
+                    int a = int.Parse((string)xyPos[0]);
+                    int b = int.Parse((string)xyPos[1]);
+                    optPostions_OCenter_List.Add(new int[] { a,  b});
             }
-
-
-            audioFile_Correct = config["audioFile_Correct"];
-            audioFile_Error = config["audioFile_Error"];
         }
 
 
@@ -468,11 +471,12 @@ namespace COTTask_wpf
 
             // config Times
             ConfigTimes configTimes = new ConfigTimes();
-            configTimes.tRange_ReadyTime = tRange_ReadyTime;
-            configTimes.tMax_ReactionTimeS = tMax_ReactionTimeS;
-            configTimes.tMax_ReachTimeS = tMax_ReachTimeS;
-            configTimes.t_InterTrial = t_InterTrial;
-            configTimes.t_VisfeedbackShow = t_VisfeedbackShow;
+            configTimes.tRange_ReadyTime = tRange_ReadyTimeS;
+            configTimes.tMax_ReactionTime = tMax_ReactionTimeS;
+            configTimes.tMax_ReachTime = tMax_ReachTimeS;
+            configTimes.t_InterTrial = t_InterTrialS;
+            configTimes.t_VisfeedbackShow = t_VisfeedbackShowS;
+            configTimes.t_JuicerCorrectGiven = t_JuicerCorrectGivenS;
 
 
             // config Target
@@ -484,7 +488,7 @@ namespace COTTask_wpf
 
             // config Colors
             ConfigColors configColors = new ConfigColors();
-            configColors.goFillColorStr = goFillColorStr;
+            configColors.targetFillColorStr = targetFillColorStr;
             configColors.BKWaitTrialColorStr = BKWaitTrialColorStr;
             configColors.BKReadyColorStr = BKReadyColorStr;
             configColors.BKTargetShownColorStr = BKTargetShownColorStr;
@@ -495,11 +499,6 @@ namespace COTTask_wpf
             configColors.ErrorCrossingColorStr = ErrorCrossingColorStr;
 
 
-            // config Juicer Given Time
-            ConfigJuicerGivenTime configJuicerGivenTime = new ConfigJuicerGivenTime();
-            configJuicerGivenTime.t_JuicerFullGivenS = t_JuicerFullGivenS;
-            configJuicerGivenTime.t_JuicerCloseGivenS = t_JuicerCloseGivenS;
-
 
             // Combine all configs
             Config config = new Config();
@@ -508,16 +507,37 @@ namespace COTTask_wpf
             config.configTimes = configTimes;
             config.configTarget = configTarget;
             config.configColors = configColors;
-            config.configJuicerGivenTime = configJuicerGivenTime;
-            config.audioFile_Correct = audioFile_Correct;
-            config.audioFile_Error = audioFile_Error;
+            config.audioFile_Correct = textBox_audioFile_Correct.Text;
+            config.audioFile_Error = textBox_audioFile_Error.Text;
 
             // Write to Json file
             string json = JsonConvert.SerializeObject(config, Formatting.Indented);
             File.WriteAllText(configFile, json);
         }
 
+        private void DisabledSetParameters()
+        {
+            textBox_NHPName.IsEnabled = false;
+            btn_SelectSavefolder.IsEnabled = false;
+            btn_Select_AudioFile_Correct.IsEnabled = false;
+            btn_Select_AudioFile_Error.IsEnabled = false;
 
+            menu_File.IsEnabled = false;
+            menu_Settings.IsEnabled = false;
+            menu_Tools.IsEnabled = false;
+        }
+
+        private void EnabledSetParameters()
+        {
+            textBox_NHPName.IsEnabled = true;
+            btn_SelectSavefolder.IsEnabled = true;
+            btn_Select_AudioFile_Correct.IsEnabled = true;
+            btn_Select_AudioFile_Error.IsEnabled = true;
+
+            menu_File.IsEnabled = true;
+            menu_Settings.IsEnabled = true;
+            menu_Tools.IsEnabled = true;
+        }
 
         private void btnStart_Click(object sender, RoutedEventArgs e)
         {
@@ -528,19 +548,23 @@ namespace COTTask_wpf
             btn_start.IsEnabled = false;
             btn_stop.IsEnabled = true;
 
+            DisabledSetParameters();
 
-            // Show the taskpresent Window on the Touch Screen
-            taskPresentWin = new presentation(this)
+
+            // Create Presentation Instance only at the First Start Click
+            if (hasStartedPresention == false)
             {
-                Top = Rect_touchScreen.Top,
-                Left = Rect_touchScreen.Left,
+                taskPresentWin = new presentation(this)
+                {
+                    Top = Rect_touchScreen.Top,
+                    Left = Rect_touchScreen.Left,
 
-                Name = "childWin_Task",
-                Owner = this
-            };
+                    Name = "childWin_Task",
+                    Owner = this
+                };
 
-
-
+                hasStartedPresention = true;
+            }   
 
             // Start the Task
             taskPresentWin.Show();
@@ -552,12 +576,12 @@ namespace COTTask_wpf
             if (taskPresentWin != null)
             {
                 taskPresentWin.Present_Stop();
-                taskPresentWin.Close();
-                taskPresentWin = null;
+                taskPresentWin.Hide();
             }
             // btn_Start and btn_stop
             btn_start.IsEnabled = true;
             btn_stop.IsEnabled = false;
+            EnabledSetParameters();
         }
 
         private void MenuItem_showCloseCircle(object sender, RoutedEventArgs e)
