@@ -187,6 +187,7 @@ namespace COTTask_wpf
         static string cmdHigh8 = "8";
         static string cmdLow8 = "I";
 
+        static string TDTCmd_InitState = cmdLow5 + cmdLow6 + cmdLow7 + cmdLow8;
         static string TDTCmd_TouchTriggerTrial = cmdHigh5 + cmdHigh6 + cmdHigh7 + cmdLow8;
         static string TDTCmd_ReadyShown = cmdLow5 + cmdHigh6 + cmdHigh7 + cmdLow8;
         static string TDTCmd_ReadyWaitTooShort = cmdLow5 + cmdLow6 + cmdHigh7 + cmdHigh8;
@@ -350,6 +351,8 @@ namespace COTTask_wpf
 
                     totalTriali++;
 
+                    serialPort_IO8.WriteLine(TDTCmd_InitState);
+
                     /*----- WaitStartTrial Interface ------*/
                     pressedStartpad = PressedStartpad.No;
                     await Interface_WaitStartTrial();
@@ -389,7 +392,7 @@ namespace COTTask_wpf
                         Update_FeedbackTrialsInformation();
                         Remove_All();
                     }
-
+                    serialPort_IO8.WriteLine(TDTCmd_InitState);
 
                     /*-------- Write Trial Information ------*/
                     List<String> strExeSubResult = new List<String>();
@@ -1013,11 +1016,12 @@ namespace COTTask_wpf
                 {
                     if (waitWatch.ElapsedMilliseconds >= tMax_ReactionTimeMS)
                     {/* No release Startpad within tMax_ReactionTime */
+                        serialPort_IO8.WriteLine(TDTCmd_GoReactionTooLong);
                         waitWatch.Stop();
 
                         noreactionGoTrialNum++;
 
-                        serialPort_IO8.WriteLine(TDTCmd_GoReactionTooLong);
+                        
                         trialExeResult = TrialExeResult.goReactionTimeToolong;
                         
 
@@ -1039,11 +1043,11 @@ namespace COTTask_wpf
                 {
                     if (waitWatch.ElapsedMilliseconds >= tMax_ReachTimeMS)
                     {/*No Screen Touched within tMax_ReachTime*/
+                        serialPort_IO8.WriteLine(TDTCmd_GoReachTooLong);
                         waitWatch.Stop();
 
                         noreachGoTrialNum++;
 
-                        serialPort_IO8.WriteLine(TDTCmd_GoReachTooLong);
                         trialExeResult = TrialExeResult.goReachTimeToolong;
                         
 
