@@ -277,35 +277,24 @@ namespace COTTask_wpf
 
         private void Btn_SelectSavefolder_Click(object sender, RoutedEventArgs e)
         {
-            Microsoft.Win32.OpenFileDialog folderBrowser = new Microsoft.Win32.OpenFileDialog
+            swf.FolderBrowserDialog folderBrowserDlg = new swf.FolderBrowserDialog();
+            folderBrowserDlg.Description = "Select the directory for saving data";
+
+            swf.DialogResult result = folderBrowserDlg.ShowDialog();
+            if (result == swf.DialogResult.OK)
             {
-
-                // Set validate names and check file exists to false otherwise windows will
-                // not let you select "Folder Selection."
-                ValidateNames = false,
-                CheckFileExists = false,
-                CheckPathExists = true,
-                FileName = "Save Folder Selection. "
-            };
-
-            Nullable<bool> result = folderBrowser.ShowDialog();
-
-            if (result == true)
-            {
-                textBox_savedFolder.Text = System.IO.Path.GetDirectoryName(folderBrowser.FileName);
+                textBox_savedFolder.Text = folderBrowserDlg.SelectedPath;
             }
         }
 
         private void Btn_Select_AudioFile_Correct_Click(object sender, RoutedEventArgs e)
         {
-            Microsoft.Win32.OpenFileDialog openFileDlg = new Microsoft.Win32.OpenFileDialog
-            {
 
-                // Set filter for file extension and default file extension 
-                DefaultExt = ".wav",
-                Filter = "Audio Files|*.wav",
-                Title = "Selecting an Audio for Correcting "
-            };
+            Microsoft.Win32.OpenFileDialog openFileDlg = new Microsoft.Win32.OpenFileDialog();
+            openFileDlg.FileName = "Document";
+            openFileDlg.DefaultExt = ".wav";
+            openFileDlg.Filter = "Audio Files (.wav)|*.wav";
+            openFileDlg.Title = "Selecting an Audio for Correcting ";
 
             Nullable<bool> result = openFileDlg.ShowDialog();
             if (result == true)
@@ -316,21 +305,18 @@ namespace COTTask_wpf
 
         private void Btn_Select_AudioFile_Error_Click(object sender, RoutedEventArgs e)
         {
-            Microsoft.Win32.OpenFileDialog openFileDlg = new Microsoft.Win32.OpenFileDialog
-            {
-
-                // Set filter for file extension and default file extension 
-                DefaultExt = ".wav",
-                Filter = "Audio Files|*.wav",
-                Title = "Selecting an Audio for Error "
-            };
-
+            Microsoft.Win32.OpenFileDialog openFileDlg = new Microsoft.Win32.OpenFileDialog();
+            openFileDlg.FileName = "Document";
+            openFileDlg.DefaultExt = ".wav";
+            openFileDlg.Filter = "Audio Files (.wav)|*.wav";
+            openFileDlg.Title = "Selecting an Audio for Error ";
 
             Nullable<bool> result = openFileDlg.ShowDialog();
             if (result == true)
             {
                 textBox_audioFile_Error.Text = openFileDlg.FileName;
             }
+
         }
 
         private void MenuItem_SetupTime(object sender, RoutedEventArgs e)
