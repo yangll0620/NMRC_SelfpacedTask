@@ -1,16 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Windows.Shapes;
 using System.Windows;
-using System.IO.Ports;
 using System.Windows.Controls;
-using System.Threading;
 using System.Windows.Media;
 using System.IO;
 using swf = System.Windows.Forms;
 using sd = System.Drawing;
 using Newtonsoft.Json;
-using System.Reflection;
+using System.Windows.Input;
+using System.Windows.Interop;
 
 
 namespace COTTask_wpf
@@ -610,6 +608,69 @@ namespace COTTask_wpf
             {
                 taskPresentWin.Present_Stop();
             }
+        }
+
+
+        /* Following codes for Checking Specific Key is Pressed */
+        static readonly int HotKeyId_Space = 0x3000;
+        static readonly int HotKeyId_Esc = 0x3001;
+        static readonly int WM_HOTKEY = 0x312;
+        void InitializeHook()
+        {
+            var windowHelper = new WindowInteropHelper(this);
+            var windowSource = HwndSource.FromHwnd(windowHelper.Handle);
+
+            windowSource.AddHook(MessagePumpHook);
+        }
+        IntPtr MessagePumpHook(IntPtr handle, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {
+            if (msg == WM_HOTKEY)
+            {
+                if ((int)wParam == HotKeyId_Space)
+                {
+                    // The hotkey has been pressed, do something!
+                    presentation_Stop();
+
+                    handled = true;
+                }
+                else if ((int)wParam == HotKeyId_Esc)
+                {
+                    // The hotkey has been pressed, do something!
+                    presentation_Stop();
+                    handled = true;
+                }
+            }
+
+            return IntPtr.Zero;
+        }
+        void InitializeHotKey()
+        {
+            var windowHelper = new WindowInteropHelper(this);
+
+            // You can specify modifiers such as SHIFT, ALT, CONTROL, and WIN.
+            // Remember to use the bit-wise OR operator (|) to join multiple modifiers together.
+            uint modifiers = (uint)ModifierKeys.None;
+
+            // We need to convert the WPF Key enumeration into a virtual key for the Win32 API!
+            uint virtualKey;
+
+            virtualKey  = (uint)KeyInterop.VirtualKeyFromKey(Key.Space);
+            NativeMethods.RegisterHotKey(windowHelper.Handle, HotKeyId_Space, modifiers, virtualKey);
+
+            virtualKey = (uint)KeyInterop.VirtualKeyFromKey(Key.Escape);
+            NativeMethods.RegisterHotKey(windowHelper.Handle, HotKeyId_Esc, modifiers, virtualKey);
+        }
+        void UninitializeHotKey()
+        {
+            var windowHelper = new WindowInteropHelper(this);
+            NativeMethods.UnregisterHotKey(windowHelper.Handle, HotKeyId_Space);
+            NativeMethods.UnregisterHotKey(windowHelper.Handle, HotKeyId_Esc);
+        }
+        protected override void OnSourceInitialized(EventArgs e)
+        {
+            base.OnSourceInitialized(e);
+            InitializeHook();
+            InitializeHotKey();
         }
     }
 }

@@ -212,6 +212,7 @@ namespace COTTask_wpf
             Win_allTargets.WindowStyle = WindowStyle.None;
             Win_allTargets.Show();
 
+           
 
             // Add a Grid
             Grid wholeGrid = new Grid();
@@ -220,6 +221,16 @@ namespace COTTask_wpf
             Win_allTargets.Content = wholeGrid;
             wholeGrid.UpdateLayout();
 
+            // Close Button
+            Button btn_Close = new Button();
+            btn_Close.Width = 100;
+            btn_Close.Height = 25;
+            btn_Close.VerticalAlignment = VerticalAlignment.Top;
+            btn_Close.HorizontalAlignment = HorizontalAlignment.Right;
+            btn_Close.Margin = new Thickness(0, 0, 0, 0);
+            btn_Close.Content = "Close";
+            btn_Close.Click += new RoutedEventHandler(Btn_ClosePositions_Click);
+            wholeGrid.Children.Add(btn_Close);
 
             // Extract postions_OriginCenter_List from optPosString_List
             List<int[]> postions_OriginCenter_List = new List<int[]>();
