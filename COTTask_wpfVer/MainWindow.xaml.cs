@@ -571,8 +571,8 @@ namespace COTTask_wpf
             taskPresentWin.Present_Start();
         }
 
-        private void Btn_stop_Click(object sender, RoutedEventArgs e)
-        {
+        public void presentation_Stop()
+        {// Stop presentation 
             if (taskPresentWin != null)
             {
                 taskPresentWin.Present_Stop();
@@ -582,6 +582,11 @@ namespace COTTask_wpf
             btn_start.IsEnabled = true;
             btn_stop.IsEnabled = false;
             EnabledSetParameters();
+        }
+
+        private void Btn_stop_Click(object sender, RoutedEventArgs e)
+        {
+            presentation_Stop();
         }
 
         private void MenuItem_showCloseCircle(object sender, RoutedEventArgs e)

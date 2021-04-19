@@ -309,7 +309,7 @@ namespace COTTask_wpf
 
 
             int[] pos_OCenter_Taget;
-            float t_Ready;
+            int t_ReadyMS;
             Random rnd = new Random();
 
             // Present Each Trial
@@ -347,7 +347,7 @@ namespace COTTask_wpf
                     targetType = TargetType.Go;
                     pos_OCenter_Taget = parent.optPostions_OCenter_List[opi];
 
-                    t_Ready = Utility.TransferTo((float)rnd.NextDouble(), parent.tRange_ReadyTimeS[0], parent.tRange_ReadyTimeS[1]);
+                    t_ReadyMS = (int)Utility.TransferTo((float)rnd.NextDouble(), parent.tRange_ReadyTimeS[0], parent.tRange_ReadyTimeS[1]) * 1000;
 
                     totalTriali++;
 
@@ -366,7 +366,7 @@ namespace COTTask_wpf
                     try
                     {
                         // Ready Interface
-                        await Interface_Ready(t_Ready);
+                        await Interface_Ready(t_ReadyMS);
 
                         if (PresentTrial == false)
                         {
@@ -411,7 +411,7 @@ namespace COTTask_wpf
 
                         if (totalTriali > 1)
                         { // Startpad touched in trial i+1 treated as the return point as in trial i        
-                            file.WriteLine(String.Format("{0, -40}: {1}", "Returned to Startpad TimePoint", (timePoint_StartpadTouched / ms2sRatio).ToString()));
+                            file.WriteLine(String.Format("{0, -40}: {1}", "Returned to Startpad TimePoint", timePoint_StartpadTouched.ToString()));
                         }
 
                         /* Current Trial Written Inf*/
@@ -420,20 +420,20 @@ namespace COTTask_wpf
                         // Trial Num
                         file.WriteLine(String.Format("{0, -40}: {1}", "TrialNum", totalTriali.ToString()));
                         // the timepoint when touching the startpad to initial a new trial
-                        file.WriteLine(String.Format("{0, -40}: {1}", "Startpad Touched TimePoint", (timePoint_StartpadTouched / ms2sRatio).ToString()));
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Startpad Touched TimePoint", timePoint_StartpadTouched.ToString()));
 
                         // Start Interface showed TimePoint
-                        file.WriteLine(String.Format("{0, -40}: {1}", "Ready Start TimePoint", (timePoint_Interface_ReadyOnset / ms2sRatio).ToString()));
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Ready Start TimePoint", timePoint_Interface_ReadyOnset.ToString()));
 
                         // Ready Time
-                        file.WriteLine(String.Format("{0, -40}: {1}", "Ready Interface Time", t_Ready.ToString()));
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Ready Interface Time", t_ReadyMS.ToString()));
 
                         // trialExeResult
                         if (trialExeResult == TrialExeResult.readyWaitTooShort)
                         {// case: ready WaitTooShort
 
                             // Left startpad early during ready
-                            file.WriteLine(String.Format("{0, -40}: {1}", "Startpad Left TimePoint", (timePoint_StartpadLeft / ms2sRatio).ToString()));
+                            file.WriteLine(String.Format("{0, -40}: {1}", "Startpad Left TimePoint", timePoint_StartpadLeft.ToString()));
 
                             // trial exe result : success or fail
                             file.WriteLine(String.Format("{0, -40}: {1}, {2}", "Trial Result", strExeFail, strExeSubResult[0]));
@@ -442,7 +442,7 @@ namespace COTTask_wpf
                         {// case : goReactionTimeToolong 
 
                             // Target Interface Timepoint, and Target position 
-                            file.WriteLine(String.Format("{0, -40}: {1}", "Target Start TimePoint", (timePoint_Interface_TargetOnset / ms2sRatio).ToString()));
+                            file.WriteLine(String.Format("{0, -40}: {1}", "Target Start TimePoint", timePoint_Interface_TargetOnset.ToString()));
                             file.WriteLine(String.Format("{0, -40}: {1}, {2}", "TargetPosition", pos_OCenter_Taget[0].ToString(), pos_OCenter_Taget[1].ToString()));
 
 
@@ -453,12 +453,12 @@ namespace COTTask_wpf
                         {// case : goReachTimeToolong
 
                             // Target Interface Timepoint, and Target position 
-                            file.WriteLine(String.Format("{0, -40}: {1}", "Target Start TimePoint", (timePoint_Interface_TargetOnset / ms2sRatio).ToString()));
+                            file.WriteLine(String.Format("{0, -40}: {1}", "Target Start TimePoint", timePoint_Interface_TargetOnset.ToString()));
                             file.WriteLine(String.Format("{0, -40}: {1}, {2}", "TargetPosition", pos_OCenter_Taget[0].ToString(), pos_OCenter_Taget[1].ToString()));
 
 
                             // Target interface:  Left Startpad Time Point
-                            file.WriteLine(String.Format("{0, -40}: {1}", "Startpad Left TimePoint", (timePoint_StartpadLeft / ms2sRatio).ToString()));
+                            file.WriteLine(String.Format("{0, -40}: {1}", "Startpad Left TimePoint", timePoint_StartpadLeft.ToString()));
 
                             // trial exe result
                             file.WriteLine(String.Format("{0, -40}: {1}, {2}", "Trial Result", strExeFail, strExeSubResult[3]));
@@ -467,12 +467,12 @@ namespace COTTask_wpf
                         {// case: Go success (goClose or goHit) or goMiss
 
                             // Target Interface Timepoint, and Target position 
-                            file.WriteLine(String.Format("{0, -40}: {1}", "Target Start TimePoint", (timePoint_Interface_TargetOnset / ms2sRatio).ToString()));
+                            file.WriteLine(String.Format("{0, -40}: {1}", "Target Start TimePoint", timePoint_Interface_TargetOnset.ToString()));
                             file.WriteLine(String.Format("{0, -40}: {1}, {2}", "TargetPosition", pos_OCenter_Taget[0].ToString(), pos_OCenter_Taget[1].ToString()));
 
 
                             // Target interface:  Left Startpad Time Point
-                            file.WriteLine(String.Format("{0, -40}: {1}", "Startpad Left TimePoint", (timePoint_StartpadLeft / ms2sRatio).ToString()));
+                            file.WriteLine(String.Format("{0, -40}: {1}", "Startpad Left TimePoint", timePoint_StartpadLeft.ToString()));
 
                             //  Target interface:  touched  timepoint and (x, y position) of all touch points
                             for (int pointi = 0; pointi < touchPoints_PosTime.Count; pointi++)
@@ -1102,13 +1102,13 @@ namespace COTTask_wpf
         }
 
 
-        private Task Wait_EnoughTouch(float t_EnoughTouch)
+        private Task Wait_EnoughTouch(int t_EnoughTouchMS)
         {
             /* 
-             * Wait for Enough Touch Time
+             * Wait for Enough Touch Time (ms)
              * 
              * Input: 
-             *    t_EnoughTouch: the required Touch time (s)  
+             *    t_EnoughTouch: the required Touch time (ms)  
              */
 
             Task task = null;
@@ -1121,7 +1121,7 @@ namespace COTTask_wpf
 
                 while (PresentTrial && pressedStartpad == PressedStartpad.Yes && startpadHoldstate != StartPadHoldState.HoldEnough)
                 {
-                    if (touchedWatch.ElapsedMilliseconds >= t_EnoughTouch * 1000)
+                    if (touchedWatch.ElapsedMilliseconds >= t_EnoughTouchMS)
                     {/* touched with enough time */
                         startpadHoldstate = StartPadHoldState.HoldEnough;
                     }
@@ -1135,7 +1135,7 @@ namespace COTTask_wpf
             });
         }
 
-        private async Task Interface_Ready(float t_Ready)
+        private async Task Interface_Ready(int t_ReadyMS)
         {/* task for Ready interface:
             Show the Ready Interface while Listen to the state of the startpad. 
             * 
@@ -1153,7 +1153,7 @@ namespace COTTask_wpf
 
                 // Wait Startpad Hold Enough Time
                 startpadHoldstate = StartPadHoldState.HoldTooShort;
-                await Wait_EnoughTouch(t_Ready);
+                await Wait_EnoughTouch(t_ReadyMS);
 
             }
             catch (TaskCanceledException)

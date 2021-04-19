@@ -145,12 +145,17 @@ namespace COTTask_wpf
             ResumeBtnStartStop();
         }
 
-        private void Btn_GenOptPos_Click(object sender, RoutedEventArgs e)
-        {
-            int targetNoOfPositions = int.Parse(textBox_targetNoOfPositions.Text);
+        private void GenOptPos(int targetNoOfPositions)
+        {// Generate optional Positions based on targetNoOfPositions
 
             List<int[]> optPostions_OCenter_List = Utility.GenDefaultPositions(targetNoOfPositions, cRadius, Utility.Detect_PrimaryScreen_Rect());
             UpdatePosListBox(optPostions_OCenter_List);
+        }
+
+        private void Btn_GenOptPos_Click(object sender, RoutedEventArgs e)
+        {
+            int targetNoOfPositions = int.Parse(textBox_targetNoOfPositions.Text);
+            GenOptPos(targetNoOfPositions);
         }
 
         private void Btn_CheckPositions_Click(object sender, RoutedEventArgs e)
@@ -159,12 +164,22 @@ namespace COTTask_wpf
             Color BKColor = (Color)(typeof(Colors).GetProperty(parent.BKTargetShownColorStr) as PropertyInfo).GetValue(null, null);
             Color targetColor = (Color)(typeof(Colors).GetProperty(parent.targetFillColorStr) as PropertyInfo).GetValue(null, null);
 
-
+            // Get the target diameter from textBox_targetDiaCM
             int targetDiaPixal = Utility.cm2pixal(float.Parse(textBox_targetDiaCM.Text));
+            
+            // if a new targetNoOfPositions
+            if (optPosString_List.Count != int.Parse(textBox_targetNoOfPositions.Text))
+            {
+                GenOptPos(int.Parse(textBox_targetNoOfPositions.Text));
+            }
+
             Win_allTargets = ShowAllTargets(targetDiaPixal, optPosString_List, targetColor, BKColor);
 
             btn_CheckPositions.IsEnabled = false;
             btn_ClosePositions.IsEnabled = true;
+            listBox_Positions.IsEnabled = false;
+            textBox_targetNoOfPositions.IsEnabled = false;
+            textBox_targetDiaCM.IsEnabled = false;
         }
 
 
@@ -348,6 +363,9 @@ namespace COTTask_wpf
 
             btn_CheckPositions.IsEnabled = true;
             btn_ClosePositions.IsEnabled = false;
+            listBox_Positions.IsEnabled = true;
+            textBox_targetNoOfPositions.IsEnabled = true;
+            textBox_targetDiaCM.IsEnabled = true;
         }
 
 
