@@ -29,6 +29,7 @@
                 <MenuItem x:Name="menu_Tools" Header="Tools">
                     <MenuItem Header="_Test Touchpad, Juicer " Click="btnTestTouchpadJuicer_Click"/>
                     <MenuItem Header="_Test Window " Click="MenuItem_NewWindow"/>
+                    <MenuItem Header="_Key Hots" Click="MenuItem_KeyHots"/>
                 </MenuItem>
             </Menu>
         </DockPanel>
@@ -228,6 +229,16 @@
                         Margin="0,0,20,15"  Width="100" Height="35" 
                         FontWeight="Bold" FontFamily="Microsoft Sans Serif" FontSize="14"
                         Click="Btn_stop_Click"/>
+                <Button x:Name="btn_pause" 
+                    Content="Pause" HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                    Margin="200,0,0,15"  Width="100" Height="35" IsEnabled="False"
+                    FontWeight="Bold" FontFamily="Microsoft Sans Serif" FontSize="14" 
+                    Click="btnPause_Click" />
+                <Button x:Name="btn_resume" 
+                    Content="Resume" HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                    Margin="20,0,0,15"  Width="100" Height="35" IsEnabled="False"
+                    FontWeight="Bold" FontFamily="Microsoft Sans Serif" FontSize="14" 
+                    Click="btnResume_Click" />
 
             </Grid>
 

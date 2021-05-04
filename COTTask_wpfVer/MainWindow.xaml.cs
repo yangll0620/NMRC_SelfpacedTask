@@ -51,9 +51,27 @@ namespace COTTask_wpf
         // Touch Screen Rectangle
         sd.Rectangle Rect_touchScreen;
 
+
+        // Variables for hot Keys
+        static readonly int WM_HOTKEY = 0x312;
+        static readonly int HotKeyId_Start = 0x3000;
+        static readonly int HotKeyId_Stop = 0x3001;
+        static readonly int HotKeyId_Pause = 0x4000;
+        static readonly int HotKeyId_Resume = 0x4001;
+        static Key key_Start = Key.S;
+        static Key key_Stop = Key.Space;
+        static Key key_Pause = Key.P;
+        static Key key_Resume = Key.R;
+
         public MainWindow()
         {
             InitializeComponent();
+
+            btn_start.IsEnabled = false;
+            btn_stop.IsEnabled = false;
+            btn_pause.IsEnabled = false;
+            btn_resume.IsEnabled = false;
+
 
 
             // Get the first not Primary Screen 
@@ -97,13 +115,7 @@ namespace COTTask_wpf
 
             if (textBox_NHPName.Text != "" && serialPortIO8_name != null)
             {
-                btn_start.IsEnabled = true;
-                btn_stop.IsEnabled = false;
-            }
-            else
-            {
-                btn_start.IsEnabled = false;
-                btn_stop.IsEnabled = false;
+                btn_start.IsEnabled = true;        
             }
         }
 
@@ -523,17 +535,22 @@ namespace COTTask_wpf
             menu_Tools.IsEnabled = true;
         }
 
-        private void btnStart_Click(object sender, RoutedEventArgs e)
-        {
+        public void presentation_Start()
+        {// Start presentation
+
             // save all the Input parameters
             saveInputParameters();
 
-            // btn_Start and btn_stop
-            btn_start.IsEnabled = false;
-            btn_stop.IsEnabled = true;
-
+            // Disable Set Paremeter Functions
             DisabledSetParameters();
 
+            // Set btn_Start,  btn_stop and btn_pause
+            btn_start.IsEnabled = false;
+            btn_stop.IsEnabled = true;
+            btn_pause.IsEnabled = true; 
+            UninitializeHotKey(HotKeyId_Start);
+            InitializeHotKey(key_Stop, HotKeyId_Stop);
+            InitializeHotKey(key_Pause, HotKeyId_Pause);
 
             // Create Presentation Instance only at the First Start Click
             if (hasStartedPresention == false)
@@ -548,10 +565,11 @@ namespace COTTask_wpf
                 };
 
                 hasStartedPresention = true;
-            }   
+            }
 
             // Start the Task
             taskPresentWin.Show();
+            taskPresentWin.Prepare_bef_Present();
             taskPresentWin.Present_Start();
         }
 
@@ -562,21 +580,102 @@ namespace COTTask_wpf
                 taskPresentWin.Present_Stop();
                 taskPresentWin.Hide();
             }
+
+            EnabledSetParameters();
+
             // btn_Start and btn_stop
             btn_start.IsEnabled = true;
             btn_stop.IsEnabled = false;
-            EnabledSetParameters();
+            btn_pause.IsEnabled = false;
+
+            InitializeHotKey(key_Start, HotKeyId_Start);
+            UninitializeHotKey(HotKeyId_Stop);
+            UninitializeHotKey(HotKeyId_Pause);
         }
+
+        public void presentation_Pause()
+        {// Pause presentation 
+            if (taskPresentWin != null)
+            {
+                taskPresentWin.Present_Pause();
+            }
+
+            // btn_Pause and btn_Resume
+            btn_resume.IsEnabled = true;
+            btn_pause.IsEnabled = false;
+            InitializeHotKey(key_Resume, HotKeyId_Resume);
+            UninitializeHotKey(HotKeyId_Pause);
+        }
+
+        public void presentation_Resume()
+        {// Resume presentation 
+
+            // btn_Pause and btn_Resume
+            btn_resume.IsEnabled = false;
+            btn_pause.IsEnabled = true;
+            UninitializeHotKey(HotKeyId_Resume);
+            InitializeHotKey(key_Pause, HotKeyId_Pause);
+
+            taskPresentWin.Present_Start();
+        }
+
+        private void btnStart_Click(object sender, RoutedEventArgs e)
+        {
+            presentation_Start();
+        }
+               
 
         private void Btn_stop_Click(object sender, RoutedEventArgs e)
         {
             presentation_Stop();
         }
 
+        private void MenuItem_KeyHots(object sender, RoutedEventArgs e)
+        {
+            Window hotKeyWin = new Window();
+            hotKeyWin.Background = new SolidColorBrush(Colors.White);
+            hotKeyWin.Width = 110;
+            hotKeyWin.Height = 200;
+            hotKeyWin.Owner = this;
+            hotKeyWin.Show();
+
+            Grid wholeGrid = new Grid();
+            wholeGrid.Height = hotKeyWin.ActualHeight;
+            wholeGrid.Width = hotKeyWin.ActualWidth;
+            hotKeyWin.Content = wholeGrid;
+            wholeGrid.UpdateLayout();
+
+
+            ListBox hotKeyList = new ListBox();
+            hotKeyList.Width = 100;
+            hotKeyList.Height = 200;
+            hotKeyList.VerticalAlignment = VerticalAlignment.Top;
+            hotKeyList.HorizontalAlignment = HorizontalAlignment.Left;
+            hotKeyList.Margin = new Thickness(5, 10, 0, 0);
+            hotKeyList.Items.Add("Start:  S");
+            hotKeyList.Items.Add("Stop:   Space");
+            hotKeyList.Items.Add("Pause:  P");
+            hotKeyList.Items.Add("Resume: R");
+            wholeGrid.Children.Add(hotKeyList);
+
+            wholeGrid.UpdateLayout();
+        }
+
+        private void btnPause_Click(object sender, RoutedEventArgs e)
+        {
+            presentation_Pause();
+        }
+
+        private void btnResume_Click(object sender, RoutedEventArgs e)
+        {
+            presentation_Resume();
+        }
         private void MenuItem_showCloseCircle(object sender, RoutedEventArgs e)
         {
             showCloseCircle = true;
         }
+
+
 
         private void MenuItem_noShowCloseCircle(object sender, RoutedEventArgs e)
         {
@@ -590,6 +689,12 @@ namespace COTTask_wpf
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            UninitializeHotKey(HotKeyId_Start);
+            UninitializeHotKey(HotKeyId_Stop);
+            UninitializeHotKey(HotKeyId_Pause);
+            UninitializeHotKey(HotKeyId_Resume);
+            UninitializeHook();
+
             if (taskPresentWin != null)
             {
                 taskPresentWin.Present_Stop();
@@ -598,9 +703,6 @@ namespace COTTask_wpf
 
 
         /* Following codes for Checking Specific Key is Pressed */
-        static readonly int HotKeyId_Space = 0x3000;
-        static readonly int HotKeyId_Esc = 0x3001;
-        static readonly int WM_HOTKEY = 0x312;
         void InitializeHook()
         {
             var windowHelper = new WindowInteropHelper(this);
@@ -608,28 +710,50 @@ namespace COTTask_wpf
 
             windowSource.AddHook(MessagePumpHook);
         }
+        void UninitializeHook()
+        {
+            var windowHelper = new WindowInteropHelper(this);
+            var windowSource = HwndSource.FromHwnd(windowHelper.Handle);
+
+            windowSource.RemoveHook(MessagePumpHook);
+        }
+
         IntPtr MessagePumpHook(IntPtr handle, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
             if (msg == WM_HOTKEY)
             {
-                if ((int)wParam == HotKeyId_Space)
+                if ((int)wParam == HotKeyId_Start)
+                {
+                    // The hotkey has been pressed, do something!
+                    presentation_Start();
+                    handled = true;
+                }
+                else if ((int)wParam == HotKeyId_Stop)
                 {
                     // The hotkey has been pressed, do something!
                     presentation_Stop();
 
                     handled = true;
                 }
-                else if ((int)wParam == HotKeyId_Esc)
+                else if ((int)wParam == HotKeyId_Pause)
                 {
                     // The hotkey has been pressed, do something!
-                    presentation_Stop();
+                    presentation_Pause();
+                    
+                    handled = true;
+                }
+                else if ((int)wParam == HotKeyId_Resume)
+                {
+                    // The hotkey has been pressed, do something!
+                    presentation_Resume();
+                    
                     handled = true;
                 }
             }
 
             return IntPtr.Zero;
         }
-        void InitializeHotKey()
+        void InitializeHotKey(Key key, int hotkeyId)
         {
             var windowHelper = new WindowInteropHelper(this);
 
@@ -638,25 +762,21 @@ namespace COTTask_wpf
             uint modifiers = (uint)ModifierKeys.None;
 
             // We need to convert the WPF Key enumeration into a virtual key for the Win32 API!
-            uint virtualKey;
+            uint virtualKey = (uint)KeyInterop.VirtualKeyFromKey(key);
+            NativeMethods.RegisterHotKey(windowHelper.Handle, hotkeyId, modifiers, virtualKey);
 
-            virtualKey  = (uint)KeyInterop.VirtualKeyFromKey(Key.Space);
-            NativeMethods.RegisterHotKey(windowHelper.Handle, HotKeyId_Space, modifiers, virtualKey);
-
-            virtualKey = (uint)KeyInterop.VirtualKeyFromKey(Key.Escape);
-            NativeMethods.RegisterHotKey(windowHelper.Handle, HotKeyId_Esc, modifiers, virtualKey);
         }
-        void UninitializeHotKey()
+        void UninitializeHotKey(int hotkeyId)
         {
             var windowHelper = new WindowInteropHelper(this);
-            NativeMethods.UnregisterHotKey(windowHelper.Handle, HotKeyId_Space);
-            NativeMethods.UnregisterHotKey(windowHelper.Handle, HotKeyId_Esc);
+            NativeMethods.UnregisterHotKey(windowHelper.Handle, hotkeyId);
         }
         protected override void OnSourceInitialized(EventArgs e)
         {
             base.OnSourceInitialized(e);
             InitializeHook();
-            InitializeHotKey();
+
+            InitializeHotKey(key_Start, HotKeyId_Start);
         }
     }
 }

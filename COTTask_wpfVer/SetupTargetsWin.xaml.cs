@@ -362,6 +362,7 @@ namespace COTTask_wpf
 
         private void ListBox_Positions_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
+
             indexSelected = listBox_Positions.SelectedIndex;
             CreateEditBox(sender);
         }

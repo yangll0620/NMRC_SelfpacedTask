@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -12,6 +11,7 @@ using System.IO.Ports;
 using System.IO;
 using System.Reflection;
 using sd = System.Drawing;
+using System.Windows.Interop;
 
 namespace COTTask_wpf
 {
@@ -175,9 +175,13 @@ namespace COTTask_wpf
         SerialPort serialPort_IO8;
         int baudRate = 115200;
         Thread thread_ReadWrite_IO8;
-        int volTouch = 4;
 
         // commands for setting dig out high/low for channels
+        static string cmdDigIn1 = "A";
+
+        static string cmdHigh3 = "3";
+        static string cmdLow3 = "E";
+
         static string cmdHigh5 = "5";
         static string cmdLow5 = "T";
         static string cmdHigh6 = "6";
@@ -186,6 +190,10 @@ namespace COTTask_wpf
         static string cmdLow7 = "U";
         static string cmdHigh8 = "8";
         static string cmdLow8 = "I";
+
+        static string startpad_DigIn= cmdDigIn1;
+        static int startpad_DigIn_Pressed = 0;
+        static int startpad_DigIn_Unpressed = 1;
 
         static string TDTCmd_InitState = cmdLow5 + cmdLow6 + cmdLow7 + cmdLow8;
         static string TDTCmd_TouchTriggerTrial = cmdHigh5 + cmdHigh6 + cmdHigh7 + cmdLow8;
@@ -219,6 +227,10 @@ namespace COTTask_wpf
         long timePoint_StartpadTouched, timePoint_StartpadLeft;
         long timePoint_Interface_ReadyOnset, timePoint_Interface_TargetOnset;
 
+
+        // variables for counting total trials and blockN
+        int totalTriali;
+        int blockN;
 
 
         /*****Methods*******/
@@ -275,9 +287,8 @@ namespace COTTask_wpf
             }
         }
 
-
-        public async void Present_Start()
-        {                 
+        public void Prepare_bef_Present()
+        {
             /* Prepare before presenting Trials*/
 
             // get the setup from the parent interface
@@ -294,6 +305,18 @@ namespace COTTask_wpf
             // Init Trial Information
             Init_FeedbackTrialsInformation();
 
+
+            totalTriali = 0;
+            blockN = 0;
+
+        }
+
+        public async void Present_Start()
+        {                 
+            int[] pos_OCenter_Taget;
+            int t_ReadyMS;
+            Random rnd = new Random();
+
             // Open SerialPort_IO8
             try
             {
@@ -303,22 +326,15 @@ namespace COTTask_wpf
             {
                 MessageBox.Show(ex.Message, "Error Message", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-
             // Thread for Reading and Writing IO8
             thread_ReadWrite_IO8 = new Thread(new ThreadStart(Thread_ReadWrite_IO8));
+            thread_ReadWrite_IO8.Start();
 
-
-            int[] pos_OCenter_Taget;
-            int t_ReadyMS;
-            Random rnd = new Random();
+            globalWatch.Restart();
 
             // Present Each Trial
-            globalWatch.Restart();
-            thread_ReadWrite_IO8.Start();
-            timestamp_0 = DateTime.Now.Ticks;
-            int totalTriali = 0;
-            int blockN = 0;
             PresentTrial = true;
+            timestamp_0 = DateTime.Now.Ticks;
             while (PresentTrial)
             {
                 blockN++;
@@ -350,8 +366,8 @@ namespace COTTask_wpf
                     t_ReadyMS = (int)Utility.TransferTo((float)rnd.NextDouble(), parent.tRange_ReadyTimeS[0], parent.tRange_ReadyTimeS[1]) * 1000;
 
                     totalTriali++;
-
-                    serialPort_IO8.WriteLine(TDTCmd_InitState);
+                    if(serialPort_IO8.IsOpen)
+                        serialPort_IO8.WriteLine(TDTCmd_InitState);
 
                     /*----- WaitStartTrial Interface ------*/
                     pressedStartpad = PressedStartpad.No;
@@ -392,7 +408,8 @@ namespace COTTask_wpf
                         Update_FeedbackTrialsInformation();
                         Remove_All();
                     }
-                    serialPort_IO8.WriteLine(TDTCmd_InitState);
+                    if (serialPort_IO8.IsOpen)
+                        serialPort_IO8.WriteLine(TDTCmd_InitState);
 
                     /*-------- Write Trial Information ------*/
                     List<String> strExeSubResult = new List<String>();
@@ -529,25 +546,59 @@ namespace COTTask_wpf
                 }
             }
 
-            // Detect the return to startpad timepoint for the last trial
-            pressedStartpad = PressedStartpad.No;
-            try
+            if(PresentTrial)
             {
-                await Wait_Return2StartPad(1);
-            }
-            catch (TaskCanceledException)
-            {
-                using (StreamWriter file = File.AppendText(file_saved))
+                // Detect the return to startpad timepoint for the last trial
+                pressedStartpad = PressedStartpad.No;
+                try
                 {
-                    file.WriteLine(String.Format("{0, -40}: {1}", "Returned to Startpad TimePoint", timePoint_StartpadTouched.ToString()));
+                    await Wait_Return2StartPad(1);
+                }
+                catch (TaskCanceledException)
+                {
+                    using (StreamWriter file = File.AppendText(file_saved))
+                    {
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Returned to Startpad TimePoint", timePoint_StartpadTouched.ToString()));
+                    }
                 }
             }
+            
+
+        }
+
+        public void Present_Stop()
+        {
+            PresentTrial = false;
+
+            // After Trials Presentation
+            if (serialPort_IO8.IsOpen)
+                serialPort_IO8.Close();
+
+            thread_ReadWrite_IO8.Abort();
+
+            globalWatch.Stop();
+            
+            tpoints1TouchWatch.Stop();
 
             // save the summary of exp
             SaveSummaryofExp();
-
-
         }
+
+        public void Present_Pause()
+        {
+            PresentTrial = false;
+
+            // After Trials Presentation
+            if (serialPort_IO8.IsOpen)
+                serialPort_IO8.Close();
+
+            globalWatch.Stop();
+            tpoints1TouchWatch.Stop();
+            
+            myGrid.Background = brush_BKWaitTrialStart;
+            Remove_All();
+        }
+
 
 
         private void SaveSummaryofExp()
@@ -598,18 +649,6 @@ namespace COTTask_wpf
             parent.textBox_noreactionGoTrialNum.Text = noreactionGoTrialNum.ToString();
             parent.textBox_noreachGoTrialNum.Text = noreachGoTrialNum.ToString();
 
-        }
-
-        public void Present_Stop()
-        {
-            PresentTrial = false;
-            thread_ReadWrite_IO8.Abort();
-            globalWatch.Stop();
-
-            // After Trials Presentation
-            if (serialPort_IO8.IsOpen)
-                serialPort_IO8.Close();
-            tpoints1TouchWatch.Stop();
         }
 
 
@@ -843,7 +882,7 @@ namespace COTTask_wpf
             myGrid.UpdateLayout();
         }
 
-        private void Add_OneCrossing(int[] centerPoint_Pos)
+        private void Show_OneCrossing(int[] centerPoint_Pos)
         {/*     Show One Crossing Containing One Horizontal Line and One Vertical Line
             *   The Center Points of the Two Lines Intersect at centerPoint_Pos
             * 
@@ -866,6 +905,7 @@ namespace COTTask_wpf
             myGrid.UpdateLayout();
         }
 
+
         private void Remove_All()
         {
             Remove_GoCircle();
@@ -876,7 +916,7 @@ namespace COTTask_wpf
         private void Thread_ReadWrite_IO8()
         {/* Thread for reading/writing serial port IO8*/
 
-            string codeHigh_JuicerPin = "3", codeLow_JuicerPin = "E";
+            string codeHigh_JuicerPin = cmdHigh3, codeLow_JuicerPin = cmdLow3;
             Stopwatch startpadReadWatch = new Stopwatch();
             long startpadReadInterval = 30;
 
@@ -888,51 +928,60 @@ namespace COTTask_wpf
             startpadReadWatch.Start();
             while (serialPort_IO8.IsOpen)
             {
-                // ----- Juicer Control
-                if (giveJuicerState == GiveJuicerState.CorrectGiven)
+                try
                 {
-                    serialPort_IO8.WriteLine(codeHigh_JuicerPin);
-                    Thread.Sleep(t_JuicerCorrectGiven);
-                    serialPort_IO8.WriteLine(codeLow_JuicerPin);
-                    giveJuicerState = GiveJuicerState.No;
-                }
-                //--- End of Juicer Control
-
-
-
-                //--- Startpad Read
-                if(startpadReadWatch.ElapsedMilliseconds >= startpadReadInterval)
-                {
-                    serialPort_IO8.WriteLine("Z");
-
-                    // Read the Startpad Voltage
-                    string str_Read = serialPort_IO8.ReadExisting();
-
-                    // Restart the startpadReadWatch
-                    startpadReadWatch.Restart();
-
-                    // parse the start pad voltage 
-                    string[] str_vol = str_Read.Split(new Char[] { 'V' });
-
-                    if (!String.IsNullOrEmpty(str_vol[0]))
+                    // ----- Juicer Control
+                    if (giveJuicerState == GiveJuicerState.CorrectGiven)
                     {
-                        float voltage = float.Parse(str_vol[0]);
+                        serialPort_IO8.WriteLine(codeHigh_JuicerPin);
+                        Thread.Sleep(t_JuicerCorrectGiven);
+                        if (serialPort_IO8.IsOpen)
+                            serialPort_IO8.WriteLine(codeLow_JuicerPin);
+                        giveJuicerState = GiveJuicerState.No;
+                    }
+                    //--- End of Juicer Control
 
-                        if (voltage < volTouch && pressedStartpad == PressedStartpad.No)
-                        {/* time point from notouched state to touched state */
-                            
-                            pressedStartpad = PressedStartpad.Yes;
-                        }
-                        else if (voltage > volTouch && pressedStartpad == PressedStartpad.Yes)
-                        {/* time point from touched state to notouched state */
 
-                            // the time point for leaving startpad
-                            timePoint_StartpadLeft = globalWatch.ElapsedMilliseconds;
-                            pressedStartpad = PressedStartpad.No;
+
+                    //--- Startpad Read
+                    if (startpadReadWatch.ElapsedMilliseconds >= startpadReadInterval)
+                    {
+                        if (serialPort_IO8.IsOpen)
+                            serialPort_IO8.WriteLine(startpad_DigIn);
+
+                        // Read the Startpad Voltage
+                        string str_Read = "";
+                        if (serialPort_IO8.IsOpen)
+                            str_Read = serialPort_IO8.ReadExisting();
+
+                        // Restart the startpadReadWatch
+                        startpadReadWatch.Restart();
+
+
+                        // parse the start pad status
+                        string[] str_DigIn = str_Read.Split();
+
+                        if (!String.IsNullOrEmpty(str_DigIn[0]))
+                        {
+                            int digIn = Int32.Parse(str_DigIn[0]);
+
+                            if (digIn == startpad_DigIn_Pressed && pressedStartpad == PressedStartpad.No)
+                            {/* time point from notouched state to touched state */
+
+                                pressedStartpad = PressedStartpad.Yes;
+                            }
+                            else if (digIn == startpad_DigIn_Unpressed && pressedStartpad == PressedStartpad.Yes)
+                            {/* time point from touched state to notouched state */
+
+                                // the time point for leaving startpad
+                                timePoint_StartpadLeft = globalWatch.ElapsedMilliseconds;
+                                pressedStartpad = PressedStartpad.No;
+                            }
                         }
                     }
                 }
-
+                catch (InvalidCastException e)
+                { }
             }
 
             startpadReadWatch.Stop();
@@ -956,10 +1005,11 @@ namespace COTTask_wpf
                 while (PresentTrial && pressedStartpad == PressedStartpad.No) ;
 
 
-                if (pressedStartpad == PressedStartpad.Yes)
+                if (PresentTrial && pressedStartpad == PressedStartpad.Yes)
                 {
                     // the time point for startpad touched
-                    serialPort_IO8.WriteLine(TDTCmd_TouchTriggerTrial);
+                    if (serialPort_IO8.IsOpen)
+                        serialPort_IO8.WriteLine(TDTCmd_TouchTriggerTrial);
                     timePoint_StartpadTouched = globalWatch.ElapsedMilliseconds;
                 }
 
@@ -984,7 +1034,7 @@ namespace COTTask_wpf
                 Stopwatch waitWatch = new Stopwatch();
                 waitWatch.Restart();
                 bool waitEnoughTag = false;
-                while (pressedStartpad == PressedStartpad.No && !waitEnoughTag)
+                while (PresentTrial && pressedStartpad == PressedStartpad.No && !waitEnoughTag)
                 {
                     if (waitWatch.ElapsedMilliseconds >= t_maxWait * 1000)
                     {// Wait for t_maxWait
@@ -995,7 +1045,7 @@ namespace COTTask_wpf
                 waitWatch.Stop();
 
 
-                if (pressedStartpad == PressedStartpad.Yes)
+                if (PresentTrial && pressedStartpad == PressedStartpad.Yes)
                 {
                     throw new TaskCanceledException("A return touched occurred");
                 }
@@ -1014,9 +1064,10 @@ namespace COTTask_wpf
                 waitWatch.Start();
                 while (PresentTrial && pressedStartpad == PressedStartpad.Yes)
                 {
-                    if (waitWatch.ElapsedMilliseconds >= tMax_ReactionTimeMS)
+                    if (PresentTrial && waitWatch.ElapsedMilliseconds >= tMax_ReactionTimeMS)
                     {/* No release Startpad within tMax_ReactionTime */
-                        serialPort_IO8.WriteLine(TDTCmd_GoReactionTooLong);
+                        if (serialPort_IO8.IsOpen)
+                            serialPort_IO8.WriteLine(TDTCmd_GoReactionTooLong);
                         waitWatch.Stop();
 
                         noreactionGoTrialNum++;
@@ -1041,9 +1092,10 @@ namespace COTTask_wpf
                 waitWatch.Start();
                 while (PresentTrial && screenTouchstate == ScreenTouchState.Idle)
                 {
-                    if (waitWatch.ElapsedMilliseconds >= tMax_ReachTimeMS)
+                    if (PresentTrial && waitWatch.ElapsedMilliseconds >= tMax_ReachTimeMS)
                     {/*No Screen Touched within tMax_ReachTime*/
-                        serialPort_IO8.WriteLine(TDTCmd_GoReachTooLong);
+                        if (serialPort_IO8.IsOpen)
+                            serialPort_IO8.WriteLine(TDTCmd_GoReachTooLong);
                         waitWatch.Stop();
 
                         noreachGoTrialNum++;
@@ -1057,7 +1109,7 @@ namespace COTTask_wpf
                 downPoints_Pos.Clear();
                 touchPoints_PosTime.Clear();
                 waitWatch.Restart();
-                while (waitWatch.ElapsedMilliseconds <= tMax_1Touch) ;
+                while (PresentTrial && waitWatch.ElapsedMilliseconds <= tMax_1Touch) ;
                 waitWatch.Stop();
                 calc_GoTargetTouchState();
             }); 
@@ -1071,7 +1123,7 @@ namespace COTTask_wpf
 
             double distance; 
             gotargetTouchstate = GoTargetTouchState.goMissed;
-            while (downPoints_Pos.Count > 0)
+            while (PresentTrial && downPoints_Pos.Count > 0)
             {
                 // always deal with the point at 0
                 Point touchp = new Point(downPoints_Pos[0][0], downPoints_Pos[0][1]);
@@ -1083,7 +1135,8 @@ namespace COTTask_wpf
                 if (distance <= circleGo_Radius_Pixal)
                 {// Hit 
 
-                    serialPort_IO8.WriteLine(TDTCmd_GoTouchedHit);
+                    if (serialPort_IO8.IsOpen)
+                        serialPort_IO8.WriteLine(TDTCmd_GoTouchedHit);
                     gotargetTouchstate = GoTargetTouchState.goHit;
                     
                     downPoints_Pos.Clear();
@@ -1094,7 +1147,7 @@ namespace COTTask_wpf
                 downPoints_Pos.RemoveAt(0);
             }
 
-            if (gotargetTouchstate == GoTargetTouchState.goMissed)
+            if (PresentTrial && serialPort_IO8.IsOpen && gotargetTouchstate == GoTargetTouchState.goMissed )
             {
                 serialPort_IO8.WriteLine(TDTCmd_GoTouchedMiss);
             }
@@ -1127,7 +1180,7 @@ namespace COTTask_wpf
                     }
                 }
                 touchedWatch.Stop();
-                if (startpadHoldstate != StartPadHoldState.HoldEnough)
+                if (PresentTrial && startpadHoldstate != StartPadHoldState.HoldEnough)
                 {
                     throw new TaskCanceledException(task);
                 }
@@ -1148,18 +1201,21 @@ namespace COTTask_wpf
             try
             {
                 myGrid.Background = brush_BKReady;
-                serialPort_IO8.WriteLine(TDTCmd_ReadyShown);
+                if (serialPort_IO8.IsOpen)
+                    serialPort_IO8.WriteLine(TDTCmd_ReadyShown);
                 timePoint_Interface_ReadyOnset = globalWatch.ElapsedMilliseconds;
 
                 // Wait Startpad Hold Enough Time
                 startpadHoldstate = StartPadHoldState.HoldTooShort;
-                await Wait_EnoughTouch(t_ReadyMS);
+                if (PresentTrial)
+                    await Wait_EnoughTouch(t_ReadyMS);
 
             }
             catch (TaskCanceledException)
             {
                 // trial execute result: waitReadyTooShort 
-                serialPort_IO8.WriteLine(TDTCmd_ReadyWaitTooShort);
+                if (serialPort_IO8.IsOpen)
+                    serialPort_IO8.WriteLine(TDTCmd_ReadyWaitTooShort);
                 trialExeResult = TrialExeResult.readyWaitTooShort;
 
                 Task task = null;
@@ -1190,21 +1246,26 @@ namespace COTTask_wpf
 
                 // go target Onset Time Point
                 timePoint_Interface_TargetOnset = globalWatch.ElapsedMilliseconds;
-                serialPort_IO8.WriteLine(TDTCmd_GoTargetShown);
+                if(serialPort_IO8.IsOpen)
+                    serialPort_IO8.WriteLine(TDTCmd_GoTargetShown);
 
                 totalGoTrialNum++;
 
                 // Wait for Reaction within tMax_ReactionTime
                 pressedStartpad = PressedStartpad.Yes;
                 await Wait_Reaction();
+                if (!PresentTrial)
+                    return;
 
                 // Wait for Touch within tMax_ReachTime and Calcuate the gotargetTouchstate
                 screenTouchstate = ScreenTouchState.Idle;
                 await Wait_Reach();
+                if (!PresentTrial)
+                    return;
 
 
                 /*---- Go Target Touch States ----*/
-                if (gotargetTouchstate == GoTargetTouchState.goHit)
+                if (PresentTrial && gotargetTouchstate == GoTargetTouchState.goHit)
                 {/*Hit */
 
                     Feedback_GoCorrect_Hit();
@@ -1215,7 +1276,7 @@ namespace COTTask_wpf
                     trialExeResult = TrialExeResult.goHit;
                     
                 }
-                else if (gotargetTouchstate == GoTargetTouchState.goMissed)
+                else if (PresentTrial && gotargetTouchstate == GoTargetTouchState.goMissed)
                 {/* touch missed*/
                     
                     Feedback_GoERROR_Miss();
@@ -1225,14 +1286,18 @@ namespace COTTask_wpf
                     // trial execute result: goMiss 
                     trialExeResult = TrialExeResult.goMiss;
                 }
-                
+                if (!PresentTrial)
+                    return;
                 await Task.Delay(t_VisfeedbackShowMS);
             }
             catch(TaskCanceledException)
             {
-                Interface_GoERROR_LongReactionReach();
-                await Task.Delay(t_VisfeedbackShowMS);
+                if(PresentTrial)
+                    Interface_GoERROR_LongReactionReach();
+                if (PresentTrial)
+                    await Task.Delay(t_VisfeedbackShowMS);
                 throw new TaskCanceledException("Not Reaction Within the Max Reaction Time.");
+                
             }
             
         }
@@ -1246,7 +1311,7 @@ namespace COTTask_wpf
             circleGo.Stroke = brush_ErrorOutline;
             
 
-            Add_OneCrossing(new int[] { (int)circleGo_cPoint_Pixal.X, (int)circleGo_cPoint_Pixal.Y});
+            Show_OneCrossing(new int[] { (int)circleGo_cPoint_Pixal.X, (int)circleGo_cPoint_Pixal.Y});
 
             myGrid.UpdateLayout();
 
@@ -1288,9 +1353,7 @@ namespace COTTask_wpf
 
         public void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            Present_Stop();
-            parent.btn_start.IsEnabled = true;
-            parent.btn_stop.IsEnabled = false;
+            parent.presentation_Stop();
         }
 
 
