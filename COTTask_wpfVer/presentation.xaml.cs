@@ -195,6 +195,29 @@ namespace COTTask_wpf
         static int startpad_DigIn_Pressed = 0;
         static int startpad_DigIn_Unpressed = 1;
 
+
+        static string Code_InitState = "0000";
+        static string Code_TouchTriggerTrial = "1110";
+        static string Code_ReadyShown = "0110";
+        static string Code_ReadyWaitTooShort = "0011";
+        static string Code_GoTargetShown = "1010";
+        static string Code_GoReactionTooLong = "1100";
+        static string Code_GoReachTooLong = "1011";
+        static string Code_GoTouched = "1101";
+        static string Code_GoTouchedHit = "0100";
+        static string Code_GoTouchedMiss = "1000";
+        static string Code_CueShown = "0001";
+        static string Code_CueWaitTooShort = "0101";
+        static string Code_noGoTargetShown = "0010";
+        static string Code_noGoEnoughTCorrectFeedback = "0111";
+        static string Code_LeaveStartpad = "1001";
+
+
+        string TDTCmd_InitState, TDTCmd_TouchTriggerTrial, TDTCmd_ReadyShown, TDTCmd_ReadyWaitTooShort, TDTCmd_LeaveStartpad;
+        string TDTCmd_GoTargetShown, TDTCmd_GoReactionTooLong, TDTCmd_GoReachTooLong, TDTCmd_GoTouched, TDTCmd_GoTouchedHit, TDTCmd_GoTouchedMiss;
+        string TDTCmd_CueShown, TDTCmd_CueWaitTooShort;
+        string TDTCmd_noGoTargetShown, TDTCmd_noGoEnoughTCorrectFeedback;
+
         static string TDTCmd_InitState = cmdLow5 + cmdLow6 + cmdLow7 + cmdLow8;
         static string TDTCmd_TouchTriggerTrial = cmdHigh5 + cmdHigh6 + cmdHigh7 + cmdLow8;
         static string TDTCmd_ReadyShown = cmdLow5 + cmdHigh6 + cmdHigh7 + cmdLow8;
