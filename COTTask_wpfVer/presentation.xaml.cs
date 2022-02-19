@@ -198,6 +198,7 @@ namespace COTTask_wpf
 
         static string Code_InitState = "0000";
         static string Code_TouchTriggerTrial = "1110";
+        static string Code_LeaveStartpad = "1001";
         static string Code_ReadyShown = "0110";
         static string Code_ReadyWaitTooShort = "0011";
         static string Code_GoTargetShown = "1010";
@@ -206,29 +207,10 @@ namespace COTTask_wpf
         static string Code_GoTouched = "1101";
         static string Code_GoTouchedHit = "0100";
         static string Code_GoTouchedMiss = "1000";
-        static string Code_CueShown = "0001";
-        static string Code_CueWaitTooShort = "0101";
-        static string Code_noGoTargetShown = "0010";
-        static string Code_noGoEnoughTCorrectFeedback = "0111";
-        static string Code_LeaveStartpad = "1001";
+        
 
-
-        string TDTCmd_InitState, TDTCmd_TouchTriggerTrial, TDTCmd_ReadyShown, TDTCmd_ReadyWaitTooShort, TDTCmd_LeaveStartpad;
+        string TDTCmd_InitState, TDTCmd_TouchTriggerTrial, TDTCmd_LeaveStartpad, TDTCmd_ReadyShown, TDTCmd_ReadyWaitTooShort;
         string TDTCmd_GoTargetShown, TDTCmd_GoReactionTooLong, TDTCmd_GoReachTooLong, TDTCmd_GoTouched, TDTCmd_GoTouchedHit, TDTCmd_GoTouchedMiss;
-        string TDTCmd_CueShown, TDTCmd_CueWaitTooShort;
-        string TDTCmd_noGoTargetShown, TDTCmd_noGoEnoughTCorrectFeedback;
-
-        static string TDTCmd_InitState = cmdLow5 + cmdLow6 + cmdLow7 + cmdLow8;
-        static string TDTCmd_TouchTriggerTrial = cmdHigh5 + cmdHigh6 + cmdHigh7 + cmdLow8;
-        static string TDTCmd_ReadyShown = cmdLow5 + cmdHigh6 + cmdHigh7 + cmdLow8;
-        static string TDTCmd_ReadyWaitTooShort = cmdLow5 + cmdLow6 + cmdHigh7 + cmdHigh8;
-        static string TDTCmd_GoTargetShown = cmdHigh5 + cmdLow6 + cmdHigh7 + cmdLow8;
-        static string TDTCmd_GoReactionTooLong = cmdHigh5 + cmdHigh6 + cmdLow7 + cmdLow8;
-        static string TDTCmd_GoReachTooLong = cmdHigh5 + cmdLow6 + cmdHigh7 + cmdHigh8;
-        static string TDTCmd_GoTouched = cmdHigh5 + cmdHigh6 + cmdLow7 + cmdHigh8;
-        static string TDTCmd_GoTouchedHit = cmdLow5 + cmdHigh6 + cmdLow7 + cmdLow8;
-        static string TDTCmd_GoTouchedClose = cmdLow5 + cmdHigh6 + cmdLow7 + cmdHigh8;
-        static string TDTCmd_GoTouchedMiss = cmdHigh5 + cmdLow6 + cmdLow7 + cmdLow8;
 
 
 
@@ -279,6 +261,21 @@ namespace COTTask_wpf
 
             // Create stopwatches
             Create_StopWatches();
+
+            // get the setup from the parent interface
+            GetSetupParameters();
+
+            // Create necessary elements: go circle, nogo rect, two white points and one crossing
+            Create_GoCircle();
+            Create_OneCrossing();
+
+            // Set audio Feedback related members 
+            SetAudioFeedback();
+
+            // IO8EventTDT Cmd
+            Generate_IO8EventTDTCmd();
+
+            Prepare_bef_Present();
         }
 
 
@@ -310,24 +307,75 @@ namespace COTTask_wpf
             }
         }
 
+        private string Convert2_IO8EventCmd_Bit5to8(string EventCode)
+        {/*
+            Generate IO8 Event Command based on EventCode using bit 5-8
+            E.g. "0000" -> "TYUI", "1111" -> "5678", "1010" -> "5Y7I"
+            */
+
+            string cmdHigh5 = "5";
+            string cmdLow5 = "T";
+            string cmdHigh6 = "6";
+            string cmdLow6 = "Y";
+            string cmdHigh7 = "7";
+            string cmdLow7 = "U";
+            string cmdHigh8 = "8";
+            string cmdLow8 = "I";
+
+            string IO8EventCmd = cmdLow5 + cmdLow6 + cmdLow7 + cmdLow8;
+            if (EventCode[0] == '1')
+                IO8EventCmd = IO8EventCmd.Remove(0, 1).Insert(0, cmdHigh5);
+            if (EventCode[1] == '1')
+                IO8EventCmd = IO8EventCmd.Remove(1, 1).Insert(1, cmdHigh6);
+            if (EventCode[2] == '1')
+                IO8EventCmd = IO8EventCmd.Remove(2, 1).Insert(2, cmdHigh7);
+            if (EventCode[3] == '1')
+                IO8EventCmd = IO8EventCmd.Remove(3, 1).Insert(3, cmdHigh8);
+
+            return IO8EventCmd;
+        }
+
+        private void Generate_IO8EventTDTCmd()
+        {
+            TDTCmd_InitState = Convert2_IO8EventCmd_Bit5to8(Code_InitState);
+            TDTCmd_TouchTriggerTrial = Convert2_IO8EventCmd_Bit5to8(Code_TouchTriggerTrial);
+            TDTCmd_LeaveStartpad = Convert2_IO8EventCmd_Bit5to8(Code_LeaveStartpad);
+            TDTCmd_ReadyShown = Convert2_IO8EventCmd_Bit5to8(Code_ReadyShown);
+            TDTCmd_ReadyWaitTooShort = Convert2_IO8EventCmd_Bit5to8(Code_ReadyWaitTooShort);
+            TDTCmd_GoTargetShown = Convert2_IO8EventCmd_Bit5to8(Code_GoTargetShown);
+            TDTCmd_GoReactionTooLong = Convert2_IO8EventCmd_Bit5to8(Code_GoReactionTooLong);
+            TDTCmd_GoReachTooLong = Convert2_IO8EventCmd_Bit5to8(Code_GoReachTooLong);
+            TDTCmd_GoTouched = Convert2_IO8EventCmd_Bit5to8(Code_GoTouched);
+            TDTCmd_GoTouchedHit = Convert2_IO8EventCmd_Bit5to8(Code_GoTouchedHit);
+            TDTCmd_GoTouchedMiss = Convert2_IO8EventCmd_Bit5to8(Code_GoTouchedMiss);
+        }
+
         public void Prepare_bef_Present()
         {
-            /* Prepare before presenting Trials*/
+            // create a serial Port IO8 instance, and open it
+            serialPort_IO8 = new SerialPort();
+            try
+            {
+                serialPort_SetOpen(parent.serialPortIO8_name, baudRate);
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show(ex.Message, "Error Message", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            // Thread for Read and Write IO8
+            thread_ReadWrite_IO8 = new Thread(new ThreadStart(Thread_ReadWrite_IO8));
 
-            // get the setup from the parent interface
-            GetSetupParameters();
 
-
-            // Create necessary elements: go circle,  and one crossing
-            Create_GoCircle();
-            Create_OneCrossing();
-
-            // Set audio Feedback related members 
-            SetAudioFeedback();
+            // init a global stopwatch
+            globalWatch = new Stopwatch();
+            tpoints1TouchWatch = new Stopwatch();
 
             // Init Trial Information
             Init_FeedbackTrialsInformation();
 
+
+            //Write Trial Setup Information
+            Save_TrialSetupInformation();
 
             totalTriali = 0;
             blockN = 0;
@@ -340,20 +388,11 @@ namespace COTTask_wpf
             int t_ReadyMS;
             Random rnd = new Random();
 
-            // Open SerialPort_IO8
-            try
-            {
-                serialPort_IO8.Open();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message, "Error Message", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-            // Thread for Reading and Writing IO8
-            thread_ReadWrite_IO8 = new Thread(new ThreadStart(Thread_ReadWrite_IO8));
+            // restart globalWatch and thread for IO8
+            globalWatch.Restart();
             thread_ReadWrite_IO8.Start();
 
-            globalWatch.Restart();
+            
 
             // Present Each Trial
             PresentTrial = true;
