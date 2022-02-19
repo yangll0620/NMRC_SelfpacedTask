@@ -382,6 +382,69 @@ namespace COTTask_wpf
 
         }
 
+        private void serialPort_SetOpen(string portName, int baudRate)
+        {
+            try
+            {
+                serialPort_IO8.PortName = portName;
+                serialPort_IO8.BaudRate = baudRate;
+                serialPort_IO8.Open();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        private void Save_TrialSetupInformation()
+        {
+            using (StreamWriter file = File.AppendText(file_saved))
+            {
+                file.WriteLine("\n\n");
+
+                file.WriteLine(String.Format("{0, -40}", "Trial Information"));
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Unit of Touch Point X Y Position", "Pixal"));
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Touch Point X Y Coordinate System", "(0,0) in Top Left Corner, Right and Down Direction is Positive"));
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Unit of Event TimePoint/Time", "Second"));
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Center Coordinates of Each Target", "((0,0) in Center of the Screen, Right and Down Direction is Positive)"));
+                for (int i = 0; i < parent.optPostions_OCenter_List.Count; i++)
+                {
+                    int[] position = parent.optPostions_OCenter_List[i];
+                    file.WriteLine(String.Format("{0, -40}:{1}, {2}", "Postion " + i.ToString(), position[0], position[1]));
+                }
+                file.WriteLine("\n");
+
+                file.WriteLine(String.Format("{0, -40}", "Event Codes in TDT System:"));
+                file.WriteLine(String.Format("{0, -40}:  {1}", nameof(Code_InitState), Code_InitState));
+                file.WriteLine(String.Format("{0, -40}:  {1}", nameof(Code_TouchTriggerTrial), Code_TouchTriggerTrial));
+                file.WriteLine(String.Format("{0, -40}:  {1}", nameof(Code_LeaveStartpad), Code_LeaveStartpad));
+                file.WriteLine(String.Format("{0, -40}:  {1}", nameof(Code_ReadyShown), Code_ReadyShown));
+                file.WriteLine(String.Format("{0, -40}:  {1}", nameof(Code_ReadyWaitTooShort), Code_ReadyWaitTooShort));
+                file.WriteLine(String.Format("{0, -40}:  {1}", nameof(Code_GoTargetShown), Code_GoTargetShown));
+                file.WriteLine(String.Format("{0, -40}:  {1}", nameof(Code_GoReactionTooLong), Code_GoReactionTooLong));
+                file.WriteLine(String.Format("{0, -40}:  {1}", nameof(Code_GoReachTooLong), Code_GoReachTooLong));
+                file.WriteLine(String.Format("{0, -40}:  {1}", nameof(Code_GoTouched), Code_GoTouched));
+                file.WriteLine(String.Format("{0, -40}:  {1}", nameof(Code_GoTouchedHit), Code_GoTouchedHit));
+                file.WriteLine(String.Format("{0, -40}:  {1}", nameof(Code_GoTouchedMiss), Code_GoTouchedMiss));
+                file.WriteLine("\n");
+
+
+                file.WriteLine(String.Format("{0, -40}", "IO8 Commands:"));
+                file.WriteLine(String.Format("{0, -40}:  {1}", nameof(TDTCmd_InitState), TDTCmd_InitState));
+                file.WriteLine(String.Format("{0, -40}:  {1}", nameof(TDTCmd_TouchTriggerTrial), TDTCmd_TouchTriggerTrial));
+                file.WriteLine(String.Format("{0, -40}:  {1}", nameof(TDTCmd_LeaveStartpad), TDTCmd_LeaveStartpad));
+                file.WriteLine(String.Format("{0, -40}:  {1}", nameof(TDTCmd_ReadyShown), TDTCmd_ReadyShown));
+                file.WriteLine(String.Format("{0, -40}:  {1}", nameof(TDTCmd_ReadyWaitTooShort), TDTCmd_ReadyWaitTooShort));
+                file.WriteLine(String.Format("{0, -40}:  {1}", nameof(TDTCmd_GoTargetShown), TDTCmd_GoTargetShown));
+                file.WriteLine(String.Format("{0, -40}:  {1}", nameof(TDTCmd_GoReactionTooLong), TDTCmd_GoReactionTooLong));
+                file.WriteLine(String.Format("{0, -40}:  {1}", nameof(TDTCmd_GoReachTooLong), TDTCmd_GoReachTooLong));
+                file.WriteLine(String.Format("{0, -40}:  {1}", nameof(TDTCmd_GoTouched), TDTCmd_GoTouched));
+                file.WriteLine(String.Format("{0, -40}:  {1}", nameof(TDTCmd_GoTouchedHit), TDTCmd_GoTouchedHit));
+                file.WriteLine(String.Format("{0, -40}:  {1}", nameof(TDTCmd_GoTouchedMiss), TDTCmd_GoTouchedMiss));
+                file.WriteLine("\n");
+            }
+        }
+
         public async void Present_Start()
         {                 
             int[] pos_OCenter_Taget;
@@ -1037,6 +1100,7 @@ namespace COTTask_wpf
 
                                 // the time point for leaving startpad
                                 timePoint_StartpadLeft = globalWatch.ElapsedMilliseconds;
+                                serialPort_IO8.WriteLine(TDTCmd_LeaveStartpad);
                                 pressedStartpad = PressedStartpad.No;
                             }
                         }
