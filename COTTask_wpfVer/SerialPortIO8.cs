@@ -29,6 +29,7 @@ namespace COTTask_wpf
                 {
                     serialPort.PortName = portName;
                     serialPort.BaudRate = 115200;
+
                     serialPort.Open();
 
                     for (int i = 0; i < 5; i++)
@@ -39,7 +40,7 @@ namespace COTTask_wpf
                         // Read exist Analog in from serialPort
                         string str_Read = serialPort.ReadExisting();
 
-                        if(str_Read.Contains("V"))
+                        if (str_Read.Contains("V"))
                         {//
                             serialPortIO8_Name = portName;
                             serialPort.Close();
@@ -49,11 +50,10 @@ namespace COTTask_wpf
                     }
                     serialPort.Close();
                 }
-                catch (Exception ex)
+                catch(Exception ex)
                 {
                     if (serialPort.IsOpen)
                         serialPort.Close();
-                    MessageBox.Show(ex.Message, "Error Message", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
 
