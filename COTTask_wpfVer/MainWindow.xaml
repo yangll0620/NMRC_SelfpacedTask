@@ -226,7 +226,7 @@
                         FontWeight="Bold" FontFamily="Microsoft Sans Serif" FontSize="14" 
                         Click="btnStart_Click" />
 
-                <Button x:Name="btn_stop"
+                <Button x:Name="btn_stop" IsEnabled="False"
                         Content="Stop" HorizontalAlignment="Right" VerticalAlignment="Bottom" 
                         Margin="0,0,20,15"  Width="100" Height="35" 
                         FontWeight="Bold" FontFamily="Microsoft Sans Serif" FontSize="14"

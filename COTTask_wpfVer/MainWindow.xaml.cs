@@ -88,16 +88,6 @@ namespace COTTask_wpf
             LoadConfigFile("defaultConfig");
             targetDiaPixal = Utility.cm2pixal(targetDiaCM);
 
-            if (textBox_NHPName.Text != "" && serialPortIO8_name != null && serialPortIO8_name != "")
-            {
-                btn_start.IsEnabled = true;
-                btn_stop.IsEnabled = false;
-            }
-            else
-            {
-                btn_start.IsEnabled = false;
-                btn_stop.IsEnabled = false;
-            }
 
             // Get the touch Screen Rectangle
             Rect_touchScreen = Utility.Detect_PrimaryScreen_Rect();
@@ -111,6 +101,7 @@ namespace COTTask_wpf
             if (String.Equals(serialPortIO8_name, ""))
             {
                 btn_start.IsEnabled = false;
+
                 btn_comReconnect.Visibility = Visibility.Visible;
                 btn_comReconnect.IsEnabled = true;
                 textblock_comState.Visibility = Visibility.Visible;
@@ -124,8 +115,15 @@ namespace COTTask_wpf
             }
             else
             {
+                if (textBox_NHPName.Text != "")
+                {
+                    btn_start.IsEnabled = true;
+                }
+                    
+
                 btn_comReconnect.Visibility = Visibility.Hidden;
                 btn_comReconnect.IsEnabled = false;
+
                 run_comState.Text = "Found the COM Port for DLP-IO8!";
                 run_comState.Background = new SolidColorBrush(Colors.White);
                 run_comState.Foreground = new SolidColorBrush(Colors.Green);
@@ -133,7 +131,6 @@ namespace COTTask_wpf
                 run_instruction.Background = new SolidColorBrush(Colors.White);
                 run_instruction.Foreground = new SolidColorBrush(Colors.Green);
             }
-
         }
 
 
