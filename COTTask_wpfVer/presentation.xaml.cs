@@ -182,14 +182,6 @@ namespace COTTask_wpf
         static string cmdHigh3 = "3";
         static string cmdLow3 = "E";
 
-        static string cmdHigh5 = "5";
-        static string cmdLow5 = "T";
-        static string cmdHigh6 = "6";
-        static string cmdLow6 = "Y";
-        static string cmdHigh7 = "7";
-        static string cmdLow7 = "U";
-        static string cmdHigh8 = "8";
-        static string cmdLow8 = "I";
 
         static string startpad_DigIn= cmdDigIn1;
         static int startpad_DigIn_Pressed = 0;
