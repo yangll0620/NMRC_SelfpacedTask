@@ -9,7 +9,7 @@ using sd = System.Drawing;
 using Newtonsoft.Json;
 using System.Windows.Input;
 using System.Windows.Interop;
-
+using System.Reflection;
 
 namespace COTTask_wpf
 {
@@ -65,65 +65,56 @@ namespace COTTask_wpf
 
         public MainWindow()
         {
-            InitializeComponent();
+            InitializeComponent(); 
+        }
 
-            btn_start.IsEnabled = false;
-            btn_stop.IsEnabled = false;
-            btn_pause.IsEnabled = false;
-            btn_resume.IsEnabled = false;
-
-
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
 
             // Get the first not Primary Screen 
             swf.Screen showMainScreen = Utility.Detect_oneNonPrimaryScreen();
-            
+
             // Show the  MainWindow on the Touch Screen
-            sd.Rectangle Rect_showMainScreen = showMainScreen.WorkingArea;
+            sd.Rectangle Rect_showMainScreen = showMainScreen.Bounds;
             this.Top = Rect_showMainScreen.Top;
             this.Left = Rect_showMainScreen.Left;
 
+
+            // Check serial Port IO8 connection
+            CheckIO8Connection();
+
+
+            // Load Default Config File
+            LoadConfigFile("defaultConfig");
+            targetDiaPixal = Utility.cm2pixal(targetDiaCM);
+
+            if (textBox_NHPName.Text != "" && serialPortIO8_name != null && serialPortIO8_name != "")
+            {
+                btn_start.IsEnabled = true;
+                btn_stop.IsEnabled = false;
+            }
+            else
+            {
+                btn_start.IsEnabled = false;
+                btn_stop.IsEnabled = false;
+            }
+
             // Get the touch Screen Rectangle
-            Rect_touchScreen = Utility.Detect_PrimaryScreen_Rect(); 
+            Rect_touchScreen = Utility.Detect_PrimaryScreen_Rect();
+        }
 
 
+        private void CheckIO8Connection()
+        {
             // locate serial Port Name
             serialPortIO8_name = SerialPortIO8.Locate_serialPortIO8();
-            if (String.Equals(serialPortIO8_name,""))
+            if (String.Equals(serialPortIO8_name, ""))
             {
                 btn_start.IsEnabled = false;
                 btn_comReconnect.Visibility = Visibility.Visible;
                 btn_comReconnect.IsEnabled = true;
                 textblock_comState.Visibility = Visibility.Visible;
 
-                run_comState.Text = "Can't Find the COM Port for DLP-IO8!";
-                run_comState.Background = new SolidColorBrush(Colors.Orange);
-                run_comState.Foreground = new SolidColorBrush(Colors.Red);
-                run_instruction.Text = "Please connect it correctly and reCheck!";
-                run_instruction.Background = new SolidColorBrush(Colors.Orange);
-                run_instruction.Foreground = new SolidColorBrush(Colors.Red);
-            }
-            else
-            {
-                btn_comReconnect.Visibility = Visibility.Hidden;
-                btn_comReconnect.IsEnabled = false;
-                textblock_comState.Visibility = Visibility.Hidden;
-            }
-
-            // Load Default Config File
-            LoadConfigFile("");
-            targetDiaPixal = Utility.cm2pixal(targetDiaCM);
-
-            if (textBox_NHPName.Text != "" && serialPortIO8_name != null)
-            {
-                btn_start.IsEnabled = true;        
-            }
-        }
-
-        private void Btn_comReconnect_Click(object sender, RoutedEventArgs e)
-        {
-            serialPortIO8_name = SerialPortIO8.Locate_serialPortIO8();
-            if (String.Equals(serialPortIO8_name, ""))
-            {
                 run_comState.Text = "Can't Find the COM Port for DLP-IO8!";
                 run_comState.Background = new SolidColorBrush(Colors.Orange);
                 run_comState.Foreground = new SolidColorBrush(Colors.Red);
@@ -143,11 +134,17 @@ namespace COTTask_wpf
                 run_instruction.Foreground = new SolidColorBrush(Colors.Green);
             }
 
-            if (textBox_NHPName.Text != "" && serialPortIO8_name != null)
+        }
+
+
+        private void Btn_comReconnect_Click(object sender, RoutedEventArgs e)
+        {
+            CheckIO8Connection();
+
+            if (textBox_NHPName.Text != "" && serialPortIO8_name != null && serialPortIO8_name != "")
             {
                 btn_start.IsEnabled = true;
             }
-
         }
 
         private void TextBox_NHPName_TextChanged(object sender, TextChangedEventArgs e)
@@ -395,7 +392,7 @@ namespace COTTask_wpf
 
             // Read the Config. File
             string jsonStr;
-            if (String.IsNullOrEmpty(configFile))
+            if (String.Equals(configFile, "defaultConfig"))
             {
                 configFile = @"..\\..\\Resources\\ConfigFiles\\defaultConfig.json";
 
@@ -406,7 +403,7 @@ namespace COTTask_wpf
                 jsonStr = r.ReadToEnd();
             }
 
-                      
+
             dynamic config = JsonConvert.DeserializeObject(jsonStr);
             
             /* ---- Config into the Interface ---- */

@@ -6,7 +6,8 @@
         xmlns:local="clr-namespace:COTTask_wpf"
         mc:Ignorable="d"
         Title="COTTask" Height="600" Width="850"
-        Closing="Window_Closing" Icon="COTTask.ico">
+        Closing="Window_Closing"  Loaded="Window_Loaded"
+        Icon="COTTask.ico">
 
     <Canvas x:Name="canvas1"
                 HorizontalAlignment="Left" Height="550" Margin="0,0,0,0" VerticalAlignment="Top" Width="800">
@@ -79,8 +80,9 @@
                     <Run x:Name ="run_instruction">COM instruction</Run>
                     </TextBlock>
                     <Button x:Name="btn_comReconnect" 
-                    Content="reCheck" Grid.Column="2" HorizontalAlignment="Right" 
-                            Margin="0,10,10,0" VerticalAlignment="Top" Width="75"  Click="Btn_comReconnect_Click"/>
+                            Content="Check IO8" Grid.Column="2" HorizontalAlignment="Right" 
+                            Margin="0,10,10,0" VerticalAlignment="Top" Width="75"  
+                            Click="Btn_comReconnect_Click"/>
                 </Grid>
             </GroupBox>
 

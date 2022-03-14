@@ -22,39 +22,48 @@ namespace COTTask_wpf
 
             string[] portNames = SerialPort.GetPortNames();
             string serialPortIO8_Name = "";
+            
             foreach (string portName in portNames)
             {
-                SerialPort serialPort = new SerialPort();
+                SerialPort serialPort;
                 try
                 {
-                    serialPort.PortName = portName;
-                    serialPort.BaudRate = 115200;
+                    serialPort = new SerialPort(portName, 115200);
+                    serialPort.WriteTimeout = 100;
                     serialPort.Open();
+                }
+                catch
+                {
+                    continue;
+                }
 
-                    for (int i = 0; i < 5; i++)
+                for (int i = 0; i < 3; i++)
+                {
+                    try
                     {
                         // channel 1 Ping command of the DLP-IO8, return 0 or 1
                         serialPort.WriteLine("Z");
+                    }
+                    catch
+                    {
+                        break;
+                    }
 
+                    try
+                    {
                         // Read exist Analog in from serialPort
                         string str_Read = serialPort.ReadExisting();
-
-                        if(str_Read.Contains("V"))
+                        if (str_Read.Contains("V"))
                         {//
                             serialPortIO8_Name = portName;
                             serialPort.Close();
                             return serialPortIO8_Name;
                         }
-                        Thread.Sleep(30);
+                        Thread.Sleep(10);
                     }
-                    serialPort.Close();
+                    catch { }
                 }
-                catch (Exception ex)
-                {
-                    if (serialPort.IsOpen)
-                        serialPort.Close();
-                    MessageBox.Show(ex.Message, "Error Message", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
+                serialPort.Close();
             }
 
             return serialPortIO8_Name;
