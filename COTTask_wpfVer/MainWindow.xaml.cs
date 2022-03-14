@@ -65,7 +65,7 @@ namespace COTTask_wpf
 
         public MainWindow()
         {
-            InitializeComponent();
+            InitializeComponent(); 
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -79,7 +79,6 @@ namespace COTTask_wpf
             this.Top = Rect_showMainScreen.Top;
             this.Left = Rect_showMainScreen.Left;
 
-           
 
             // Check serial Port IO8 connection
             CheckIO8Connection();
@@ -89,7 +88,7 @@ namespace COTTask_wpf
             LoadConfigFile("defaultConfig");
             targetDiaPixal = Utility.cm2pixal(targetDiaCM);
 
-            if (textBox_NHPName.Text != "" && serialPortIO8_name != null)
+            if (textBox_NHPName.Text != "" && serialPortIO8_name != null && serialPortIO8_name != "")
             {
                 btn_start.IsEnabled = true;
                 btn_stop.IsEnabled = false;
@@ -140,33 +139,12 @@ namespace COTTask_wpf
 
         private void Btn_comReconnect_Click(object sender, RoutedEventArgs e)
         {
-            serialPortIO8_name = SerialPortIO8.Locate_serialPortIO8();
-            if (String.Equals(serialPortIO8_name, ""))
-            {
-                run_comState.Text = "Can't Find the COM Port for DLP-IO8!";
-                run_comState.Background = new SolidColorBrush(Colors.Orange);
-                run_comState.Foreground = new SolidColorBrush(Colors.Red);
-                run_instruction.Text = "Please connect it correctly and reCheck!";
-                run_instruction.Background = new SolidColorBrush(Colors.Orange);
-                run_instruction.Foreground = new SolidColorBrush(Colors.Red);
-            }
-            else
-            {
-                btn_comReconnect.Visibility = Visibility.Hidden;
-                btn_comReconnect.IsEnabled = false;
-                run_comState.Text = "Found the COM Port for DLP-IO8!";
-                run_comState.Background = new SolidColorBrush(Colors.White);
-                run_comState.Foreground = new SolidColorBrush(Colors.Green);
-                run_instruction.Text = "Can start trials now";
-                run_instruction.Background = new SolidColorBrush(Colors.White);
-                run_instruction.Foreground = new SolidColorBrush(Colors.Green);
-            }
+            CheckIO8Connection();
 
-            if (textBox_NHPName.Text != "" && serialPortIO8_name != null)
+            if (textBox_NHPName.Text != "" && serialPortIO8_name != null && serialPortIO8_name != "")
             {
                 btn_start.IsEnabled = true;
             }
-
         }
 
         private void TextBox_NHPName_TextChanged(object sender, TextChangedEventArgs e)
