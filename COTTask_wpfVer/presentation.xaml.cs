@@ -103,11 +103,10 @@ namespace COTTask_wpf
 
         // ColorBrushes 
         private SolidColorBrush brush_goCircleFill;
-        private SolidColorBrush brush_BKWaitTrialStart, brush_BKReady, brush_BKTargetShown;
+        private SolidColorBrush brush_BKWaitTrialStart, brush_BDWaitTrialStart, brush_BKReady, brush_BKTargetShown;
         private SolidColorBrush brush_CorrectFill, brush_CorrOutline;
         private SolidColorBrush brush_ErrorCrossing, brush_ErrorFill, brush_ErrorOutline;
-        private SolidColorBrush brush_CloseFill;
-        private SolidColorBrush brush_BDWaitTrialStart;
+
 
 
         // Center Point and Radius of CircleGo (in Pixal)
@@ -266,8 +265,6 @@ namespace COTTask_wpf
 
             // IO8EventTDT Cmd
             Generate_IO8EventTDTCmd();
-
-            Prepare_bef_Present();
         }
 
 
@@ -817,6 +814,7 @@ namespace COTTask_wpf
             // Wait Background 
             selectedColor = (Color)(typeof(Colors).GetProperty(parent.BKWaitTrialColorStr) as PropertyInfo).GetValue(null, null);
             brush_BKWaitTrialStart = new SolidColorBrush(selectedColor);
+            
             // Wait Boarder
             brush_BDWaitTrialStart = brush_BKWaitTrialStart;
 

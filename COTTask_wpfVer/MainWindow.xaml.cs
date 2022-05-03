@@ -109,9 +109,6 @@ namespace COTTask_wpf
                 run_comState.Text = "Can't Find the COM Port for DLP-IO8!";
                 run_comState.Background = new SolidColorBrush(Colors.Orange);
                 run_comState.Foreground = new SolidColorBrush(Colors.Red);
-                run_instruction.Text = "Please connect it correctly and reCheck!";
-                run_instruction.Background = new SolidColorBrush(Colors.Orange);
-                run_instruction.Foreground = new SolidColorBrush(Colors.Red);
             }
             else
             {
@@ -124,12 +121,9 @@ namespace COTTask_wpf
                 btn_comReconnect.Visibility = Visibility.Hidden;
                 btn_comReconnect.IsEnabled = false;
 
-                run_comState.Text = "Found the COM Port for DLP-IO8!";
+                run_comState.Text = "DLP-IO8 port: " + serialPortIO8_name;
                 run_comState.Background = new SolidColorBrush(Colors.White);
                 run_comState.Foreground = new SolidColorBrush(Colors.Green);
-                run_instruction.Text = "Can start trials now";
-                run_instruction.Background = new SolidColorBrush(Colors.White);
-                run_instruction.Foreground = new SolidColorBrush(Colors.Green);
             }
         }
 
