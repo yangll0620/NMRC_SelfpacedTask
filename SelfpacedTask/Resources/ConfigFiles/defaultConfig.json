@@ -1,0 +1,19 @@
+{
+  "NHP Name": "Barb",
+  "saved folder": "C:\\COTTaskDev",
+  "Times": {
+    "Max Reaction Time": 0.8,
+    "Max Reach Time": 0.8,
+    "Visual Feedback Show Time": 1.0,
+    "Inter Trials Time": 0.5,
+    "Juice Correct Given Time": 0.8
+  },
+  "Colors": {
+    "Wait Start Interface Background": "Black",
+    "Go Interface Background": "WhiteSmoke",
+    "Correct Feedback Interface Border": "Magenta",
+    "Error Feedback Interface Border": "Red"
+  },
+  "audioFile_Correct": "default",
+  "audioFile_Error": "default"
+}
