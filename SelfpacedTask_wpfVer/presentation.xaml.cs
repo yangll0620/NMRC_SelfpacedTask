@@ -40,7 +40,10 @@ namespace SelfpacedTask_wpfVer
             goReactionTimeToolong,
             goReachTimeToolong,
             goHit,
-            goMiss
+            goMiss,
+            ReactionTimeToolong,
+            ReachTimeToolong,
+            touched
         }
 
         public enum ScreenTouchState
@@ -106,6 +109,8 @@ namespace SelfpacedTask_wpfVer
         private SolidColorBrush brush_BKWaitTrialStart, brush_BDWaitTrialStart, brush_BKReady, brush_BKTargetShown;
         private SolidColorBrush brush_CorrectFill, brush_CorrOutline;
         private SolidColorBrush brush_ErrorCrossing, brush_ErrorFill, brush_ErrorOutline;
+
+        private SolidColorBrush brush_BKWait4Touch;
 
 
 
@@ -203,8 +208,7 @@ namespace SelfpacedTask_wpfVer
         string TDTCmd_InitState, TDTCmd_TouchTriggerTrial, TDTCmd_LeaveStartpad, TDTCmd_ReadyShown, TDTCmd_ReadyWaitTooShort;
         string TDTCmd_GoTargetShown, TDTCmd_GoReactionTooLong, TDTCmd_GoReachTooLong, TDTCmd_GoTouched, TDTCmd_GoTouchedHit, TDTCmd_GoTouchedMiss;
 
-
-
+        
         /* startpad parameters */
         PressedStartpad pressedStartpad;
         public delegate void UpdateTextCallback(string message);
@@ -227,6 +231,11 @@ namespace SelfpacedTask_wpfVer
         // variables for counting total trials and blockN
         int totalTriali;
         int blockN;
+
+
+        static string Code_Wait4TouchShown = "1010";
+        long timePoint_Interface_Wait4TouchOnset;
+        string TDTCmd_Wait4TouchShown;
 
 
         /*****Methods*******/
@@ -337,6 +346,9 @@ namespace SelfpacedTask_wpfVer
             TDTCmd_GoTouched = Convert2_IO8EventCmd_Bit5to8(Code_GoTouched);
             TDTCmd_GoTouchedHit = Convert2_IO8EventCmd_Bit5to8(Code_GoTouchedHit);
             TDTCmd_GoTouchedMiss = Convert2_IO8EventCmd_Bit5to8(Code_GoTouchedMiss);
+
+
+            TDTCmd_Wait4TouchShown = Convert2_IO8EventCmd_Bit5to8(Code_Wait4TouchShown);
         }
 
         public void Prepare_bef_Present()
@@ -435,6 +447,146 @@ namespace SelfpacedTask_wpfVer
         }
 
         public async void Present_Start()
+        {
+            using (StreamWriter file = File.AppendText(file_saved))
+            {
+                file.WriteLine("\n\n");
+                file.WriteLine("Trial Information:");
+                file.WriteLine("XY Position Unit is Pixal, (0,0) in Screen Top Left Corner");
+                file.WriteLine("Unit of Event TimePoint/Time is second");
+                file.WriteLine("\n\n");
+            }
+
+            PresentTrial = true;
+            timestamp_0 = DateTime.Now.Ticks;
+            while (PresentTrial)
+            {
+                totalTriali++;
+
+                if (serialPort_IO8.IsOpen)
+                    serialPort_IO8.WriteLine(TDTCmd_InitState);
+
+
+                /*----- WaitStartTrial Interface ------*/
+                pressedStartpad = PressedStartpad.No;
+                await Interface_WaitStartTrial();
+
+                if (PresentTrial == false)
+                    break;
+
+                /*-------- Trial Interfaces -------*/
+                try
+                {
+                    // Target Interface
+                    await Interface_Wait4Touch();
+
+                    if (PresentTrial == false)
+                        break;
+
+
+                    Update_FeedbackTrialsInformation();
+                }
+                catch (TaskCanceledException)
+                {
+                    Update_FeedbackTrialsInformation();
+                }
+                if (serialPort_IO8.IsOpen)
+                    serialPort_IO8.WriteLine(TDTCmd_InitState);
+
+
+                saveTrialInf2Txt();
+
+                if (PresentTrial == false)
+                    break;
+
+
+                // Wait t_InterTrialMS between the end of the trial and before the next
+                Stopwatch waitWatch = new Stopwatch();
+                waitWatch.Start();
+                while (PresentTrial)
+                {
+                    if (waitWatch.ElapsedMilliseconds >= t_InterTrialMS)
+                    {
+                        waitWatch.Stop();
+                        break;
+                    }
+                }
+            }
+        }
+
+        void saveTrialInf2Txt()
+        {
+            /*-------- Write Trial Information ------*/
+            List<String> strExeSubResult = new List<String>();
+            strExeSubResult.Add("ReactionTimeToolong");
+            strExeSubResult.Add("ReachTimeToolong");
+            strExeSubResult.Add("Success");
+            String strExeFail = "Failed";
+            String strExeSuccess = "Success";
+
+            using (StreamWriter file = File.AppendText(file_saved))
+            {
+                decimal ms2sRatio = 1000;
+
+
+                /* Current Trial Written Inf*/
+                file.WriteLine("\n");
+
+                file.WriteLine(String.Format("{0, -40}: {1}", "TrialNum", totalTriali.ToString()));
+                file.WriteLine(String.Format("{0, -40}: {1}", "Startpad Touched TimePoint", timePoint_StartpadTouched.ToString()));
+
+                // Wait4Touch Interface showed TimePoint
+                file.WriteLine(String.Format("{0, -40}: {1}", "Wait for Touching Start TimePoint", timePoint_Interface_Wait4TouchOnset.ToString()));
+
+
+                // trialExeResult
+                if (trialExeResult == TrialExeResult.ReactionTimeToolong)
+                    file.WriteLine(String.Format("{0, -40}: {1}, {2}", "Trial Result", strExeFail, strExeSubResult[0]));
+
+                else if (trialExeResult == TrialExeResult.ReachTimeToolong)
+                {
+                    file.WriteLine(String.Format("{0, -40}: {1}", "Startpad Left TimePoint", timePoint_StartpadLeft.ToString()));
+                    file.WriteLine(String.Format("{0, -40}: {1}, {2}", "Trial Result", strExeFail, strExeSubResult[1]));
+                }
+
+                else if (trialExeResult == TrialExeResult.touched)
+                {
+                    file.WriteLine(String.Format("{0, -40}: {1}", "Startpad Left TimePoint", timePoint_StartpadLeft.ToString()));
+
+
+                    //  touched  timepoint and (x, y position) of all touch points
+                    for (int pointi = 0; pointi < touchPoints_PosTime.Count; pointi++)
+                    {
+                        double[] downPoint = touchPoints_PosTime[pointi];
+
+                        // touched pointi touchpoint
+                        file.WriteLine(String.Format("{0, -40}: {1, -40}", "Touch Point " + pointi.ToString() + " TimePoint", ((decimal)downPoint[1] / ms2sRatio).ToString()));
+
+                        // touched pointi position
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Touch Point " + pointi.ToString() + " XY Position", downPoint[2].ToString() + ", " + downPoint[3].ToString()));
+
+                    }
+
+                    //  Target interface:  left timepoint and (x, y position) of all touch points
+                    for (int pointi = 0; pointi < touchPoints_PosTime.Count; pointi++)
+                    {
+                        double[] downPoint = touchPoints_PosTime[pointi];
+
+                        // left pointi touchpoint
+                        file.WriteLine(String.Format("{0, -40}: {1, -40}", "Left Point " + pointi.ToString() + " TimePoint", ((decimal)downPoint[4] / ms2sRatio).ToString()));
+
+                        // left pointi position
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Left Point " + pointi.ToString() + " XY Position", downPoint[5].ToString() + ", " + downPoint[6].ToString()));
+                    }
+                   
+                    file.WriteLine(String.Format("{0, -40}: {1}, {2}", "Trial Result", strExeSuccess, strExeSubResult[2]));
+
+                }
+            }
+
+        }
+
+        public async void Present_Start1()
         {                 
             int[] pos_OCenter_Taget;
             int t_ReadyMS;
@@ -740,7 +892,6 @@ namespace SelfpacedTask_wpfVer
             // Go trials
             parent.textBox_totalGoTrialNum.Text = totalGoTrialNum.ToString();
             parent.textBox_successGoTrialNum.Text = successGoTrialNum.ToString();
-            parent.textBox_missGoTrialNum.Text = missGoTrialNum.ToString();
             parent.textBox_noreactionGoTrialNum.Text = noreactionGoTrialNum.ToString();
             parent.textBox_noreachGoTrialNum.Text = noreachGoTrialNum.ToString();
 
@@ -847,8 +998,14 @@ namespace SelfpacedTask_wpfVer
             selectedColor = (Color)(typeof(Colors).GetProperty(parent.ErrorCrossingColorStr) as PropertyInfo).GetValue(null, null);
             brush_ErrorCrossing = new SolidColorBrush(selectedColor);
 
-            
-            
+
+
+            // Target Shown Background
+            selectedColor = (Color)(typeof(Colors).GetProperty(parent.BKTargetShownColorStr) as PropertyInfo).GetValue(null, null);
+            brush_BKWait4Touch = new SolidColorBrush(selectedColor);
+
+
+
             // get the file for saving 
             file_saved = parent.file_saved;
             audioFile_Correct = parent.textBox_audioFile_Correct.Text;
@@ -1419,6 +1576,65 @@ namespace SelfpacedTask_wpfVer
         }
 
 
+
+        private async Task Interface_Wait4Touch()
+        {/* task for waiting Touch Interface: Show the Interface while Listen to the state of the startpad.
+            * 1. If Reaction time < Max Reaction Time or Reach Time < Max Reach Time, end up with long reaction or reach time ERROR Interface
+            * 2. Within proper reaction time && reach time, detect the touch point 
+            * 
+            * Output:
+            *   startPadHoldstate_Cue = 
+            *       StartPadHoldState.HoldEnough (if startpad is touched lasting t_Cue)
+            *       StartPadHoldState.HoldTooShort (if startpad is released before t_Cue) 
+            */
+
+            try
+            {
+                myGrid.Background = brush_BKWait4Touch;
+
+
+                // Wait4Touch Interface Onset Time Point
+                timePoint_Interface_Wait4TouchOnset = globalWatch.ElapsedMilliseconds;
+                if (serialPort_IO8.IsOpen)
+                    serialPort_IO8.WriteLine(TDTCmd_Wait4TouchShown);
+
+
+                // Wait for Reaction within tMax_ReactionTime
+                pressedStartpad = PressedStartpad.Yes;
+                await Wait_Reaction();
+                if (!PresentTrial)
+                    return;
+
+                // Wait for Touch within tMax_ReachTime and Calcuate the gotargetTouchstate
+                screenTouchstate = ScreenTouchState.Idle;
+                await Wait_Reach();
+                if (!PresentTrial)
+                    return;
+
+
+                Feedback_Correct_Touched();
+
+                if (!PresentTrial)
+                    return;
+
+                await Task.Delay(t_VisfeedbackShowMS);
+            }
+            catch (TaskCanceledException)
+            {
+                if (PresentTrial)
+                    Interface_ERROR_LongReactionReach();
+
+                if (PresentTrial)
+                    await Task.Delay(t_VisfeedbackShowMS);
+
+                throw new TaskCanceledException("Overdue Reaction or Reach Time.");
+
+            }
+
+        }
+
+
+
         private void Feedback_GoERROR()
         {
             // Visual Feedback
@@ -1465,6 +1681,36 @@ namespace SelfpacedTask_wpfVer
             player_Correct.Play();
         }
 
+        private void Feedback_Correct_Touched()
+        {
+            // Visual Feedback
+            myGridBorder.BorderBrush = brush_CorrectFill;
+            myGrid.Background = brush_CorrectFill;
+            myGrid.UpdateLayout();
+
+
+            //Juicer Feedback
+            giveJuicerState = GiveJuicerState.CorrectGiven;
+
+            // Audio Feedback
+            player_Correct.Play();
+        }
+
+
+        private void Interface_ERROR_LongReactionReach()
+        {
+            // Visual Feedback
+            myGridBorder.BorderBrush = brush_ErrorFill;
+            myGrid.Background = brush_ErrorFill;
+            myGrid.UpdateLayout();
+
+
+            //Juicer Feedback
+            giveJuicerState = GiveJuicerState.CorrectGiven;
+
+            // Audio Feedback
+            player_Correct.Play();
+        }
 
 
         public void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
