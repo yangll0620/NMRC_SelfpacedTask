@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 
-namespace COTTask_wpf
+namespace SelfpacedTask_wpfVer
 {
     class Config
     {

@@ -7,7 +7,7 @@ using System.Windows;
 using System.IO.Ports;
 using System.Diagnostics;
 
-namespace COTTask_wpf
+namespace SelfpacedTask_wpfVer
 {
     /// <summary>
     /// Interaction logic for TestStartpadJuicerWin.xaml

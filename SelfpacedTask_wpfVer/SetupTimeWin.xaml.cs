@@ -1,6 +1,6 @@
 ﻿using System.Windows;
 
-namespace COTTask_wpf
+namespace SelfpacedTask_wpfVer
 {
     /// <summary>
     /// Interaction logic for SetupTimeWin.xaml

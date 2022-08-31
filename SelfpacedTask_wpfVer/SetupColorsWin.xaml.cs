@@ -2,7 +2,7 @@
 using System.Windows;
 using System.Windows.Media;
 
-namespace COTTask_wpf
+namespace SelfpacedTask_wpfVer
 {
     /// <summary>
     /// Interaction logic for SetupColorsWin.xaml

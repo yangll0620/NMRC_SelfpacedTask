@@ -11,7 +11,7 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using System.Reflection;
 
-namespace COTTask_wpf
+namespace SelfpacedTask_wpfVer
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml

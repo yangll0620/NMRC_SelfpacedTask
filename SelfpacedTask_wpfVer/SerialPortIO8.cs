@@ -3,7 +3,7 @@ using System.Windows;
 using System.IO.Ports;
 using System.Threading;
 
-namespace COTTask_wpf
+namespace SelfpacedTask_wpfVer
 {
     class SerialPortIO8
     {
