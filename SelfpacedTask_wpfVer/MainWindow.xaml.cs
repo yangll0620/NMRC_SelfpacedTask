@@ -29,8 +29,8 @@ namespace SelfpacedTask_wpfVer
         presentation taskPresentWin;
 
         // Strings stoing the Colors
-        public string targetFillColorStr, targetOutlineColorStr;
-        public string BKWaitTrialColorStr, BKReadyColorStr, BKTargetShownColorStr;
+        public string BKWaitTrialColorStr, BKReadyColorStr, BKCorrectColorStr, BKErrorColorStr;
+        public string targetFillColorStr, targetOutlineColorStr, BKTargetShownColorStr;
         public string CorrFillColorStr, CorrOutlineColorStr, ErrorFillColorStr, ErrorOutlineColorStr, ErrorCrossingColorStr;
 
         // Time Related Variables
@@ -213,9 +213,13 @@ namespace SelfpacedTask_wpfVer
 
                 // Save Color Settings
                 file.WriteLine("\nColor Settings:");
-                file.WriteLine(String.Format("{0, -40}:  {1}", "Target Fill Color", targetFillColorStr));
                 file.WriteLine(String.Format("{0, -40}:  {1}", "Wait Start Background", BKWaitTrialColorStr));
                 file.WriteLine(String.Format("{0, -40}:  {1}", "Ready Background", BKReadyColorStr));
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Correct Background", BKCorrectColorStr));
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Error Background", BKErrorColorStr));
+
+
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Target Fill Color", targetFillColorStr));
                 file.WriteLine(String.Format("{0, -40}:  {1}", "Target Shown Background", BKTargetShownColorStr));
                 file.WriteLine(String.Format("{0, -40}:  {1}", "Correct Fill", CorrFillColorStr));
                 file.WriteLine(String.Format("{0, -40}:  {1}", "Correct Outline", CorrOutlineColorStr));
@@ -422,9 +426,12 @@ namespace SelfpacedTask_wpfVer
 
             // Color Sections
             var configColors = config["Colors"];
-            targetFillColorStr = configColors["Target Fill Color"];
             BKWaitTrialColorStr = configColors["Wait Start Background"];
             BKReadyColorStr = configColors["Ready Background"];
+            BKCorrectColorStr = configColors["Correct Background"];
+            BKErrorColorStr = configColors["Error Background"];
+
+            targetFillColorStr = configColors["Target Fill Color"];       
             BKTargetShownColorStr = configColors["Target Shown Background"];
             CorrFillColorStr = configColors["Correct Fill"];
             CorrOutlineColorStr = configColors["Correct Outline"];
@@ -472,9 +479,13 @@ namespace SelfpacedTask_wpfVer
 
             // config Colors
             ConfigColors configColors = new ConfigColors();
-            configColors.targetFillColorStr = targetFillColorStr;
             configColors.BKWaitTrialColorStr = BKWaitTrialColorStr;
             configColors.BKReadyColorStr = BKReadyColorStr;
+            configColors.BKCorrectColorStr = BKCorrectColorStr;
+            configColors.BKErrorColorStr = BKErrorColorStr;
+
+
+            configColors.targetFillColorStr = targetFillColorStr;
             configColors.BKTargetShownColorStr = BKTargetShownColorStr;
             configColors.CorrFillColorStr = CorrFillColorStr;
             configColors.CorrOutlineColorStr = CorrOutlineColorStr;

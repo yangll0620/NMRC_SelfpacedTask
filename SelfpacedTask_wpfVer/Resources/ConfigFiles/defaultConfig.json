@@ -55,9 +55,11 @@
     ]
   },
   "Colors": {
-    "Target Fill Color": "Green",
     "Wait Start Background": "Black",
     "Ready Background": "Blue",
+    "Correct Background": "Magenta",
+    "Error Background": "Red",
+    "Target Fill Color": "Green",
     "Target Shown Background": "WhiteSmoke",
     "Correct Fill": "Magenta",
     "Correct Outline": "Magenta",

@@ -39,10 +39,22 @@ namespace SelfpacedTask_wpfVer
         private void BindingComboData()
         {
             //Data binding the Color ComboBoxes
-            cbo_goFillColor.ItemsSource = typeof(Colors).GetProperties();
-            cbo_goOutlineColor.ItemsSource = typeof(Colors).GetProperties();
             cbo_BKWaitTrialColor.ItemsSource = typeof(Colors).GetProperties();
             cbo_BKReadyColor.ItemsSource = typeof(Colors).GetProperties();
+            cbo_BKCorrectColor.ItemsSource = typeof(Colors).GetProperties();
+            cbo_BKErrorColor.ItemsSource = typeof(Colors).GetProperties();
+
+
+            // Set Default Selected Item
+            cbo_BKWaitTrialColor.SelectedItem = typeof(Colors).GetProperty(parent.BKWaitTrialColorStr);
+            cbo_BKReadyColor.SelectedItem = typeof(Colors).GetProperty(parent.BKReadyColorStr);
+            cbo_BKCorrectColor.SelectedItem = typeof(Colors).GetProperty(parent.BKCorrectColorStr);
+            cbo_BKErrorColor.SelectedItem = typeof(Colors).GetProperty(parent.BKErrorColorStr);
+
+
+            //Data binding the Color ComboBoxes
+            cbo_goFillColor.ItemsSource = typeof(Colors).GetProperties();
+            cbo_goOutlineColor.ItemsSource = typeof(Colors).GetProperties();    
             cbo_BKTargetShownColor.ItemsSource = typeof(Colors).GetProperties();
             cbo_CorrFillColor.ItemsSource = typeof(Colors).GetProperties();
             cbo_CorrOutlineColor.ItemsSource = typeof(Colors).GetProperties();
@@ -51,11 +63,11 @@ namespace SelfpacedTask_wpfVer
             cbo_ErrorCrossingColor.ItemsSource = typeof(Colors).GetProperties();
 
 
+
             // Set Default Selected Item
             cbo_goFillColor.SelectedItem = typeof(Colors).GetProperty(parent.targetFillColorStr);
             cbo_goOutlineColor.SelectedItem = typeof(Colors).GetProperty(parent.targetFillColorStr);
-            cbo_BKWaitTrialColor.SelectedItem = typeof(Colors).GetProperty(parent.BKWaitTrialColorStr);
-            cbo_BKReadyColor.SelectedItem = typeof(Colors).GetProperty(parent.BKReadyColorStr);
+            
             cbo_BKTargetShownColor.SelectedItem = typeof(Colors).GetProperty(parent.BKTargetShownColorStr);
             cbo_CorrFillColor.SelectedItem = typeof(Colors).GetProperty(parent.CorrFillColorStr);
             cbo_CorrOutlineColor.SelectedItem = typeof(Colors).GetProperty(parent.CorrOutlineColorStr);
@@ -67,11 +79,14 @@ namespace SelfpacedTask_wpfVer
         private void SaveColorsData()
         { /* ---- Save all the Select Colors Information back to MainWindow Color Strings ----- */
 
-            parent.targetFillColorStr = (cbo_goFillColor.SelectedItem as PropertyInfo).Name;
-            parent.targetOutlineColorStr = (cbo_goOutlineColor.SelectedItem as PropertyInfo).Name;
-
             parent.BKWaitTrialColorStr = (cbo_BKWaitTrialColor.SelectedItem as PropertyInfo).Name;
             parent.BKReadyColorStr = (cbo_BKReadyColor.SelectedItem as PropertyInfo).Name;
+            parent.BKCorrectColorStr = (cbo_BKCorrectColor.SelectedItem as PropertyInfo).Name;
+            parent.BKErrorColorStr = (cbo_BKErrorColor.SelectedItem as PropertyInfo).Name;
+
+
+            parent.targetFillColorStr = (cbo_goFillColor.SelectedItem as PropertyInfo).Name;
+            parent.targetOutlineColorStr = (cbo_goOutlineColor.SelectedItem as PropertyInfo).Name;
             parent.BKTargetShownColorStr = (cbo_BKTargetShownColor.SelectedItem as PropertyInfo).Name;
 
             parent.CorrFillColorStr = (cbo_CorrFillColor.SelectedItem as PropertyInfo).Name;

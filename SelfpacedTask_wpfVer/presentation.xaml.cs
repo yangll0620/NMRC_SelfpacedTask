@@ -105,8 +105,9 @@ namespace SelfpacedTask_wpfVer
         Line crossing_vertLine, crossing_horiLine;
 
         // ColorBrushes 
-        private SolidColorBrush brush_goCircleFill;
-        private SolidColorBrush brush_BKWaitTrialStart, brush_BDWaitTrialStart, brush_BKReady, brush_BKTargetShown;
+        private SolidColorBrush brush_BKWaitTrialStart, brush_BDWaitTrialStart, brush_BKReady, brush_BKCorrect, brush_BKError;
+
+        private SolidColorBrush brush_goCircleFill, brush_BKTargetShown;
         private SolidColorBrush brush_CorrectFill, brush_CorrOutline;
         private SolidColorBrush brush_ErrorCrossing, brush_ErrorFill, brush_ErrorOutline;
 
@@ -446,7 +447,7 @@ namespace SelfpacedTask_wpfVer
             }
         }
 
-        public async void Present_Start()
+        public async void Present_Start2()
         {
             using (StreamWriter file = File.AppendText(file_saved))
             {
@@ -513,6 +514,122 @@ namespace SelfpacedTask_wpfVer
                 }
             }
         }
+
+
+        public async void Present_Start()
+        {
+            int t_ReadyMS;
+            Random rnd = new Random();
+
+            // restart globalWatch and thread for IO8
+            globalWatch.Restart();
+            thread_ReadWrite_IO8.Start();
+
+
+
+            // Present Each Trial
+            PresentTrial = true;
+            timestamp_0 = DateTime.Now.Ticks;
+            if(PresentTrial)
+            {
+                using (StreamWriter file = File.AppendText(file_saved))
+                {
+                    file.WriteLine("\n\n");
+                    file.WriteLine("Trial Information:");
+                    file.WriteLine("XY Position Unit is Pixal, (0,0) in Screen Top Left Corner");
+                    file.WriteLine("Unit of Event TimePoint/Time is second");
+                    file.WriteLine("\n\n");
+                }
+            }
+            while (PresentTrial)
+            {
+
+                t_ReadyMS = (int)Utility.TransferTo((float)rnd.NextDouble(), parent.tRange_ReadyTimeS[0], parent.tRange_ReadyTimeS[1]) * 1000;
+
+                totalTriali++;
+                if (serialPort_IO8.IsOpen)
+                    serialPort_IO8.WriteLine(TDTCmd_InitState);
+
+                /*----- WaitStartTrial Interface ------*/
+                pressedStartpad = PressedStartpad.No;
+                await Interface_WaitStartTrial();
+
+                if (PresentTrial == false)
+                    break;
+
+                /*-------- Trial Interfaces -------*/
+                try
+                {
+                    // Ready Interface
+                    await Interface_Ready(t_ReadyMS);
+
+                    if (PresentTrial == false)
+                    {
+                        break;
+                    }
+
+
+                    // Wait Touch Interface
+                    await Interface_Wait4Touch();
+
+                    if (PresentTrial == false)
+                    {
+                        break;
+                    }
+
+
+                    Update_FeedbackTrialsInformation();
+                }
+                catch (TaskCanceledException)
+                {
+                    Update_FeedbackTrialsInformation();
+                }
+                if (serialPort_IO8.IsOpen)
+                    serialPort_IO8.WriteLine(TDTCmd_InitState);
+
+                
+                // save Trial Information to Txt
+                saveTrialInf2Txt();
+
+
+                if (PresentTrial == false)
+                    break;
+
+
+                // Wait t_InterTrialMS between the end of the trial and before the next
+                Stopwatch waitWatch = new Stopwatch();
+                waitWatch.Start();
+                while (PresentTrial)
+                {
+                    if (waitWatch.ElapsedMilliseconds >= t_InterTrialMS)
+                    {
+                        waitWatch.Stop();
+                        break;
+                    }
+                }
+            }
+
+            if (PresentTrial)
+            {
+                // Detect the return to startpad timepoint for the last trial
+                pressedStartpad = PressedStartpad.No;
+                try
+                {
+                    await Wait_Return2StartPad(1);
+                }
+                catch (TaskCanceledException)
+                {
+                    using (StreamWriter file = File.AppendText(file_saved))
+                    {
+                        file.WriteLine(String.Format("{0, -40}: {1}", "Returned to Startpad TimePoint", timePoint_StartpadTouched.ToString()));
+                    }
+                }
+            }
+
+
+        }
+
+
 
         void saveTrialInf2Txt()
         {
@@ -956,22 +1073,39 @@ namespace SelfpacedTask_wpfVer
 
             /* ---- Get all the Set Colors ----- */
             Color selectedColor;
-            
-            // goCircle Color
-            selectedColor = (Color)(typeof(Colors).GetProperty(parent.targetFillColorStr) as PropertyInfo).GetValue(null, null);
-            brush_goCircleFill = new SolidColorBrush(selectedColor);
-
 
             // Wait Background 
             selectedColor = (Color)(typeof(Colors).GetProperty(parent.BKWaitTrialColorStr) as PropertyInfo).GetValue(null, null);
             brush_BKWaitTrialStart = new SolidColorBrush(selectedColor);
-            
+
             // Wait Boarder
             brush_BDWaitTrialStart = brush_BKWaitTrialStart;
+
 
             // Ready Background
             selectedColor = (Color)(typeof(Colors).GetProperty(parent.BKReadyColorStr) as PropertyInfo).GetValue(null, null);
             brush_BKReady = new SolidColorBrush(selectedColor);
+
+
+            // Correct Background
+            selectedColor = (Color)(typeof(Colors).GetProperty(parent.BKCorrectColorStr) as PropertyInfo).GetValue(null, null);
+            brush_BKCorrect = new SolidColorBrush(selectedColor);
+
+
+            // Error Background
+            selectedColor = (Color)(typeof(Colors).GetProperty(parent.BKErrorColorStr) as PropertyInfo).GetValue(null, null);
+            brush_BKError = new SolidColorBrush(selectedColor);
+
+
+
+
+
+
+
+            // goCircle Color
+            selectedColor = (Color)(typeof(Colors).GetProperty(parent.targetFillColorStr) as PropertyInfo).GetValue(null, null);
+            brush_goCircleFill = new SolidColorBrush(selectedColor);
+
 
             // Target Shown Background
             selectedColor = (Color)(typeof(Colors).GetProperty(parent.BKTargetShownColorStr) as PropertyInfo).GetValue(null, null);

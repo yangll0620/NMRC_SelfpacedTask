@@ -27,51 +27,14 @@
             </Grid.ColumnDefinitions>
 
 
-            <!--Go Color -->
-            <Label Content="Target Fill" Grid.Row="0" Grid.Column="0" 
-                   HorizontalAlignment="Right" VerticalAlignment="top" 
-                   HorizontalContentAlignment="Right" VerticalContentAlignment="Center"
-                   Height="25" Margin="0,5,135,0"  FontWeight="Normal"/>
-            <ComboBox x:Name="cbo_goFillColor" Grid.Row="0" Grid.Column="0" 
-                      HorizontalAlignment="Right" VerticalAlignment="Top" 
-                      Width="120" Height="25" Margin="0,5,10,0" 
-                      VerticalContentAlignment="Center" FontWeight="Normal" >
-                <ComboBox.ItemTemplate>
-                    <DataTemplate>
-                        <StackPanel Orientation="Horizontal">
-                            <Rectangle Fill="{Binding Name}" Width="16" Height="16" Margin="0,2,5,2" />
-                            <TextBlock Text="{Binding Name}" />
-                        </StackPanel>
-                    </DataTemplate>
-                </ComboBox.ItemTemplate>
-            </ComboBox>
 
-            <Label Content="Target Outline" Grid.Row="0" Grid.Column="1" 
-                   HorizontalAlignment="Right" VerticalAlignment="top" 
-                   HorizontalContentAlignment="Right" VerticalContentAlignment="Center"
-                   Height="25" Margin="0,5,135,0"  FontWeight="Normal"/>
-            <ComboBox x:Name="cbo_goOutlineColor" Grid.Row="0" Grid.Column="1" 
-                      HorizontalAlignment="Right" VerticalAlignment="Top" 
-                      Width="120" Height="25" Margin="0,5,10,0" 
-                      VerticalContentAlignment="Center" FontWeight="Normal" >
-                <ComboBox.ItemTemplate>
-                    <DataTemplate>
-                        <StackPanel Orientation="Horizontal">
-                            <Rectangle Fill="{Binding Name}" Width="16" Height="16" Margin="0,2,5,2" />
-                            <TextBlock Text="{Binding Name}" />
-                        </StackPanel>
-                    </DataTemplate>
-                </ComboBox.ItemTemplate>
-            </ComboBox>
-
-
-            <!-- Background Colors of WaitTrials and Trials -->
-            <Label Content="Wait Background" Grid.Row="4" Grid.Column="0" 
+            <!-- Background Colors of WaitforStart and Ready Interface -->
+            <Label Content="Wait Background" Grid.Row="0" Grid.Column="0" 
                                    HorizontalAlignment="Right" VerticalAlignment="top" 
                                    HorizontalContentAlignment="Right" VerticalContentAlignment="Center"
                                    Margin="0,5,135,0"  FontWeight="Normal"/>
 
-            <ComboBox x:Name="cbo_BKWaitTrialColor" Grid.Row="4" Grid.Column="0" 
+            <ComboBox x:Name="cbo_BKWaitTrialColor" Grid.Row="0" Grid.Column="0" 
                                       HorizontalAlignment="Right" VerticalAlignment="Top" 
                                       Width="120" Height="25" Margin="0,5,10,0" 
                                       VerticalContentAlignment="Center" FontWeight="Normal">
@@ -85,12 +48,12 @@
                 </ComboBox.ItemTemplate>
             </ComboBox>
 
-            <Label Content="Ready Background" Grid.Row="4" Grid.Column="1" 
+            <Label Content="Ready Background" Grid.Row="0" Grid.Column="1" 
                    HorizontalAlignment="Right" VerticalAlignment="top" 
                    HorizontalContentAlignment="Right" VerticalContentAlignment="Center"            
                    Margin="0,5,135,0"  FontWeight="Normal"/>
 
-            <ComboBox x:Name="cbo_BKReadyColor" Grid.Row="4" Grid.Column="1" 
+            <ComboBox x:Name="cbo_BKReadyColor" Grid.Row="0" Grid.Column="1" 
                       HorizontalAlignment="Right" VerticalAlignment="Top" 
                       Width="120" Height="25" Margin="0,5,10,0" 
                       VerticalContentAlignment="Center" FontWeight="Normal">
@@ -104,12 +67,91 @@
                 </ComboBox.ItemTemplate>
             </ComboBox>
 
-            <Label Content="Target Shown Background" Grid.Row="5" Grid.Column="0" 
+
+            <!-- Background Colors of Corrrect and Error Interface -->
+            <Label Content="Correct Background" Grid.Row="1" Grid.Column="0" 
+                   HorizontalAlignment="Right" VerticalAlignment="top" 
+                   HorizontalContentAlignment="Right" VerticalContentAlignment="Center"            
+                   Margin="0,5,135,0"  FontWeight="Normal"/>
+            
+            <ComboBox x:Name="cbo_BKCorrectColor" Grid.Row="1" Grid.Column="0" 
+                      HorizontalAlignment="Right" VerticalAlignment="Top" 
+                      Width="120" Height="25" Margin="0,5,10,0" 
+                      VerticalContentAlignment="Center" FontWeight="Normal">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <Rectangle Fill="{Binding Name}" Width="16" Height="16" Margin="0,2,5,2" />
+                            <TextBlock Text="{Binding Name}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+
+            <Label Content="Error Background" Grid.Row="1" Grid.Column="1" 
                    HorizontalAlignment="Right" VerticalAlignment="top" 
                    HorizontalContentAlignment="Right" VerticalContentAlignment="Center"            
                    Margin="0,5,135,0"  FontWeight="Normal"/>
 
-            <ComboBox x:Name="cbo_BKTargetShownColor" Grid.Row="5" Grid.Column="0" 
+            <ComboBox x:Name="cbo_BKErrorColor" Grid.Row="1" Grid.Column="1" 
+                      HorizontalAlignment="Right" VerticalAlignment="Top" 
+                      Width="120" Height="25" Margin="0,5,10,0" 
+                      VerticalContentAlignment="Center" FontWeight="Normal">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <Rectangle Fill="{Binding Name}" Width="16" Height="16" Margin="0,2,5,2" />
+                            <TextBlock Text="{Binding Name}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+
+
+            <!--Go Color -->
+            <Label Content="Target Fill" Grid.Row="0" Grid.Column="0" Visibility="Hidden" IsEnabled="False"
+                   HorizontalAlignment="Right" VerticalAlignment="top" 
+                   HorizontalContentAlignment="Right" VerticalContentAlignment="Center"
+                   Height="25" Margin="0,5,135,0"  FontWeight="Normal"/>
+            <ComboBox x:Name="cbo_goFillColor" Grid.Row="0" Grid.Column="0" Visibility="Hidden" IsEnabled="False"
+                      HorizontalAlignment="Right" VerticalAlignment="Top" 
+                      Width="120" Height="25" Margin="0,5,10,0" 
+                      VerticalContentAlignment="Center" FontWeight="Normal" >
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <Rectangle Fill="{Binding Name}" Width="16" Height="16" Margin="0,2,5,2" />
+                            <TextBlock Text="{Binding Name}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+
+            <Label Content="Target Outline" Grid.Row="0" Grid.Column="1" Visibility="Hidden" IsEnabled="False"
+                   HorizontalAlignment="Right" VerticalAlignment="top" 
+                   HorizontalContentAlignment="Right" VerticalContentAlignment="Center"
+                   Height="25" Margin="0,5,135,0"  FontWeight="Normal"/>
+            <ComboBox x:Name="cbo_goOutlineColor" Grid.Row="0" Grid.Column="1" Visibility="Hidden" IsEnabled="False"
+                      HorizontalAlignment="Right" VerticalAlignment="Top" 
+                      Width="120" Height="25" Margin="0,5,10,0" 
+                      VerticalContentAlignment="Center" FontWeight="Normal" >
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <Rectangle Fill="{Binding Name}" Width="16" Height="16" Margin="0,2,5,2" />
+                            <TextBlock Text="{Binding Name}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+
+
+            <Label Content="Target Shown Background" Grid.Row="5" Grid.Column="0" Visibility="Hidden" IsEnabled="False"
+                   HorizontalAlignment="Right" VerticalAlignment="top" 
+                   HorizontalContentAlignment="Right" VerticalContentAlignment="Center"            
+                   Margin="0,5,135,0"  FontWeight="Normal"/>
+
+            <ComboBox x:Name="cbo_BKTargetShownColor" Grid.Row="5" Grid.Column="0" Visibility="Hidden" IsEnabled="False"
                       HorizontalAlignment="Right" VerticalAlignment="Top" 
                       Width="120" Height="25" Margin="0,5,10,0" 
                       VerticalContentAlignment="Center" FontWeight="Normal">
@@ -124,12 +166,12 @@
             </ComboBox>
 
             <!-- Visual Feedback (Correct and Error) Colors -->
-            <Label Content="Correct Fill" Grid.Row="1" Grid.Column="0" 
+            <Label Content="Correct Fill" Grid.Row="1" Grid.Column="0" Visibility="Hidden" IsEnabled="False"
                    HorizontalAlignment="Right" VerticalAlignment="top" 
                    HorizontalContentAlignment="Right" VerticalContentAlignment="Center"
                    Margin="0,5,135,0"  FontWeight="Normal"/>
 
-            <ComboBox x:Name="cbo_CorrFillColor" Grid.Row="1" Grid.Column="0" 
+            <ComboBox x:Name="cbo_CorrFillColor" Grid.Row="1" Grid.Column="0" Visibility="Hidden" IsEnabled="False"
                       HorizontalAlignment="Right" VerticalAlignment="Top" 
                       Width="120" Height="25" Margin="0,5,10,0" 
                       VerticalContentAlignment="Center" FontWeight="Normal">
@@ -144,12 +186,12 @@
             </ComboBox>
 
 
-            <Label Content="Correct Outline" Grid.Row="1" Grid.Column="1" 
+            <Label Content="Correct Outline" Grid.Row="1" Grid.Column="1" Visibility="Hidden" IsEnabled="False"
                    HorizontalAlignment="Right" VerticalAlignment="top" 
                    HorizontalContentAlignment="Right" VerticalContentAlignment="Center"
                    Margin="0,5,135,0"  FontWeight="Normal"/>
 
-            <ComboBox x:Name="cbo_CorrOutlineColor" Grid.Row="1" Grid.Column="1" 
+            <ComboBox x:Name="cbo_CorrOutlineColor" Grid.Row="1" Grid.Column="1" Visibility="Hidden" IsEnabled="False"
                       HorizontalAlignment="Right" VerticalAlignment="Top" 
                       Width="120" Height="25" Margin="0,5,10,0" 
                       VerticalContentAlignment="Center" FontWeight="Normal">
@@ -164,12 +206,12 @@
             </ComboBox>
 
 
-            <Label Content="Error Fill" Grid.Row="2" Grid.Column="0" 
+            <Label Content="Error Fill" Grid.Row="2" Grid.Column="0" Visibility="Hidden" IsEnabled="False"
                    HorizontalAlignment="Right" VerticalAlignment="top" 
                    HorizontalContentAlignment="Right" VerticalContentAlignment="Center"
                    Margin="0,5,135,0"  FontWeight="Normal"/>
 
-            <ComboBox x:Name="cbo_ErrorFillColor" Grid.Row="2" Grid.Column="0" 
+            <ComboBox x:Name="cbo_ErrorFillColor" Grid.Row="2" Grid.Column="0" Visibility="Hidden" IsEnabled="False"
                       HorizontalAlignment="Right" VerticalAlignment="Top" 
                       Width="120" Height="25" Margin="0,5,10,0" 
                       VerticalContentAlignment="Center" FontWeight="Normal">
@@ -185,11 +227,11 @@
 
 
 
-            <Label Content="Error Outline" Grid.Row="2" Grid.Column="1" 
+            <Label Content="Error Outline" Grid.Row="2" Grid.Column="1" Visibility="Hidden" IsEnabled="False"
                    HorizontalAlignment="Right" VerticalAlignment="top" 
                    HorizontalContentAlignment="Right" VerticalContentAlignment="Center"
                    Margin="0,5,135,0"  FontWeight="Normal"/>
-            <ComboBox x:Name="cbo_ErrorOutlineColor" Grid.Row="2" Grid.Column="1" 
+            <ComboBox x:Name="cbo_ErrorOutlineColor" Grid.Row="2" Grid.Column="1" Visibility="Hidden" IsEnabled="False"
                       HorizontalAlignment="Right" VerticalAlignment="Top" 
                       Width="120" Height="25" Margin="0,5,10,0" 
                       VerticalContentAlignment="Center" FontWeight="Normal">
@@ -204,11 +246,11 @@
             </ComboBox>
 
             <!--Error Crossing Color -->
-            <Label Content="Error Crossing" Grid.Row="3" Grid.Column="0" 
+            <Label Content="Error Crossing" Grid.Row="3" Grid.Column="0" Visibility="Hidden" IsEnabled="False"
                    HorizontalAlignment="Right" VerticalAlignment="top" 
                    HorizontalContentAlignment="Right" VerticalContentAlignment="Center"
                    Height="25" Margin="0,5,135,0"  FontWeight="Normal"/>
-            <ComboBox x:Name="cbo_ErrorCrossingColor" Grid.Row="3" Grid.Column="0" 
+            <ComboBox x:Name="cbo_ErrorCrossingColor" Grid.Row="3" Grid.Column="0" Visibility="Hidden" IsEnabled="False"
                       HorizontalAlignment="Right" VerticalAlignment="Top" 
                       Width="120" Height="25" Margin="0,5,10,0" 
                       VerticalContentAlignment="Center" FontWeight="Normal" >

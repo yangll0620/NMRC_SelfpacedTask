@@ -65,14 +65,24 @@ namespace SelfpacedTask_wpfVer
 
     class ConfigColors
     {
-        [JsonProperty(PropertyName = "Target Fill Color")]
-        public string targetFillColorStr;
-
         [JsonProperty(PropertyName = "Wait Start Background")]
         public string BKWaitTrialColorStr;
 
         [JsonProperty(PropertyName = "Ready Background")]
         public string BKReadyColorStr;
+
+        [JsonProperty(PropertyName = "Correct Background")]
+        public string BKCorrectColorStr;
+
+        [JsonProperty(PropertyName = "Error Background")]
+        public string BKErrorColorStr;
+
+
+
+
+
+        [JsonProperty(PropertyName = "Target Fill Color")]
+        public string targetFillColorStr;
 
 
         [JsonProperty(PropertyName = "Target Shown Background")]
