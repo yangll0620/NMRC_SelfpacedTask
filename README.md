@@ -5,4 +5,4 @@ This is a C# Wpf version of the presentation program in the touch screen of the 
 
 Modified from NMRC_COTTask_wpf
 
-![Alt text](mainWin_SelfpacedTask?raw=true "Selfpaced Task Main Window")
+![Alt text](mainWin.png?raw=true "Selfpaced Task Main Window")
