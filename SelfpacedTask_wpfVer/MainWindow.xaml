@@ -5,12 +5,12 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SelfpacedTask_wpfVer"
         mc:Ignorable="d"
-        Title="Selfpaced Task" Height="600" Width="850"
+        Title="Selfpaced Task" Height="480" Width="850"
         Closing="Window_Closing"  Loaded="Window_Loaded"
         Icon="COTTask.ico">
 
     <Canvas x:Name="canvas1"
-                HorizontalAlignment="Left" Height="580" Margin="0,0,0,0" VerticalAlignment="Top" Width="850">
+                HorizontalAlignment="Left" Height="470" Margin="0,0,0,0" VerticalAlignment="Top" Width="850">
 
         <DockPanel>
             <Menu DockPanel.Dock="Top">
@@ -36,13 +36,12 @@
         </DockPanel>
 
 
-        <Grid Margin="0, 20, 0, 0" Height="560"  Width="840">
+        <Grid Margin="0, 20, 0, 0" Height="450"  Width="840">
 
             <!--Grid RowDefinitions: 0, 1, 2-->
             <Grid.RowDefinitions>
-                <RowDefinition Height="1.5*"/>
+                <RowDefinition Height="1*"/>
                 <RowDefinition Height="3*"/>
-                <RowDefinition Height="4*"/>
                 <RowDefinition Height="1*"/>
             </Grid.RowDefinitions>
 
@@ -86,157 +85,8 @@
             </GroupBox>
 
 
-            <!--Row1: Setup-->
-            <GroupBox Header="Setup" Grid.Row="1" Margin="10,15,0,0"
-                      HorizontalAlignment="Left" VerticalAlignment="Top" 
-                      FontFamily="Microsoft Sans Serif" FontWeight="Bold">
-                <Grid Margin="0, 20, 0, 0" Height="300"  Width="800">
-
-                    <!--Grid RowDefinitions: 0, 1, 2-->
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="3*"/>
-                    </Grid.RowDefinitions>
-
-
-                    <!--Time Setup (s)-->
-                    <Grid Grid.Row="0">
-                        <GroupBox Header="Time Setup (s)">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-
-                                <Grid Grid.Column="0">
-                                    <TextBlock Text ="Max Reaction Time" Height="25" Width ="110"  
-                                               FontWeight="Normal" 
-                                               HorizontalAlignment="Left" VerticalAlignment="Center"  TextAlignment="Right" Padding="3"/>
-
-                                    <TextBox x:Name="textBox_tMaxReaction"  Height="25" Width="50" Margin="120,0,0,0" 
-                                                 HorizontalAlignment="Left" VerticalAlignment="Center" 
-                                                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                                                 TextWrapping="Wrap"   FontWeight="Normal" />
-                                </Grid>
-                                <Grid Grid.Column="1">
-                                    <TextBlock Text ="Max Reach Time" Height="25" Margin="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"  
-                                               FontWeight="Normal" TextAlignment="Right" Padding="3"/>
-
-                                    <TextBox x:Name="textBox_tMaxReach"  Height="25" Width="50" Margin="110,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" 
-                                                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center" TextWrapping="Wrap"   FontWeight="Normal" />
-                                </Grid>
-                                <Grid Grid.Column="2">
-                                    <TextBlock Text ="Feedback Time" Height="25" Margin="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"  
-                                               FontWeight="Normal" TextAlignment="Right" Padding="3"/>
-
-                                    <TextBox x:Name="textBox_tFeedback"  Height="25" Width="50" Margin="100,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" 
-                                                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center" TextWrapping="Wrap"   FontWeight="Normal" />
-                                </Grid>
-                                <Grid Grid.Column="3">
-                                    <TextBlock Text ="Inter-trial Time" Height="25" Margin="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"  
-                                               FontWeight="Normal" TextAlignment="Right" Padding="3"/>
-
-                                    <TextBox x:Name="textBox_tInterTrial"  Height="25" Width="50" Margin="110,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" 
-                                                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center" TextWrapping="Wrap"   FontWeight="Normal" />
-                                </Grid>
-                            </Grid>
-                        </GroupBox>
-
-                    </Grid>
-
-
-                    <!--Color Setup (s)-->
-                    <Grid Grid.Row="1">
-                        <GroupBox Header="Background Color Setup">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-
-                                <Grid Grid.Column="0">
-                                    <Label Content="Wait for Start" Height="25" Margin="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"    
-                                           HorizontalContentAlignment="Right" VerticalContentAlignment="Center" FontWeight="Normal"/>
-
-                                    <ComboBox x:Name="cbo_wait2StartColor"  Width="120" Height="25" Margin="100,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"                                          
-                                              VerticalContentAlignment="Center" FontWeight="Normal" >
-                                        <ComboBox.ItemTemplate>
-                                            <DataTemplate>
-                                                <StackPanel Orientation="Horizontal">
-                                                    <Rectangle Fill="{Binding Name}" Width="16" Height="16" Margin="0,2,5,2" />
-                                                    <TextBlock Text="{Binding Name}" />
-                                                </StackPanel>
-                                            </DataTemplate>
-                                        </ComboBox.ItemTemplate>
-                                    </ComboBox>
-                                </Grid>
-
-                                <Grid Grid.Column="1">
-                                    <Label Content="Wait for Touch" Height="25" Margin="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"    
-                                           HorizontalContentAlignment="Right" VerticalContentAlignment="Center" FontWeight="Normal"/>
-
-                                    <ComboBox x:Name="cbo_BKWait4TouchColor"  Width="120" Height="25" Margin="100,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"                                          
-                                              VerticalContentAlignment="Center" FontWeight="Normal" >
-                                        <ComboBox.ItemTemplate>
-                                            <DataTemplate>
-                                                <StackPanel Orientation="Horizontal">
-                                                    <Rectangle Fill="{Binding Name}" Width="16" Height="16" Margin="0,2,5,2" />
-                                                    <TextBlock Text="{Binding Name}" />
-                                                </StackPanel>
-                                            </DataTemplate>
-                                        </ComboBox.ItemTemplate>
-                                    </ComboBox>
-                                </Grid>
-
-
-                                <Grid Grid.Column="2">
-                                    <Label Content="Feedback" Height="25" Margin="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"    
-                                           HorizontalContentAlignment="Right" VerticalContentAlignment="Center" FontWeight="Normal"/>
-
-                                    <ComboBox x:Name="cbo_BKFeedbackColor"  Width="120" Height="25" Margin="70,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"                                          
-                                              VerticalContentAlignment="Center" FontWeight="Normal" >
-                                        <ComboBox.ItemTemplate>
-                                            <DataTemplate>
-                                                <StackPanel Orientation="Horizontal">
-                                                    <Rectangle Fill="{Binding Name}" Width="16" Height="16" Margin="0,2,5,2" />
-                                                    <TextBlock Text="{Binding Name}" />
-                                                </StackPanel>
-                                            </DataTemplate>
-                                        </ComboBox.ItemTemplate>
-                                    </ComboBox>
-                                </Grid>
-
-                            </Grid>
-
-
-                        </GroupBox>
-
-                    </Grid>
-
-
-
-                    <!--Will be used for Target Setup-->
-                    <Grid Grid.Row="2">
-                        <GroupBox Header="Hot Keys">
-                            <ListBox Width="100" Height="100" VerticalAlignment="Top" HorizontalAlignment="Left" >
-                                <TextBlock Text="Start:  S" FontWeight="Normal"/>
-                                <TextBlock Text="Stop:  Space" FontWeight="Normal"/>
-                            </ListBox>
-                        </GroupBox>
-
-                    </Grid>
-
-                </Grid>
-            </GroupBox>
-
-
-
             <!--Row2: Realtime Feedback and Save folder, audios Parameters-->
-            <Grid Grid.Row="2">
+            <Grid Grid.Row="1">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="2*" />
                     <ColumnDefinition Width="3*"/>
@@ -369,28 +219,18 @@
 
 
             <!--Row2: Buttons-->
-            <Grid Grid.Row="3" >
+            <Grid Grid.Row="2" >
                 <Button x:Name="btn_start" 
                         Content="Start" HorizontalAlignment="Right" VerticalAlignment="Bottom"
-                        Margin="0,0,200,15"  Width="100" Height="35" IsEnabled="False"
+                        Margin="0,0,200,30"  Width="100" Height="35" IsEnabled="False"
                         FontWeight="Bold" FontFamily="Microsoft Sans Serif" FontSize="14" 
                         Click="btnStart_Click" />
 
                 <Button x:Name="btn_stop" IsEnabled="False"
                         Content="Stop" HorizontalAlignment="Right" VerticalAlignment="Bottom" 
-                        Margin="0,0,20,15"  Width="100" Height="35" 
+                        Margin="0,0,20,30"  Width="100" Height="35" 
                         FontWeight="Bold" FontFamily="Microsoft Sans Serif" FontSize="14"
                         Click="Btn_stop_Click"/>
-                <Button x:Name="btn_pause" Visibility="Hidden"
-                    Content="Pause" HorizontalAlignment="Left" VerticalAlignment="Bottom"
-                    Margin="200,0,0,15"  Width="100" Height="35" IsEnabled="False"
-                    FontWeight="Bold" FontFamily="Microsoft Sans Serif" FontSize="14" 
-                    Click="btnPause_Click" />
-                <Button x:Name="btn_resume" Visibility="Hidden"
-                    Content="Resume" HorizontalAlignment="Left" VerticalAlignment="Bottom"
-                    Margin="20,0,0,15"  Width="100" Height="35" IsEnabled="False"
-                    FontWeight="Bold" FontFamily="Microsoft Sans Serif" FontSize="14" 
-                    Click="btnResume_Click" />
 
             </Grid>
 

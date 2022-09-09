@@ -546,7 +546,6 @@ namespace SelfpacedTask_wpfVer
             // Set btn_Start,  btn_stop and btn_pause
             btn_start.IsEnabled = false;
             btn_stop.IsEnabled = true;
-            btn_pause.IsEnabled = true; 
             UninitializeHotKey(HotKeyId_Start);
             InitializeHotKey(key_Stop, HotKeyId_Stop);
             InitializeHotKey(key_Pause, HotKeyId_Pause);
@@ -585,7 +584,7 @@ namespace SelfpacedTask_wpfVer
             // btn_Start and btn_stop
             btn_start.IsEnabled = true;
             btn_stop.IsEnabled = false;
-            btn_pause.IsEnabled = false;
+
 
             InitializeHotKey(key_Start, HotKeyId_Start);
             UninitializeHotKey(HotKeyId_Stop);
@@ -599,9 +598,6 @@ namespace SelfpacedTask_wpfVer
                 taskPresentWin.Present_Pause();
             }
 
-            // btn_Pause and btn_Resume
-            btn_resume.IsEnabled = true;
-            btn_pause.IsEnabled = false;
             InitializeHotKey(key_Resume, HotKeyId_Resume);
             UninitializeHotKey(HotKeyId_Pause);
         }
@@ -610,8 +606,6 @@ namespace SelfpacedTask_wpfVer
         {// Resume presentation 
 
             // btn_Pause and btn_Resume
-            btn_resume.IsEnabled = false;
-            btn_pause.IsEnabled = true;
             UninitializeHotKey(HotKeyId_Resume);
             InitializeHotKey(key_Pause, HotKeyId_Pause);
 
