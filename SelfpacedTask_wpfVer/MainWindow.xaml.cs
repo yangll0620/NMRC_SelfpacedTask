@@ -29,12 +29,12 @@ namespace SelfpacedTask_wpfVer
         presentation taskPresentWin;
 
         // Strings stoing the Colors
-        public string BKWaitTrialColorStr, BKReadyColorStr, BKCorrectColorStr, BKErrorColorStr;
+        public string BKWaitTrialColorStr, BKHoldColorStr, BKCorrectColorStr, BKErrorColorStr;
         public string targetFillColorStr, targetOutlineColorStr, BKTargetShownColorStr;
         public string CorrFillColorStr, CorrOutlineColorStr, ErrorFillColorStr, ErrorOutlineColorStr, ErrorCrossingColorStr;
 
         // Time Related Variables
-        public float[] tRange_ReadyTimeS;
+        public float[] tRange_HoldTimeS;
         public float tMax_ReactionTimeS, tMax_ReachTimeS, t_VisfeedbackShowS, t_InterTrialS, t_JuicerCorrectGivenS;
 
 
@@ -204,7 +204,7 @@ namespace SelfpacedTask_wpfVer
 
                 // Save Time Settings
                 file.WriteLine("\nTime Settings:");
-                file.WriteLine(String.Format("{0, -40}:  [{1} {2}]", "Ready Interface Show Time Range (s)", tRange_ReadyTimeS[0].ToString(), tRange_ReadyTimeS[1].ToString()));
+                file.WriteLine(String.Format("{0, -40}:  [{1} {2}]", "Ready Interface Show Time Range (s)", tRange_HoldTimeS[0].ToString(), tRange_HoldTimeS[1].ToString()));
                 file.WriteLine(String.Format("{0, -40}:  {1}", "Max Reaction Time (s)", tMax_ReactionTimeS.ToString()));
                 file.WriteLine(String.Format("{0, -40}:  {1}", "Max Reach Time (s)", tMax_ReachTimeS.ToString()));
                 file.WriteLine(String.Format("{0, -40}:  {1}", "Inter-Trial Time (s)", t_InterTrialS.ToString()));
@@ -214,7 +214,7 @@ namespace SelfpacedTask_wpfVer
                 // Save Color Settings
                 file.WriteLine("\nColor Settings:");
                 file.WriteLine(String.Format("{0, -40}:  {1}", "Wait Start Background", BKWaitTrialColorStr));
-                file.WriteLine(String.Format("{0, -40}:  {1}", "Ready Background", BKReadyColorStr));
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Ready Background", BKHoldColorStr));
                 file.WriteLine(String.Format("{0, -40}:  {1}", "Correct Background", BKCorrectColorStr));
                 file.WriteLine(String.Format("{0, -40}:  {1}", "Error Background", BKErrorColorStr));
 
@@ -417,7 +417,7 @@ namespace SelfpacedTask_wpfVer
 
             // Times Sections
             var configTime = config["Times"];
-            tRange_ReadyTimeS = new float[] {float.Parse((string)configTime["Ready Show Time Range"][0]), float.Parse((string)configTime["Ready Show Time Range"][1])};
+            tRange_HoldTimeS = new float[] {float.Parse((string)configTime["Ready Show Time Range"][0]), float.Parse((string)configTime["Ready Show Time Range"][1])};
             tMax_ReactionTimeS = float.Parse((string)configTime["Max Reach Time"]);
             tMax_ReachTimeS = float.Parse((string)configTime["Max Reaction Time"]);
             t_VisfeedbackShowS = float.Parse((string)configTime["Visual Feedback Show Time"]);
@@ -427,7 +427,7 @@ namespace SelfpacedTask_wpfVer
             // Color Sections
             var configColors = config["Colors"];
             BKWaitTrialColorStr = configColors["Wait Start Background"];
-            BKReadyColorStr = configColors["Ready Background"];
+            BKHoldColorStr = configColors["Ready Background"];
             BKCorrectColorStr = configColors["Correct Background"];
             BKErrorColorStr = configColors["Error Background"];
 
@@ -462,7 +462,7 @@ namespace SelfpacedTask_wpfVer
 
             // config Times
             ConfigTimes configTimes = new ConfigTimes();
-            configTimes.tRange_ReadyTime = tRange_ReadyTimeS;
+            configTimes.tRange_ReadyTime = tRange_HoldTimeS;
             configTimes.tMax_ReactionTime = tMax_ReactionTimeS;
             configTimes.tMax_ReachTime = tMax_ReachTimeS;
             configTimes.t_InterTrial = t_InterTrialS;
@@ -480,7 +480,7 @@ namespace SelfpacedTask_wpfVer
             // config Colors
             ConfigColors configColors = new ConfigColors();
             configColors.BKWaitTrialColorStr = BKWaitTrialColorStr;
-            configColors.BKReadyColorStr = BKReadyColorStr;
+            configColors.BKReadyColorStr = BKHoldColorStr;
             configColors.BKCorrectColorStr = BKCorrectColorStr;
             configColors.BKErrorColorStr = BKErrorColorStr;
 

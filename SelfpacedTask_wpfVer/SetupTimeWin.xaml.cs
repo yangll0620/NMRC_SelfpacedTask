@@ -38,8 +38,8 @@ namespace SelfpacedTask_wpfVer
         private void LoadInitTimeData()
         {// Load Initial Time Data from MainWindow
 
-            textBox_tReady_min.Text = parent.tRange_ReadyTimeS[0].ToString();
-            textBox_tReady_max.Text = parent.tRange_ReadyTimeS[1].ToString();
+            textBox_tReady_min.Text = parent.tRange_HoldTimeS[0].ToString();
+            textBox_tReady_max.Text = parent.tRange_HoldTimeS[1].ToString();
 
 
             textBox_MaxReachTime.Text = parent.tMax_ReachTimeS.ToString();
@@ -52,8 +52,8 @@ namespace SelfpacedTask_wpfVer
 
         private void SaveTimeData()
         {/* ---- Save all the Set Time Information back to MainWindow Variables ----- */
-            parent.tRange_ReadyTimeS[0] = float.Parse(textBox_tReady_min.Text);
-            parent.tRange_ReadyTimeS[1] = float.Parse(textBox_tReady_max.Text);
+            parent.tRange_HoldTimeS[0] = float.Parse(textBox_tReady_min.Text);
+            parent.tRange_HoldTimeS[1] = float.Parse(textBox_tReady_max.Text);
 
 
             parent.tMax_ReachTimeS = float.Parse(textBox_MaxReachTime.Text);

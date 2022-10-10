@@ -47,7 +47,7 @@ namespace SelfpacedTask_wpfVer
 
             // Set Default Selected Item
             cbo_BKWaitTrialColor.SelectedItem = typeof(Colors).GetProperty(parent.BKWaitTrialColorStr);
-            cbo_BKReadyColor.SelectedItem = typeof(Colors).GetProperty(parent.BKReadyColorStr);
+            cbo_BKReadyColor.SelectedItem = typeof(Colors).GetProperty(parent.BKHoldColorStr);
             cbo_BKCorrectColor.SelectedItem = typeof(Colors).GetProperty(parent.BKCorrectColorStr);
             cbo_BKErrorColor.SelectedItem = typeof(Colors).GetProperty(parent.BKErrorColorStr);
 
@@ -80,7 +80,7 @@ namespace SelfpacedTask_wpfVer
         { /* ---- Save all the Select Colors Information back to MainWindow Color Strings ----- */
 
             parent.BKWaitTrialColorStr = (cbo_BKWaitTrialColor.SelectedItem as PropertyInfo).Name;
-            parent.BKReadyColorStr = (cbo_BKReadyColor.SelectedItem as PropertyInfo).Name;
+            parent.BKHoldColorStr = (cbo_BKReadyColor.SelectedItem as PropertyInfo).Name;
             parent.BKCorrectColorStr = (cbo_BKCorrectColor.SelectedItem as PropertyInfo).Name;
             parent.BKErrorColorStr = (cbo_BKErrorColor.SelectedItem as PropertyInfo).Name;
 

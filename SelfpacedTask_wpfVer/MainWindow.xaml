@@ -113,7 +113,7 @@
                                          IsEnabled="False" HorizontalAlignment="Left" VerticalAlignment="Top" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                          Height="25" Width ="75" Margin="110,10,5,0" TextWrapping="Wrap"   FontSize="11" FontWeight="Normal" />
 
-                        <Label Content="Success Go Trials" Grid.Row="1"
+                        <Label Content="Touched Trials" Grid.Row="1"
                                        HorizontalAlignment="Left" VerticalAlignment="top" HorizontalContentAlignment="Right" VerticalContentAlignment="Center"                             
                                        Height="25" Margin="5,10,0,0"  FontWeight="Normal" FontSize="11"/>
                         <TextBox x:Name="textBox_successGoTrialNum"  Grid.Row="1" Text="0"
@@ -127,18 +127,10 @@
                                          HorizontalAlignment="Left" VerticalAlignment="Top" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                          Height="25" Width ="75" Margin="110,10,5,0" TextWrapping="Wrap"   FontSize="11" FontWeight="Normal" />
 
-
-                        <Label Content="No Reaction Trials" Grid.Row="2"
+                        <Label Content="No Touch Trials" Grid.Row="2"
                                        HorizontalAlignment="Left" VerticalAlignment="top" HorizontalContentAlignment="Right" VerticalContentAlignment="Center"                             
                                        Height="25" Margin="5,10,0,0"  FontWeight="Normal" FontSize="11"/>
-                        <TextBox x:Name="textBox_noreactionGoTrialNum"  Grid.Row="2" Text="0"
-                                         IsEnabled="False" HorizontalAlignment="Left" VerticalAlignment="Top" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                                         Height="25" Width ="75" Margin="110,10,5,0" TextWrapping="Wrap"   FontSize="11" FontWeight="Normal" />
-
-                        <Label Content="No Reach Trials" Grid.Row="3"
-                                       HorizontalAlignment="Left" VerticalAlignment="top" HorizontalContentAlignment="Right" VerticalContentAlignment="Center"                             
-                                       Height="25" Margin="5,10,0,0"  FontWeight="Normal" FontSize="11"/>
-                        <TextBox x:Name="textBox_noreachGoTrialNum"  Grid.Row="3" Text="0"
+                        <TextBox x:Name="textBox_noreachGoTrialNum"  Grid.Row="2" Text="0"
                                          IsEnabled="False" HorizontalAlignment="Left" VerticalAlignment="Top" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                          Height="25" Width ="75" Margin="110,10,5,0" TextWrapping="Wrap"   FontSize="11" FontWeight="Normal"/>
                     </Grid>
