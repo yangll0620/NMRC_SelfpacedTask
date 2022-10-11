@@ -204,7 +204,7 @@ namespace SelfpacedTask_wpfVer
 
                 // Save Time Settings
                 file.WriteLine("\nTime Settings:");
-                file.WriteLine(String.Format("{0, -40}:  [{1} {2}]", "Ready Interface Show Time Range (s)", tRange_HoldTimeS[0].ToString(), tRange_HoldTimeS[1].ToString()));
+                file.WriteLine(String.Format("{0, -40}:  [{1} {2}]", "Hold  Time Range (s)", tRange_HoldTimeS[0].ToString(), tRange_HoldTimeS[1].ToString()));
                 file.WriteLine(String.Format("{0, -40}:  {1}", "Max Reaction Time (s)", tMax_ReactionTimeS.ToString()));
                 file.WriteLine(String.Format("{0, -40}:  {1}", "Max Reach Time (s)", tMax_ReachTimeS.ToString()));
                 file.WriteLine(String.Format("{0, -40}:  {1}", "Inter-Trial Time (s)", t_InterTrialS.ToString()));

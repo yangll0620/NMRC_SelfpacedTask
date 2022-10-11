@@ -26,9 +26,10 @@ namespace SelfpacedTask_wpfVer
 
         public enum TrialExeResult
         {
-            holdTooShort,
+            Idle,
+            HoldTooShort,
             ReachTimeToolong,
-            touched
+            Touched
         }
 
         public enum ScreenTouchState
@@ -108,7 +109,7 @@ namespace SelfpacedTask_wpfVer
 
 
         // Executed Trial Information
-        public int totalTrialNum, successTrialNum;
+        public int totalTrialNum, successTrialNum, noreachGoTrialNum, shortHoldTrialNum;
 
 
 
@@ -143,7 +144,8 @@ namespace SelfpacedTask_wpfVer
         static string Code_TouchTriggerTrial = "1110";
         static string Code_HoldInterfaceShown = "0110";
         static string Code_LeaveStartpad_Early = "1001";
-        static string Code_LeaveStartpad_InitMove = "0011";
+        static string Code_HoldTooShort = "0011";
+        static string Code_LeaveStartpad_InitMove = "1010";
         static string Code_GoReachTooLong = "1011";
         static string Code_GoTouched = "1101";
 
@@ -152,6 +154,7 @@ namespace SelfpacedTask_wpfVer
         string TDTCmd_InitState, TDTCmd_TouchTriggerTrial, TDTCmd_LeaveStartpad_Early, TDTCmd_LeaveStartpad_InitMove, TDTCmd_HoldTooShort;
         string TDTCmd_GoReachTooLong, TDTCmd_GoTouched;
         string TDTCmd_HoldInterfaceShown;
+
 
         /* startpad parameters */
         PressedStartpad pressedStartpad;
@@ -165,6 +168,7 @@ namespace SelfpacedTask_wpfVer
 
         // Global stopwatch
         Stopwatch globalWatch;
+        int t_trialHoldMS;
 
 
         // Variables for Various Time Points during trials
@@ -174,12 +178,7 @@ namespace SelfpacedTask_wpfVer
 
         // variables for counting total trials and blockN
         int totalTriali;
-        int noreachGoTrialNum;
 
-
-        static string Code_Wait4TouchShown = "1010";
-        long timePoint_Interface_Wait4TouchOnset;
-        string TDTCmd_Wait4TouchShown;
 
 
         /*****Methods*******/
@@ -279,14 +278,12 @@ namespace SelfpacedTask_wpfVer
         {
             TDTCmd_InitState = Convert2_IO8EventCmd_Bit5to8(Code_InitState);
             TDTCmd_TouchTriggerTrial = Convert2_IO8EventCmd_Bit5to8(Code_TouchTriggerTrial);
-            TDTCmd_LeaveStartpad_Early = Convert2_IO8EventCmd_Bit5to8(Code_LeaveStartpad_Early);
             TDTCmd_HoldInterfaceShown = Convert2_IO8EventCmd_Bit5to8(Code_HoldInterfaceShown);
-            TDTCmd_HoldTooShort = Convert2_IO8EventCmd_Bit5to8(Code_LeaveStartpad_InitMove);
+            TDTCmd_LeaveStartpad_Early = Convert2_IO8EventCmd_Bit5to8(Code_LeaveStartpad_Early);
+            TDTCmd_HoldTooShort = Convert2_IO8EventCmd_Bit5to8(Code_HoldTooShort);
+            TDTCmd_LeaveStartpad_InitMove = Convert2_IO8EventCmd_Bit5to8(Code_LeaveStartpad_InitMove);
             TDTCmd_GoReachTooLong = Convert2_IO8EventCmd_Bit5to8(Code_GoReachTooLong);
             TDTCmd_GoTouched = Convert2_IO8EventCmd_Bit5to8(Code_GoTouched);
-
-
-            TDTCmd_Wait4TouchShown = Convert2_IO8EventCmd_Bit5to8(Code_Wait4TouchShown);
         }
 
         public void Prepare_bef_Present()
@@ -343,14 +340,9 @@ namespace SelfpacedTask_wpfVer
                 file.WriteLine(String.Format("{0, -40}", "Trial Information"));
                 file.WriteLine(String.Format("{0, -40}:  {1}", "Unit of Touch Point X Y Position", "Pixal"));
                 file.WriteLine(String.Format("{0, -40}:  {1}", "Touch Point X Y Coordinate System", "(0,0) in Top Left Corner, Right and Down Direction is Positive"));
-                file.WriteLine(String.Format("{0, -40}:  {1}", "Unit of Event TimePoint/Time", "Second"));
-                file.WriteLine(String.Format("{0, -40}:  {1}", "Center Coordinates of Each Target", "((0,0) in Center of the Screen, Right and Down Direction is Positive)"));
-                for (int i = 0; i < parent.optPostions_OCenter_List.Count; i++)
-                {
-                    int[] position = parent.optPostions_OCenter_List[i];
-                    file.WriteLine(String.Format("{0, -40}:{1}, {2}", "Postion " + i.ToString(), position[0], position[1]));
-                }
+                file.WriteLine(String.Format("{0, -40}:  {1}", "Unit of Event TimePoint/Time", "microSecond"));
                 file.WriteLine("\n");
+
 
                 file.WriteLine(String.Format("{0, -40}", "Event Codes in TDT System:"));
                 file.WriteLine(String.Format("{0, -40}:  {1}", nameof(Code_InitState), Code_InitState));
@@ -388,8 +380,9 @@ namespace SelfpacedTask_wpfVer
             timestamp_0 = DateTime.Now.Ticks;
             while (PresentTrial)
             {
-                int t_HoldMS = (int)Utility.TransferTo((float)rnd.NextDouble(), parent.tRange_HoldTimeS[0], parent.tRange_HoldTimeS[1]) * 1000;
+                reset_TrialParas();
 
+                t_trialHoldMS = (int)(Utility.TransferTo((float)rnd.NextDouble(), parent.tRange_HoldTimeS[0], parent.tRange_HoldTimeS[1]) * 1000);
                 // Write InitState
                 if (serialPort_IO8.IsOpen)
                     serialPort_IO8.WriteLine(TDTCmd_InitState);
@@ -412,7 +405,7 @@ namespace SelfpacedTask_wpfVer
 
                 try
                 {
-                    await Interface_Hold(t_HoldMS);
+                    await Interface_Hold(t_trialHoldMS);
 
                     await Wait_SelfInitMove();
 
@@ -431,7 +424,7 @@ namespace SelfpacedTask_wpfVer
 
 
                 // save Trial Information to Txt
-                //saveTrialInf2Txt();
+                saveTrialInf2Txt();
 
 
                 if (PresentTrial == false)
@@ -439,7 +432,7 @@ namespace SelfpacedTask_wpfVer
 
 
                 // Wait t_InterTrialMS between the end of the trial and before the next
-                /*Stopwatch waitWatch = new Stopwatch();
+                Stopwatch waitWatch = new Stopwatch();
                 waitWatch.Start();
                 while (PresentTrial)
                 {
@@ -448,7 +441,7 @@ namespace SelfpacedTask_wpfVer
                         waitWatch.Stop();
                         break;
                     }
-                }*/
+                }
             }
 
 
@@ -470,11 +463,7 @@ namespace SelfpacedTask_wpfVer
         }
 
 
-        private void Remove_All()
-        {
-            myGrid.Background = new SolidColorBrush(Colors.White);
-        }
-
+        
         private Task Interface_WaitStartTrial()
         {
             /* task for WaitStart interface
@@ -538,6 +527,7 @@ namespace SelfpacedTask_wpfVer
             {
                 screenTouchstate = ScreenTouchState.Idle;
                 await Wait_Reach(t_MaxReachTimeMS);
+                trialExeResult = TrialExeResult.Touched;
 
                 Feedback_Correct();
                 await Task.Delay(1000);
@@ -625,8 +615,10 @@ namespace SelfpacedTask_wpfVer
                 {
                     if (serialPort_IO8.IsOpen)
                         serialPort_IO8.WriteLine(TDTCmd_HoldTooShort);
-                    trialExeResult = TrialExeResult.holdTooShort;
+                    trialExeResult = TrialExeResult.HoldTooShort;
                     timePoint_Startpad_LeftEarly = globalWatch.ElapsedMilliseconds;
+
+                    shortHoldTrialNum++;
 
                     throw new TaskCanceledException("HoldTooShort");
                 }
@@ -695,13 +687,25 @@ namespace SelfpacedTask_wpfVer
 ;
         }
 
+
+
+        private void reset_TrialParas()
+        {
+            timePoint_Startpad_Touch2StartTrial = 0;
+            timePoint_Startpad_LeftEarly = 0;
+            timePoint_Startpad_Left2InitMove = 0;
+            touchPoints_PosTime.Clear();
+            trialExeResult = TrialExeResult.Idle;
+            t_trialHoldMS = 0;
+        }
+
         void saveTrialInf2Txt()
         {
             /*-------- Write Trial Information ------*/
             List<String> strExeSubResult = new List<String>();
-            strExeSubResult.Add("ReactionTimeToolong");
+            strExeSubResult.Add("HoldTooShort");
             strExeSubResult.Add("ReachTimeToolong");
-            strExeSubResult.Add("Success");
+            strExeSubResult.Add("Touched");
             String strExeFail = "Failed";
             String strExeSuccess = "Success";
 
@@ -714,22 +718,25 @@ namespace SelfpacedTask_wpfVer
                 file.WriteLine("\n");
 
                 file.WriteLine(String.Format("{0, -40}: {1}", "TrialNum", totalTriali.ToString()));
-                file.WriteLine(String.Format("{0, -40}: {1}", "Startpad Touched TimePoint", timePoint_Startpad_Touch2StartTrial.ToString()));
+                file.WriteLine(String.Format("{0, -40}: {1}", "Startpad Touched to Start TimePoint", timePoint_Startpad_Touch2StartTrial.ToString()));
+                file.WriteLine(String.Format("{0, -40}: {1}", "Current trial Required Holding Time", t_trialHoldMS.ToString()));
 
-                // Wait4Touch Interface showed TimePoint
-                file.WriteLine(String.Format("{0, -40}: {1}", "Wait for Touching Start TimePoint", timePoint_Interface_Wait4TouchOnset.ToString()));
-
-
+                
                 // trialExeResult
-                if (trialExeResult == TrialExeResult.ReachTimeToolong)
+                if (trialExeResult == TrialExeResult.HoldTooShort)
                 {
-                    file.WriteLine(String.Format("{0, -40}: {1}", "Startpad Left TimePoint", timePoint_Startpad_LeftEarly.ToString()));
+                    file.WriteLine(String.Format("{0, -40}: {1}", "Startpad Left Early TimePoint", timePoint_Startpad_LeftEarly.ToString()));
+                    file.WriteLine(String.Format("{0, -40}: {1}, {2}", "Trial Result", strExeFail, strExeSubResult[0]));
+                }
+                else if (trialExeResult == TrialExeResult.ReachTimeToolong)
+                {
+                    file.WriteLine(String.Format("{0, -40}: {1}", "Startpad Left to Self-Initiate a Reach", timePoint_Startpad_Left2InitMove.ToString()));
                     file.WriteLine(String.Format("{0, -40}: {1}, {2}", "Trial Result", strExeFail, strExeSubResult[1]));
                 }
 
-                else if (trialExeResult == TrialExeResult.touched)
+                else if (trialExeResult == TrialExeResult.Touched)
                 {
-                    file.WriteLine(String.Format("{0, -40}: {1}", "Startpad Left TimePoint", timePoint_Startpad_LeftEarly.ToString()));
+                    file.WriteLine(String.Format("{0, -40}: {1}", "Startpad Left to Self-Initiate a Reach", timePoint_Startpad_Left2InitMove.ToString()));
 
 
                     //  touched  timepoint and (x, y position) of all touch points
@@ -738,7 +745,7 @@ namespace SelfpacedTask_wpfVer
                         double[] downPoint = touchPoints_PosTime[pointi];
 
                         // touched pointi touchpoint
-                        file.WriteLine(String.Format("{0, -40}: {1, -40}", "Touch Point " + pointi.ToString() + " TimePoint", ((decimal)downPoint[1] / ms2sRatio).ToString()));
+                        file.WriteLine(String.Format("{0, -40}: {1, -40}", "Touch Point " + pointi.ToString() + " TimePoint", downPoint[1].ToString()));
 
                         // touched pointi position
                         file.WriteLine(String.Format("{0, -40}: {1}", "Touch Point " + pointi.ToString() + " XY Position", downPoint[2].ToString() + ", " + downPoint[3].ToString()));
@@ -810,7 +817,8 @@ namespace SelfpacedTask_wpfVer
                 file.WriteLine(String.Format("{0}", "Summary of the Trials"));
                 file.WriteLine(String.Format("{0, -40}: {1}", "Total Trials", totalTrialNum.ToString()));
                 file.WriteLine(String.Format("{0, -40}: {1}", "Success Trials", successTrialNum.ToString()));
-                file.WriteLine(String.Format("{0, -40}: {1}", "No Reach Trials", noreachGoTrialNum.ToString()));
+                file.WriteLine(String.Format("{0, -40}: {1}", "No Reach Within Max Reach Time Trials", noreachGoTrialNum.ToString()));
+                file.WriteLine(String.Format("{0, -40}: {1}", "Short Hold Trials", shortHoldTrialNum.ToString()));
             }
 
         }
@@ -823,7 +831,7 @@ namespace SelfpacedTask_wpfVer
             parent.textBox_totalGoTrialNum.Text = totalTrialNum.ToString();
             parent.textBox_successGoTrialNum.Text = successTrialNum.ToString();
             parent.textBox_noreachGoTrialNum.Text = noreachGoTrialNum.ToString();
-
+            parent.textBox_shortHoldTrialNum.Text = shortHoldTrialNum.ToString();
         }
 
         private void Init_FeedbackTrialsInformation()
@@ -833,11 +841,13 @@ namespace SelfpacedTask_wpfVer
             totalTrialNum = 0;
             successTrialNum = 0;
             noreachGoTrialNum = 0;
+            shortHoldTrialNum = 0;
 
             // Update Main Window Feedback 
             parent.textBox_totalGoTrialNum.Text = totalTrialNum.ToString();
             parent.textBox_successGoTrialNum.Text = successTrialNum.ToString();
             parent.textBox_noreachGoTrialNum.Text = noreachGoTrialNum.ToString();
+            parent.textBox_shortHoldTrialNum.Text = shortHoldTrialNum.ToString();
 
         }
 
