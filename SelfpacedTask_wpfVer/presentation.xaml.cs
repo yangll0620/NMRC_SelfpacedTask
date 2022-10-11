@@ -109,8 +109,7 @@ namespace SelfpacedTask_wpfVer
 
 
         // Executed Trial Information
-        public int totalTrialNum, successTrialNum, noreachGoTrialNum, shortHoldTrialNum;
-
+        public int totalTriali, successTrialNum, noreachGoTrialNum, shortHoldTrialNum;
 
 
         // executeresult of each trial
@@ -174,10 +173,6 @@ namespace SelfpacedTask_wpfVer
         // Variables for Various Time Points during trials
         long timePoint_Startpad_Touch2StartTrial, timePoint_Startpad_LeftEarly, timePoint_Startpad_Left2InitMove;
         long timePoint_Interface_HoldOnset;
-
-
-        // variables for counting total trials and blockN
-        int totalTriali;
 
 
 
@@ -529,6 +524,7 @@ namespace SelfpacedTask_wpfVer
                 await Wait_Reach(t_MaxReachTimeMS);
                 trialExeResult = TrialExeResult.Touched;
 
+                successTrialNum++;
                 Feedback_Correct();
                 await Task.Delay(1000);
             }
@@ -815,7 +811,7 @@ namespace SelfpacedTask_wpfVer
                 file.WriteLine("\n\n");
 
                 file.WriteLine(String.Format("{0}", "Summary of the Trials"));
-                file.WriteLine(String.Format("{0, -40}: {1}", "Total Trials", totalTrialNum.ToString()));
+                file.WriteLine(String.Format("{0, -40}: {1}", "Total Trials", totalTriali.ToString()));
                 file.WriteLine(String.Format("{0, -40}: {1}", "Success Trials", successTrialNum.ToString()));
                 file.WriteLine(String.Format("{0, -40}: {1}", "No Reach Within Max Reach Time Trials", noreachGoTrialNum.ToString()));
                 file.WriteLine(String.Format("{0, -40}: {1}", "Short Hold Trials", shortHoldTrialNum.ToString()));
@@ -827,8 +823,7 @@ namespace SelfpacedTask_wpfVer
         public void Update_FeedbackTrialsInformation()
         {/* Update the Feedback Trial Information in the Mainwindow */
 
-            // Go trials
-            parent.textBox_totalGoTrialNum.Text = totalTrialNum.ToString();
+            parent.textBox_totalGoTrialNum.Text = totalTriali.ToString();
             parent.textBox_successGoTrialNum.Text = successTrialNum.ToString();
             parent.textBox_noreachGoTrialNum.Text = noreachGoTrialNum.ToString();
             parent.textBox_shortHoldTrialNum.Text = shortHoldTrialNum.ToString();
@@ -838,13 +833,13 @@ namespace SelfpacedTask_wpfVer
         {/* Update the Feedback Trial Information in the Mainwindow */
 
 
-            totalTrialNum = 0;
+            totalTriali = 0;
             successTrialNum = 0;
             noreachGoTrialNum = 0;
             shortHoldTrialNum = 0;
 
             // Update Main Window Feedback 
-            parent.textBox_totalGoTrialNum.Text = totalTrialNum.ToString();
+            parent.textBox_totalGoTrialNum.Text = totalTriali.ToString();
             parent.textBox_successGoTrialNum.Text = successTrialNum.ToString();
             parent.textBox_noreachGoTrialNum.Text = noreachGoTrialNum.ToString();
             parent.textBox_shortHoldTrialNum.Text = shortHoldTrialNum.ToString();
