@@ -141,9 +141,9 @@ namespace SelfpacedTask_wpfVer
 
         static string Code_InitState = "0000";
         static string Code_TouchTriggerTrial = "1110";
-        static string Code_HoldInterfaceShown = "0110";
+        static string Code_HoldInterfaceShown = "0110"; //
         static string Code_LeaveStartpad_Early = "1001";
-        static string Code_HoldTooShort = "0011";
+        static string Code_HoldTooShort = "0011";//
         static string Code_LeaveStartpad_InitMove = "1010";
         static string Code_GoReachTooLong = "1011";
         static string Code_GoTouched = "1101";
@@ -342,7 +342,9 @@ namespace SelfpacedTask_wpfVer
                 file.WriteLine(String.Format("{0, -40}", "Event Codes in TDT System:"));
                 file.WriteLine(String.Format("{0, -40}:  {1}", nameof(Code_InitState), Code_InitState));
                 file.WriteLine(String.Format("{0, -40}:  {1}", nameof(Code_TouchTriggerTrial), Code_TouchTriggerTrial));
+                file.WriteLine(String.Format("{0, -40}:  {1}", nameof(Code_HoldInterfaceShown), Code_HoldInterfaceShown));
                 file.WriteLine(String.Format("{0, -40}:  {1}", nameof(Code_LeaveStartpad_Early), Code_LeaveStartpad_Early));
+                file.WriteLine(String.Format("{0, -40}:  {1}", nameof(Code_HoldTooShort), Code_HoldTooShort));
                 file.WriteLine(String.Format("{0, -40}:  {1}", nameof(Code_LeaveStartpad_InitMove), Code_LeaveStartpad_InitMove));
                 file.WriteLine(String.Format("{0, -40}:  {1}", nameof(Code_GoReachTooLong), Code_GoReachTooLong));
                 file.WriteLine(String.Format("{0, -40}:  {1}", nameof(Code_GoTouched), Code_GoTouched));
@@ -352,7 +354,9 @@ namespace SelfpacedTask_wpfVer
                 file.WriteLine(String.Format("{0, -40}", "IO8 Commands:"));
                 file.WriteLine(String.Format("{0, -40}:  {1}", nameof(TDTCmd_InitState), TDTCmd_InitState));
                 file.WriteLine(String.Format("{0, -40}:  {1}", nameof(TDTCmd_TouchTriggerTrial), TDTCmd_TouchTriggerTrial));
+                file.WriteLine(String.Format("{0, -40}:  {1}", nameof(TDTCmd_HoldInterfaceShown), TDTCmd_HoldInterfaceShown));
                 file.WriteLine(String.Format("{0, -40}:  {1}", nameof(TDTCmd_LeaveStartpad_Early), TDTCmd_LeaveStartpad_Early));
+                file.WriteLine(String.Format("{0, -40}:  {1}", nameof(TDTCmd_HoldTooShort), TDTCmd_HoldTooShort));
                 file.WriteLine(String.Format("{0, -40}:  {1}", nameof(TDTCmd_LeaveStartpad_InitMove), TDTCmd_LeaveStartpad_InitMove));
                 file.WriteLine(String.Format("{0, -40}:  {1}", nameof(TDTCmd_GoReachTooLong), TDTCmd_GoReachTooLong));
                 file.WriteLine(String.Format("{0, -40}:  {1}", nameof(TDTCmd_GoTouched), TDTCmd_GoTouched));
@@ -530,6 +534,9 @@ namespace SelfpacedTask_wpfVer
             }
             catch (TaskCanceledException)
             {
+                if (serialPort_IO8.IsOpen)
+                    serialPort_IO8.WriteLine(TDTCmd_GoReachTooLong);
+                
                 Feedback_ERROR();
                 await Task.Delay(1000);
 
